@@ -1,0 +1,10 @@
+{
+  "google_client_id": "YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com",
+  "gemini_api_key": "YOUR_GEMINI_API_KEY_HERE",
+  "openai_api_key": "YOUR_OPENAI_API_KEY_HERE",
+  "zotero_user_id": "",
+  "zotero_api_key": "",
+  "zotero_library_type": "user",
+  "selected_gemini_model": "gemini-3.6-flash",
+  "custom_storage_dir": ""
+}

@@ -1,0 +1,18 @@
+services:
+  web-super:
+    build: .
+    container_name: web_super_suite
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ZOTERO_USER_ID=${ZOTERO_USER_ID:-12345678}
+      - ZOTERO_API_KEY=${ZOTERO_API_KEY:-TXR4tH9Ab2ghH0mbcFelpSJa}
+      - ZOTERO_LIBRARY_TYPE=user
+    volumes:
+      - ./workspace:/app/workspace

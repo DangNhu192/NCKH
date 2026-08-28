@@ -1,0 +1,593 @@
+{
+  "total_buttons_in_html": 170,
+  "handled_buttons_count": 168,
+  "unhandled_buttons_count": 2,
+  "unhandled_buttons": [
+    {
+      "line": 2491,
+      "id": null,
+      "onclick": null,
+      "class": "btn btn-secondary btn-sm modal-close-btn",
+      "data_tab": null,
+      "text": "✕",
+      "raw_attrs": "class=\"btn btn-secondary btn-sm modal-close-btn\" style=\"padding: 4px 8px; font-size: 13px;\"",
+      "handlers": []
+    },
+    {
+      "line": 2730,
+      "id": null,
+      "onclick": null,
+      "class": "btn btn-secondary modal-close-btn",
+      "data_tab": null,
+      "text": "Hủy",
+      "raw_attrs": "class=\"btn btn-secondary modal-close-btn\"",
+      "handlers": []
+    }
+  ],
+  "total_backend_routes": 121,
+  "dead_fetch_calls": {
+    "math-chem-pro.js": [
+      "/api/math-chem/generate-interpretation",
+      "/api/math-chem/generate-chart",
+      "/api/math-chem/enhance-docx",
+      "/api/math-chem/generate-flowchart",
+      "/api/math-chem/search-images",
+      "/api/math-chem/download-image",
+      "/api/math-chem/convert-equation"
+    ],
+    "bigquery-ml.js": [
+      "/api/bigquery/detect-anomalies",
+      "/api/bigquery/export-docx",
+      "/api/bigquery/generate-sql",
+      "/api/bigquery/forecast",
+      "/api/bigquery/upload-dataset",
+      "/api/bigquery/key-drivers"
+    ],
+    "pdf-ocr-reader.js": [
+      "/api/open-notebook/list"
+    ]
+  },
+  "listeners_by_file": {
+    "document-editor.js": [],
+    "editorial-office.js": [],
+    "app.js": [],
+    "auth.js": [],
+    "pipeline.js": [],
+    "harvester.js": [],
+    "zotero-converter.js": [],
+    "academic-writer.js": [],
+    "humanizer.js": [],
+    "history.js": [],
+    "settings.js": [],
+    "admin.js": [],
+    "onboarding.js": [],
+    "needle_admin.js": [],
+    "agency-agents.js": [],
+    "math-chem-pro.js": [],
+    "notebooklm.js": [],
+    "bigquery-ml.js": [],
+    "pdf-ocr-reader.js": []
+  },
+  "routes_by_file": [
+    {
+      "file": "server.py",
+      "route": "/api/health"
+    },
+    {
+      "file": "server.py",
+      "route": "/"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/auth/google"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/auth/direct-admin-login"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/auth/me"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/auth/activate-key"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/config"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/config"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/status"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/user/check-ready"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/gemini/models"
+    },
+    {
+      "file": "modules/auth/auth_router.py",
+      "route": "/api/gemini/refresh-models"
+    },
+    {
+      "file": "modules/pipeline/pipeline_router.py",
+      "route": "/api/pipeline/steps"
+    },
+    {
+      "file": "modules/pipeline/pipeline_router.py",
+      "route": "/api/pipeline/run-step"
+    },
+    {
+      "file": "modules/pipeline/pipeline_router.py",
+      "route": "/api/pipeline/run-full"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/query"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/query"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/multilingual-keywords"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/multilingual-keywords"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/run"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/search"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/save-to-zotero"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/save-zotero"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/batch-save-to-zotero"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/save-all-zotero"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/clear-cache"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/upload-paper-file"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvester/upload-paper-file"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/download-pdf/{paper_id}"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/download-pdf"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/integrity-check"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/read-for-ai"
+    },
+    {
+      "file": "modules/harvester/harvester_router.py",
+      "route": "/api/harvest/read-pdf"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/sources/upload"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/sources/raw"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/sources/import-workspace"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/sources/{source_id}"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/search"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/chat"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/chat/history"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/chat/history"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/transform"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/notebooks/{notebook_id}/literature-matrix"
+    },
+    {
+      "file": "modules/notebooklm/notebooklm_router.py",
+      "route": "/api/notebooklm/sync"
+    },
+    {
+      "file": "modules/zotero/zotero_router.py",
+      "route": "/api/zotero/status"
+    },
+    {
+      "file": "modules/zotero/zotero_router.py",
+      "route": "/api/zotero/convert"
+    },
+    {
+      "file": "modules/zotero/zotero_router.py",
+      "route": "/api/zotero/convert-docx"
+    },
+    {
+      "file": "modules/zotero/zotero_router.py",
+      "route": "/api/zotero/library"
+    },
+    {
+      "file": "modules/academic_writer/writer_router.py",
+      "route": "/api/writer/outline"
+    },
+    {
+      "file": "modules/academic_writer/writer_router.py",
+      "route": "/api/writer/outline/structured"
+    },
+    {
+      "file": "modules/academic_writer/writer_router.py",
+      "route": "/api/writer/outline/expand-branch"
+    },
+    {
+      "file": "modules/academic_writer/writer_router.py",
+      "route": "/api/writer/outline/add-dimension"
+    },
+    {
+      "file": "modules/academic_writer/writer_router.py",
+      "route": "/api/writer/outline/lock"
+    },
+    {
+      "file": "modules/academic_writer/writer_router.py",
+      "route": "/api/writer/generate-2file"
+    },
+    {
+      "file": "modules/editorial_office/editorial_router.py",
+      "route": "/api/editorial/departments"
+    },
+    {
+      "file": "modules/editorial_office/editorial_router.py",
+      "route": "/api/editorial/analyze"
+    },
+    {
+      "file": "modules/editorial_office/editorial_router.py",
+      "route": "/api/editorial/execute-gate"
+    },
+    {
+      "file": "modules/editorial_office/editorial_router.py",
+      "route": "/api/editorial/evaluate-q1"
+    },
+    {
+      "file": "modules/editorial_office/editorial_router.py",
+      "route": "/api/editorial/adversarial-review"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/files/extract-docx-text"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/analyze"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/unified-process"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/process"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/turnitin-rephrase"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/plagiarism-audit"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/process-docx"
+    },
+    {
+      "file": "modules/humanizer/humanizer_router.py",
+      "route": "/api/humanize/paragraph-by-paragraph"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/workspace/files"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions/active"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions/active"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions/rename"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions/{session_id}"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/sessions/batch-delete"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/batch-delete"
+    },
+    {
+      "file": "modules/history/history_router.py",
+      "route": "/api/history/record"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/users"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/users/update"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/users/{email}/role-status"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/users/delete"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/users/{email}"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/keys"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/license-keys"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/keys"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/license-keys/create"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/license-keys/revoke"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/keys/{key}"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/plans"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/needle/health-audit"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/needle/health-audit"
+    },
+    {
+      "file": "modules/admin_needle/admin_router.py",
+      "route": "/api/admin/needle/chat"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/workspace/files"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/read"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/save"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/delete"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/batch-delete"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/download"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/open-folder"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/open-system"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/docx/upload-and-parse"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/docx/parse"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/docx/save"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/files/docx/batch-replace"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/pdf-ocr/inspect"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/pdf-ocr/upload-and-process"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/pdf-ocr/process"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/pdf-ocr/export-docx"
+    },
+    {
+      "file": "modules/workspace/workspace_router.py",
+      "route": "/api/pdf-ocr/ingest-to-notebook"
+    },
+    {
+      "file": "modules/agency/agency_router.py",
+      "route": "/api/agency/agents"
+    },
+    {
+      "file": "modules/agency/agency_router.py",
+      "route": "/api/agency/agents/{agent_id}"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/convert-equation"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/generate-interpretation"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/generate-chart"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/generate-flowchart"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/search-images"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/download-image"
+    },
+    {
+      "file": "modules/math_chem_pro/math_chem_router.py",
+      "route": "/enhance-docx"
+    },
+    {
+      "file": "modules/bigquery/bigquery_router.py",
+      "route": "/forecast"
+    },
+    {
+      "file": "modules/bigquery/bigquery_router.py",
+      "route": "/detect-anomalies"
+    },
+    {
+      "file": "modules/bigquery/bigquery_router.py",
+      "route": "/key-drivers"
+    },
+    {
+      "file": "modules/bigquery/bigquery_router.py",
+      "route": "/generate-sql"
+    },
+    {
+      "file": "modules/bigquery/bigquery_router.py",
+      "route": "/upload-dataset"
+    },
+    {
+      "file": "modules/bigquery/bigquery_router.py",
+      "route": "/export-docx"
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+
+# ==============================================================================
+# SENSITIVE CREDENTIALS & CONFIGURATIONS (BẢO MẬT API KEYS & USER VAULT)
+# ==============================================================================
+config.json
+config.local.json
+.env
+*.env
+*.key
+auth_vault/*.vault.json
+auth_vault/export_decrypted_backup.json
+auth_vault/profiles/
+
+# ==============================================================================
+# PYTHON VIRTUAL ENVIRONMENTS & COMPILED BYTECODE
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==============================================================================
+# USER WORKSPACE & GENERATED ARTIFACTS (BẢO TOÀN DỮ LIỆU CÁ NHÂN NGHIÊN CỨU)
+# ==============================================================================
+workspace/Tai_Lieu/*
+!workspace/Tai_Lieu/.gitkeep
+workspace/Ban_Thao/*
+!workspace/Ban_Thao/.gitkeep
+workspace/Xuat_Ban/*
+!workspace/Xuat_Ban/.gitkeep
+workspace/Zotero_Converted/*
+!workspace/Zotero_Converted/.gitkeep
+workspace/documents/*
+!workspace/documents/.gitkeep
+workspace/figures/*
+!workspace/figures/.gitkeep
+workspace/charts/*
+!workspace/charts/.gitkeep
+workspace/history/*
+!workspace/history/.gitkeep
+workspace/.history/
+workspace/Logs/
+workspace/Backups/
+workspace/notebooks/*
+!workspace/notebooks/.gitkeep
+workspace/*.json
+workspace/*.docx
+workspace/*.pdf
+workspace/*.png
+workspace/*.jpg
+workspace/*.md
+workspace/*.ris
+workspace/*.bib
+
+# Legacy/temp artifact directories in modules/workspace
+modules/workspace/Backups/
+modules/workspace/Tai_Lieu/
+modules/workspace/Ban_Thao/
+modules/workspace/Logs/
+modules/workspace/Xuat_Ban/
+modules/workspace/Zotero_Converted/
+modules/workspace/charts/
+modules/workspace/.history/
+modules/workspace/*.md
+modules/workspace/*.docx
+modules/workspace/*.ris
+
+# ==============================================================================
+# LARGE LOCAL ARCHIVE / RELEASES
+# ==============================================================================
+Xac_Nhan_Hoan_Hao/Full_System_Snapshots/
+Xac_Nhan_Hoan_Hao/Modules_Source_Code/*
+!Xac_Nhan_Hoan_Hao/Modules_Source_Code/.gitkeep
+
+# ==============================================================================
+# OS & IDE CONFIGURATIONS
+# ==============================================================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+tmp/
+
+# START Ruler Generated Files
+/.agent/rules/ruler.md
+/.agent/rules/ruler.md.bak
+/.aiassistant/rules/AGENTS.md
+/.aiassistant/rules/AGENTS.md.bak
+/.aider.conf.yml
+/.aider.conf.yml.bak
+/.amazonq/mcp.json
+/.amazonq/mcp.json.bak
+/.amazonq/rules/ruler_q_rules.md
+/.amazonq/rules/ruler_q_rules.md.bak
+/.augment/rules/ruler_augment_instructions.md
+/.augment/rules/ruler_augment_instructions.md.bak
+/.clinerules
+/.clinerules.bak
+/.codex/config.toml
+/.codex/config.toml.bak
+/.crush.json
+/.crush.json.bak
+/.goosehints
+/.goosehints.bak
+/.idx/airules.md
+/.idx/airules.md.bak
+/.junie/guidelines.md
+/.junie/guidelines.md.bak
+/.kiro/steering/ruler_kiro_instructions.md
+/.kiro/steering/ruler_kiro_instructions.md.bak
+/.mcp.json
+/.mcp.json.bak
+/.openhands/microagents/repo.md
+/.openhands/microagents/repo.md.bak
+/.roo/mcp.json
+/.roo/mcp.json.bak
+/.trae/rules/project_rules.md
+/.trae/rules/project_rules.md.bak
+/.vibe/config.toml
+/.vibe/config.toml.bak
+/AGENTS.md
+/AGENTS.md.bak
+/CLAUDE.md
+/CLAUDE.md.bak
+/CRUSH.md
+/CRUSH.md.bak
+/WARP.md
+/WARP.md.bak
+/firebender.json
+/firebender.json.bak
+/opencode.json
+/opencode.json.bak
+# END Ruler Generated Files
+
