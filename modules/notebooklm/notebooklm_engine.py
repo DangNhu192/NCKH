@@ -31,8 +31,10 @@ from typing import List, Dict, Any, Optional, Tuple
 
 from modules.shared.file_manager import file_mgr, SKILL_ROOT
 from modules.shared.gemini_service import gemini_service
-from docx import Document
 from modules.shared.docx_styler import DocxStyler
+from modules.shared.obscura_harvester import obscura_harvester
+from modules.shared.academic_enricher import academic_enricher
+from docx import Document
 
 NOTEBOOKLM_DEFAULT_URL = "https://notebooklm.google.com"
 
@@ -746,6 +748,172 @@ class OpenNotebookEngine:
     def add_raw_text_source(self, notebook_id: str, title: str, content: str, author: str = "", year: str = "", doi: str = "", source_type: str = "TEXT") -> Dict[str, Any]:
         """Alias cho add_source_from_raw."""
         return self.add_source_from_raw(notebook_id, title=title, content=content, author=author, year=year, doi=doi, source_type=source_type)
+
+    def add_source_from_url(self, notebook_id: str, url: str, metadata: dict = None) -> Dict[str, Any]:
+        """
+        Thu thập và nạp trực tiếp tài liệu từ URL web hoặc PDF trực tuyến vào Notebook:
+        - Tự động làm giàu tiêu đề, tác giả, DOI qua AcademicEnricher (CrossRef, OpenAlex, arXiv).
+        - Sử dụng Obscura Harvester với chế độ tàng hình (--stealth) để vượt qua Cloudflare/Akamai và render SPA.
+        - Phân đoạn ngữ nghĩa phục vụ tra cứu RAG và trích dẫn chuẩn APA.
+        """
+        nb_dir = self.notebooks_dir / notebook_id
+        if not nb_dir.exists():
+            raise FileNotFoundError(f"Notebook {notebook_id} không tồn tại.")
+
+        meta = metadata or {}
+        # 1. Tự động làm giàu thông tin học thuật từ URL qua CrossRef/OpenAlex/arXiv
+        enriched = academic_enricher.enrich({"url": url, "title": meta.get("title", "")})
+        title = meta.get("title") or enriched.get("title") or url
+        author = meta.get("author") or (", ".join(enriched.get("authors", [])) if enriched.get("authors") else "") or "Tác giả Trực tuyến"
+        year = str(meta.get("year") or enriched.get("year") or datetime.now().year)
+        doi = meta.get("doi") or enriched.get("doi") or ""
+
+        # 2. Xử lý tệp PDF trực tiếp nếu URL dẫn đến PDF
+        is_pdf = url.lower().endswith(".pdf") or "/pdf/" in url.lower()
+        if is_pdf:
+            temp_pdf = file_mgr.workspace / "temp_downloads" / f"url_nb_{uuid.uuid4().hex[:6]}.pdf"
+            temp_pdf.parent.mkdir(parents=True, exist_ok=True)
+            download_ok = False
+            
+            if obscura_harvester.is_available():
+                try:
+                    download_ok = obscura_harvester.download_file(url, temp_pdf, stealth=True, timeout=35)
+                except Exception:
+                    pass
+            
+            if not download_ok:
+                try:
+                    import requests
+                    r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+                    if r.status_code == 200 and len(r.content) > 1000:
+                        temp_pdf.write_bytes(r.content)
+                        download_ok = True
+                except Exception:
+                    pass
+
+            if download_ok and temp_pdf.exists():
+                res = self.add_source_from_file(notebook_id, temp_pdf, metadata={
+                    "title": title,
+                    "author": author,
+                    "year": year,
+                    "doi": doi,
+                    "source_url": url
+                })
+                temp_pdf.unlink(missing_ok=True)
+                return res
+
+        # 3. Thu thập văn bản sạch từ trang web bằng Obscura Harvester
+        content_text = ""
+        if obscura_harvester.is_available():
+            try:
+                content_text = obscura_harvester.fetch_text(url, stealth=True, timeout=25)
+            except Exception as e_obs:
+                file_mgr.add_log("nb_obscura_err", f"Obscura fetch_text lỗi: {e_obs}")
+
+        if not content_text:
+            try:
+                import requests
+                from bs4 import BeautifulSoup
+                r = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+                if r.status_code == 200:
+                    soup = BeautifulSoup(r.content, "html.parser")
+                    for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+                        tag.decompose()
+                    content_text = soup.get_text(separator="\n", strip=True)
+            except Exception as e_req:
+                raise RuntimeError(f"Không thể thu thập nội dung từ URL '{url}': {e_req}")
+
+        if not content_text or len(content_text.strip()) < 50:
+            raise ValueError(f"Nội dung từ URL '{url}' quá ngắn hoặc rỗng để nạp vào Notebook.")
+
+        return self.add_source_from_raw(
+            notebook_id=notebook_id,
+            title=title,
+            content=content_text,
+            author=author,
+            year=year,
+            doi=doi,
+            source_type="WEB_URL"
+        )
+
+    def export_notebook_to_ris(self, notebook_id: str, output_path: Optional[Path] = None) -> Path:
+        """
+        Xuất toàn bộ danh mục tài liệu nguồn trong Notebook ra tệp định dạng RIS chuẩn quốc tế
+        để nhập trực tiếp vào Zotero, Mendeley, hoặc EndNote chỉ với 1 cú nhấp chuột.
+        """
+        nb_dir = self.notebooks_dir / notebook_id
+        if not nb_dir.exists():
+            raise FileNotFoundError(f"Notebook {notebook_id} không tồn tại.")
+
+        sources_path = nb_dir / "sources.json"
+        sources = []
+        if sources_path.exists():
+            try:
+                with open(sources_path, "r", encoding="utf-8") as f:
+                    sources = json.load(f)
+            except Exception:
+                sources = []
+
+        ris_lines = []
+        for src in sources:
+            stype = src.get("source_type", "JOUR").upper()
+            tag_type = "JOUR"
+            if stype in ["BOOK", "MONOGRAPH"]:
+                tag_type = "BOOK"
+            elif stype in ["WEB", "WEB_URL", "URL"]:
+                tag_type = "ELEC"
+            elif stype in ["CONF", "CONFERENCE"]:
+                tag_type = "CONF"
+
+            ris_lines.append(f"TY  - {tag_type}")
+            title = src.get("title", "Tài liệu học thuật")
+            ris_lines.append(f"TI  - {title}")
+
+            # Xử lý danh sách tác giả
+            raw_author = src.get("author", "")
+            if raw_author:
+                authors = re.split(r'[,;]\s*|\s+and\s+', str(raw_author))
+                for a in authors:
+                    a_clean = a.strip()
+                    if a_clean and a_clean.lower() not in ["et al.", "et al"]:
+                        ris_lines.append(f"AU  - {a_clean}")
+
+            # Năm xuất bản
+            year = src.get("year", "")
+            if year:
+                ris_lines.append(f"PY  - {year}")
+
+            # Tạp chí / Nhà xuất bản
+            journal = src.get("journal", "")
+            if journal:
+                ris_lines.append(f"JO  - {journal}")
+
+            # DOI
+            doi = src.get("doi", "")
+            if doi:
+                clean_doi = doi.replace("https://doi.org/", "").replace("http://doi.org/", "").strip()
+                ris_lines.append(f"DO  - {clean_doi}")
+
+            # URL
+            url = src.get("source_url") or src.get("url") or (f"https://doi.org/{doi}" if doi else "")
+            if url:
+                ris_lines.append(f"UR  - {url}")
+
+            # Ghi chú nguồn gốc
+            ris_lines.append(f"N1  - Nguồn trích xuất từ Open-Notebook (ID: {src.get('id', '')})")
+            ris_lines.append("ER  - ")
+            ris_lines.append("")
+
+        ris_content = "\n".join(ris_lines)
+
+        if output_path is None:
+            out_dir = file_mgr.workspace / "exported_ris"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            output_path = out_dir / f"notebook_{notebook_id[:8]}.ris"
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(ris_content, encoding="utf-8")
+        return output_path
 
     def delete_source(self, notebook_id: str, source_id: str) -> Dict[str, Any]:
         """Xóa một tài liệu nguồn và các chunk tương ứng khỏi Notebook."""

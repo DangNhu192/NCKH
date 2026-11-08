@@ -32,3 +32,19 @@ Mọi chức năng trong Web Super khi sinh nội dung, khử AI, viết lại v
 - Nhận diện rõ **Khoảng trống tri thức (Research Gap)** và **Đe dọa tính hợp lệ (Threats to Validity)**.
 - Chuỗi lập luận 4 bước: `[Luận điểm] ➔ [Dẫn chứng thực chứng] ➔ [Cơ chế giải thích sâu] ➔ [Hàm ý ứng dụng]`.
 
+### 6. 🎯 Domain-Agnostic & Zero Subjective Personalization (100% Khách Quan & Phụ Thuộc Hoàn Toàn Vào Đề Tài Người Dùng Cung Cấp)
+- **Tuyệt đối không cá nhân hóa, áp đặt thiên vị, định kiến chủ quan hay hardcode bất cứ giả định ngành nghề nào** vào các hàm xử lý, thuật toán hay sản phẩm đầu ra của WEB SUPER.
+- **100% hướng động theo dữ liệu người dùng (User Topic-Driven Architecture):**
+  - Mọi phân hệ (Quy trình 7 Bước, Thu thập Harvester, Kho tri thức RAG Vault, Cây đề cương RhinoInsight, Soạn thảo 2-File, Tòa soạn Báo AI 6 Ban, Khử AI Turnitin...) đều phải tiếp nhận và vận hành thuần túy dựa trên **Đề tài (`topic`)** và **Tập tài liệu thực tế** do người dùng cung cấp.
+  - Không tự ý chèn thêm giả thuyết, thuật ngữ hay phạm vi không liên quan đến đề tài người dùng đã xác định.
+- **Tính tổng quát đa ngành (Domain-Agnostic):**
+  - Hệ thống vận hành bình đẳng, chính xác và thích ứng linh hoạt với mọi lĩnh vực khoa học (Công nghệ thông tin, Trí tuệ nhân tạo, Y sinh học, Hóa dược, Khoa học môi trường, Nông - Lâm - Thủy sản, Vật liệu mới, Kinh tế học, Khoa học xã hội & Nhân văn...).
+
+### 7. ⚖️ Tiết Chế Học Thuật & Văn Phong Khoa Học Chuẩn Mực Quốc Tế (Epistemic Hedging & Academic Restraint)
+- **Triệt tiêu ngôn từ giật gân, phóng đại và thương mại:** Loại bỏ hoàn toàn các từ ngữ mang tính cảm xúc, giật gân hoặc quảng bá tiếp thị ("vô cùng", "cực kỳ", "kỳ diệu", "thần kỳ", "thổi luồng gió mới", "thay đổi cuộc chơi", "bước đột phá lịch sử", "bước chuyển mình ngoạn mục").
+- **Triệt tiêu văn phong miêu tả hoa mỹ & sáo ngữ rỗng tuếch:** Cấm dùng các lối so sánh văn học, ẩn dụ cảm xúc ("bức tranh tráng lệ", "như ánh bình minh") và các câu mở đầu sáo rỗng khuôn mẫu AI ("Trong bối cảnh phát triển như vũ bão của...", "Đóng vai trò như ngọn hải đăng...").
+- **Cấm tuyệt đối khẳng định đoan chắc 100% khi chưa có chứng minh toàn diện:** Cấm các cụm từ khẳng định tuyệt đối hoá ("chắc chắn 100%", "chứng minh tuyệt đối", "chân lý hiển nhiên", "không thể bác bỏ", "chắc chắn giải quyết triệt để").
+- **Cưỡng chế Dè dặt Học thuật (Epistemic Hedging) & Lượng hóa Sai số:** Mọi kết luận phải dùng các tiền đề điều kiện hóa ("kết quả thực nghiệm bước đầu gợi ý rằng", "dữ liệu quan sát cho thấy xu hướng", "trong phạm vi mẫu khảo sát của nghiên cứu này", "có cơ sở để suy luận rằng") kèm theo các chỉ số định lượng độ tin cậy, sai số thực nghiệm và mức ý nghĩa thống kê ($p < 0,05$; khoảng tin cậy 95%).
+
+
+

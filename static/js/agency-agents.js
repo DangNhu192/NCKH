@@ -113,12 +113,14 @@ const AgencyRosterUI = {
 
   injectActiveAgentBadges() {
     const tabBadges = {
-      "harvester-tab": { emoji: "🌐", name: "Dr. Lexicon", role: "Literature Intelligence Specialist", color: "#0ea5e9" },
-      "writer-tab": { emoji: "✍️", name: "Dr. Scholaris & Inspector Verity", role: "Senior Author & Evidence Auditor", color: "#10b981" },
-      "editorial-tab": { emoji: "🏢", name: "Editor-in-Chief Victor", role: "Editorial Board & 4-GATE Director", color: "#ec4899" },
-      "humanizer-tab": { emoji: "✨", name: "Master Artisan", role: "Anti-AI Stylist & Rhythm Architect", color: "#eab308" },
-      "admin-tab": { emoji: "🛡️", name: "Sentinel Needle", role: "System Health & Admin Sentinel", color: "#ef4444" },
-      "pipeline-tab": { emoji: "⚡", name: "Full Academic Agency Team (7 Specialists)", role: "Autonomous Multi-Agent Relay", color: "#8b5cf6" }
+      "harvester-tab": { emoji: "🌐", name: "Prof. Lexicon Drake", role: "Literature Intelligence & Harvester Chair", color: "#0ea5e9" },
+      "scibot-tab": { emoji: "🧠", name: "Prof. Synapse Vance & Prof. Methodius Sterling", role: "Knowledge Architecture & Methodology Chairs", color: "#8b5cf6" },
+      "writer-tab": { emoji: "✍️", name: "Prof. Scholaris Thorne & Prof. Veritas Proctor", role: "Academic Monograph & 6-Column Integrity Chairs", color: "#10b981" },
+      "editorial-tab": { emoji: "🏢", name: "Prof. Victor Aurelius & Prof. Adversarius Grimm", role: "Editorial Board & Adversarial Reviewer 2 Chairs", color: "#ec4899" },
+      "humanizer-tab": { emoji: "✨", name: "Prof. Stylus Artisan", role: "Human Authenticity & Anti-AI Rhythm Chair", color: "#eab308" },
+      "math-chem-tab": { emoji: "🔬", name: "Prof. Quantus Maxwell", role: "Quantitative Analytics & Computational Precision Chair", color: "#3b82f6" },
+      "admin-tab": { emoji: "🛡️", name: "Prof. Sentinel Needle", role: "System Governance & Reproducibility Chair", color: "#14b8a6" },
+      "pipeline-tab": { emoji: "⚡", name: "Hội Đồng 10 Giáo Sư Nghiêm Khắc", role: "Autonomous Council of 10 Academic Chairs", color: "#8b5cf6" }
     };
 
     Object.entries(tabBadges).forEach(([tabId, info]) => {
@@ -149,3 +151,4 @@ if (document.readyState === "complete" || document.readyState === "interactive")
 
 // Global Window Export
 window.AgencyRosterUI = AgencyRosterUI;
+window.AgencyUI = AgencyRosterUI;

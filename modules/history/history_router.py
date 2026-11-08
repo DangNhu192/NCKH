@@ -83,6 +83,12 @@ def delete_session_item(session_id: str, user: dict = Depends(get_current_user))
     success = history_mgr.delete_session(session_id, user_email=user_email)
     return {"status": "success" if success else "not_found", "deleted": success}
 
+@history_router.delete("/api/history/{entry_id}")
+def delete_single_history_entry(entry_id: str, user: dict = Depends(get_current_user)):
+    user_email = user.get("email") or ""
+    success = history_mgr.delete_entry(entry_id, user_email=user_email)
+    return {"status": "success" if success else "not_found", "deleted": success}
+
 @history_router.post("/api/history/sessions/batch-delete")
 def batch_delete_sessions_endpoint(payload: dict = Body(...), user: dict = Depends(get_current_user)):
     user_email = user.get("email") or ""

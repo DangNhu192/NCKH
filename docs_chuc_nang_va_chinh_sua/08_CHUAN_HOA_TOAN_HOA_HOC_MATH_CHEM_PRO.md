@@ -63,4 +63,16 @@
        - Thêm nhãn trạng thái tệp đã chọn và nút thực thi lớn: `🚀 Quét & Nâng Cấp Công Thức Toán - Hóa Toàn Diện (.docx)`.
        - Hộp kết quả hiển thị 4 huy hiệu thống kê chi tiết (Số vị trí hóa học, số công thức OMML, số vị trí số thập phân, số bảng biểu) cùng đầy đủ 4 nút hành động: *📝 Mở Trực Tiếp Trên Word (.docx)*, *⬇️ Tải Về (.docx)*, *📊 Mở Trong Trình Biên Tập Số Liệu*, và *📂 Mở Folder Workspace*.
     3. **Kiểm thử tự động:** Vượt qua 100% test suite `test_math_chem_docx_enhancer.py` (**16/16 assertions PASS**) và endpoint API kiểm thử trực tiếp.
-
+- **Yêu cầu 8 (2026-09-16 - Tích hợp PubChem Database & Phân Giải Cấu Trúc Hóa Học 2D):**
+  - *Mục tiêu:* Bổ sung kho dữ liệu hóa học chuẩn quốc tế NIH PubChem, phục vụ tra cứu phân tử, tính chất lý hóa, danh pháp IUPAC, khối lượng mol và cấu trúc 2D.
+  - *Kết quả xử lý:*
+    1. **Backend Engine (`modules/shared/pubchem_service.py`):** Lớp `PubChemService` tích hợp PUG-REST API và Local Curated Cache cho các chất/ion môi trường (`FeS₂`, `H₂SO₄`, `NH₄⁺`, `Glyphosate`, `Chitosan`, `Urea`...).
+    2. **API Endpoints (`modules/math_chem_pro/math_chem_router.py`):** Cung cấp `POST /api/math-chem/pubchem-resolve` và `GET /api/math-chem/pubchem-image/{cid}`.
+    3. **Giao diện Subtab 6 (`static/index.html` & `static/js/math-chem-pro.js`):** Thêm Subtab 6 "🧪 Tra Cứu PubChem Database" với Quick Chips, thẻ ảnh cấu trúc 2D, bảng thông số SMILES/InChIKey, nút nạp trực tiếp vào OMML Word Equation và nút sao chép trích dẫn chuẩn APA 7th.
+    4. **Kiểm thử:** 100% test case trong `test_pubchem_service.py` đạt trạng thái PASS.
+- **Yêu cầu 9 (2026-09-25 - Đồng Bộ Hóa Toàn Diện Chuẩn Toán - Hóa & Quy Tắc Diễn Giải 4 Thành Phần Vào Hệ Thống Kỹ Năng Viết):**
+  - *Mục tiêu:* Thiết lập chuẩn mực thể hiện công thức toán học và ký hiệu hóa học thống nhất giữa module Tab 8 Math-Chem Pro với toàn bộ hệ thống kỹ năng viết học thuật (`academic-evidence-writer`, `vietnamese-academic-researcher`, `zotero-academic-writer`, `research-paper-writing`, `viet-chuyen-nghiep`).
+  - *Kết quả xử lý:*
+    1. **Tích hợp Quy tắc Diễn giải 4 Thành phần Bắt buộc:** Chống công thức mồ côi; mọi công thức/phương trình sinh ra trong văn bản BẮT BUỘC có 4 yếu tố: (1) Tên gọi, nguồn gốc APA 7th & mục đích, (2) Định nghĩa rõ từng biến số, (3) Đơn vị đo lường chuẩn khoa học, và (4) Ý nghĩa môi trường/kinh tế thực chứng.
+    2. **Đồng bộ hóa Ký hiệu Hóa học Run-level DOM:** Bảo toàn 100% mã trường Zotero XML khi định dạng Subscript/Superscript cho 109+ hợp chất và ion môi trường.
+    3. **Chuẩn hóa số thập phân tiếng Việt:** Bắt buộc dùng dấu phẩy cho số thập phân (`1,5; 28,5%`), dấu chấm cho hàng nghìn (`1.000; 50.000`), giữ nguyên dấu chấm cho số thứ tự mục (`1.1.`, `2.1.`).

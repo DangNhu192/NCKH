@@ -72,6 +72,64 @@ CONTENTBETA_VIETNAMESE_CLICHES = [
     ("Biểu tượng của sự", "thể hiện"),
     ("Thổi luồng gió mới", "đổi mới phương pháp"),
     ("Mở ra kỷ nguyên rực rỡ", "phát triển mạnh mẽ"),
+    # Nhóm Tiết chế học thuật & Khử khẳng định quá mức (Epistemic Hedging)
+    ("Khẳng định chắc chắn", "Kết quả cho thấy"),
+    ("khẳng định chắc chắn", "kết quả cho thấy"),
+    ("Chứng minh tuyệt đối", "Bước đầu ghi nhận"),
+    ("chứng minh tuyệt đối", "bước đầu ghi nhận"),
+    ("Chân lý hiển nhiên", "Nguyên lý được thừa nhận"),
+    ("chân lý hiển nhiên", "nguyên lý được thừa nhận"),
+    ("Không thể bác bỏ", "Được dữ liệu hỗ trợ"),
+    ("không thể bác bỏ", "được dữ liệu hỗ trợ"),
+    ("Không thể chối cãi", "Có căn cứ thực nghiệm rõ ràng"),
+    ("không thể chối cãi", "có căn cứ thực nghiệm rõ ràng"),
+    ("Chắc chắn 100%", "Có độ tin cậy thực nghiệm cao"),
+    ("chắc chắn 100%", "có độ tin cậy thực nghiệm cao"),
+    ("Giải quyết triệt để mọi vấn đề", "Giảm thiểu đáng kể các rủi ro cốt lõi"),
+    ("giải quyết triệt để mọi vấn đề", "giảm thiểu đáng kể các rủi ro cốt lõi"),
+    ("Giải quyết triệt để", "Xử lý hiệu quả"),
+    ("giải quyết triệt để", "xử lý hiệu quả"),
+    ("Hoàn toàn không có bất kỳ sai số nào", "Sai số được kiểm soát chặt chẽ"),
+    ("hoàn toàn không có bất kỳ sai số nào", "sai số được kiểm soát chặt chẽ"),
+    # Nhóm Khử nhấn mạnh quá mức & Phóng đại (Anti-Sensationalism & Hyperbole)
+    ("Vượt trội hoàn toàn", "Thể hiện kết quả khả quan hơn"),
+    ("vượt trội hoàn toàn", "thể hiện kết quả khả quan hơn"),
+    ("Vô cùng quan trọng", "Giữ vai trò nền tảng"),
+    ("vô cùng quan trọng", "giữ vai trò nền tảng"),
+    ("Cực kỳ ấn tượng", "Đạt mức cải thiện đáng kể"),
+    ("cực kỳ ấn tượng", "đạt mức cải thiện đáng kể"),
+    ("Bước tiến vĩ đại", "Sự phát triển phương pháp"),
+    ("bước tiến vĩ đại", "sự phát triển phương pháp"),
+    ("Thành tựu vĩ đại", "Kết quả nghiên cứu nổi bật"),
+    ("thành tựu vĩ đại", "kết quả nghiên cứu nổi bật"),
+    ("Kỳ tích thần kỳ", "Kết quả thực nghiệm đáng chú ý"),
+    ("kỳ tích thần kỳ", "kết quả thực nghiệm đáng chú ý"),
+    ("Vô cùng to lớn", "Đáng kể"),
+    ("vô cùng to lớn", "đáng kể"),
+    ("Ấn tượng tột cùng", "Mức độ cải thiện rõ nét"),
+    ("ấn tượng tột cùng", "mức độ cải thiện rõ nét"),
+    ("Hoàn hảo", "Tối ưu trong điều kiện thử nghiệm"),
+    ("hoàn hảo", "tối ưu trong điều kiện thử nghiệm"),
+    # Nhóm Khử miêu tả hoa mỹ & Ẩn dụ văn học (Anti-Purple Prose)
+    ("Bức tranh tráng lệ", "Bối cảnh tổng quan"),
+    ("bức tranh tráng lệ", "bối cảnh tổng quan"),
+    ("Bức tranh muôn màu", "Diễn biến đa dạng"),
+    ("bức tranh muôn màu", "diễn biến đa dạng"),
+    ("Như ánh bình minh", "Tạo tiền đề phát triển"),
+    ("như ánh bình minh", "tạo tiền đề phát triển"),
+    ("Bước chuyển mình ngoạn mục", "Sự cải tiến rõ nét"),
+    ("bước chuyển mình ngoạn mục", "sự cải tiến rõ nét"),
+    # Nhóm Khử từ ngữ phi khoa học / Giật gân / Tiếp thị
+    ("Rất hay", "Phù hợp"),
+    ("rất hay", "phù hợp"),
+    ("Kỳ diệu", "Khả quan"),
+    ("kỳ diệu", "khả quan"),
+    ("Thần kỳ", "Hiệu quả"),
+    ("thần kỳ", "hiệu quả"),
+    ("Như một phép màu", "Vượt kỳ vọng ban đầu"),
+    ("như một phép màu", "vượt kỳ vọng ban đầu"),
+    ("Thật bất ngờ khi", "Kết quả ghi nhận"),
+    ("thật bất ngờ khi", "kết quả ghi nhận"),
 ]
 
 CONTENTBETA_ENGLISH_CLICHES = [
@@ -131,6 +189,42 @@ LOCAL_REPLACEMENT_MAP = {
     "Nhìn chung,": "Xét về tổng thể,",
     "Tóm lại,": "Sau cùng,",
     "Tổng kết lại,": "Qua phân tích,",
+    "Khẳng định chắc chắn": "Kết quả cho thấy",
+    "khẳng định chắc chắn": "kết quả cho thấy",
+    "Chứng minh tuyệt đối": "Bước đầu ghi nhận",
+    "chứng minh tuyệt đối": "bước đầu ghi nhận",
+    "Chân lý hiển nhiên": "Nguyên lý được thừa nhận",
+    "chân lý hiển nhiên": "nguyên lý được thừa nhận",
+    "Không thể bác bỏ": "Được dữ liệu hỗ trợ",
+    "không thể bác bỏ": "được dữ liệu hỗ trợ",
+    "Không thể chối cãi": "Có căn cứ thực nghiệm rõ ràng",
+    "không thể chối cãi": "có căn cứ thực nghiệm rõ ràng",
+    "Chắc chắn 100%": "Có độ tin cậy thực nghiệm cao",
+    "chắc chắn 100%": "có độ tin cậy thực nghiệm cao",
+    "Giải quyết triệt để": "Xử lý hiệu quả",
+    "giải quyết triệt để": "xử lý hiệu quả",
+    "Vượt trội hoàn toàn": "Thể hiện kết quả khả quan hơn",
+    "vượt trội hoàn toàn": "thể hiện kết quả khả quan hơn",
+    "Vô cùng quan trọng": "Giữ vai trò nền tảng",
+    "vô cùng quan trọng": "giữ vai trò nền tảng",
+    "Cực kỳ ấn tượng": "Đạt mức cải thiện đáng kể",
+    "cực kỳ ấn tượng": "đạt mức cải thiện đáng kể",
+    "Bước tiến vĩ đại": "Sự phát triển phương pháp",
+    "bước tiến vĩ đại": "sự phát triển phương pháp",
+    "Kỳ tích thần kỳ": "Kết quả thực nghiệm đáng chú ý",
+    "kỳ tích thần kỳ": "kết quả thực nghiệm đáng chú ý",
+    "Vô cùng to lớn": "Đáng kể",
+    "vô cùng to lớn": "đáng kể",
+    "Bức tranh tráng lệ": "Bối cảnh tổng quan",
+    "bức tranh tráng lệ": "bối cảnh tổng quan",
+    "Như ánh bình minh": "Tạo tiền đề phát triển",
+    "như ánh bình minh": "tạo tiền đề phát triển",
+    "Rất hay": "Phù hợp",
+    "rất hay": "phù hợp",
+    "Kỳ diệu": "Khả quan",
+    "kỳ diệu": "khả quan",
+    "Thần kỳ": "Hiệu quả",
+    "thần kỳ": "hiệu quả",
     "Delve into": "analyze",
     "Tapestry": "structure",
     "Beacon": "model",
@@ -140,6 +234,41 @@ LOCAL_REPLACEMENT_MAP = {
     "Robust": "effective",
     "Supercharge": "accelerate"
 }
+
+SCIENTIFIC_HEDGING_VIOLATIONS = [
+    # Nhóm 1: Khẳng định quá mức (Over-assertion)
+    {"pattern": r"chắc chắn 100%|chắc chắn tuyệt đối", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "có độ tin cậy thực nghiệm cao"},
+    {"pattern": r"chứng minh tuyệt đối", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "bước đầu ghi nhận"},
+    {"pattern": r"chân lý hiển nhiên", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "nguyên lý được thừa nhận"},
+    {"pattern": r"không thể bác bỏ", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "được dữ liệu hỗ trợ"},
+    {"pattern": r"không thể chối cãi", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "có căn cứ thực nghiệm rõ ràng"},
+    {"pattern": r"giải quyết triệt để mọi", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "giảm thiểu đáng kể các rủi ro cốt lõi"},
+    {"pattern": r"hoàn toàn không có bất kỳ sai số", "category": "Khẳng định quá mức (Over-assertion)", "suggestion": "sai số được kiểm soát chặt chẽ"},
+
+    # Nhóm 2: Nhấn mạnh quá mức & Phóng đại (Over-emphasis / Sensationalism)
+    {"pattern": r"vượt trội hoàn toàn", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "thể hiện kết quả khả quan hơn"},
+    {"pattern": r"vô cùng quan trọng", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "giữ vai trò nền tảng"},
+    {"pattern": r"cực kỳ ấn tượng", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "đạt mức cải thiện đáng kể"},
+    {"pattern": r"bước tiến vĩ đại", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "sự phát triển phương pháp"},
+    {"pattern": r"thành tựu vĩ đại", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "kết quả nghiên cứu nổi bật"},
+    {"pattern": r"kỳ tích thần kỳ", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "kết quả thực nghiệm đáng chú ý"},
+    {"pattern": r"vô cùng to lớn", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "đáng kể"},
+    {"pattern": r"ấn tượng tột cùng", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "mức độ cải thiện rõ nét"},
+    {"pattern": r"\bhoàn hảo\b", "category": "Nhấn mạnh quá mức (Over-emphasis)", "suggestion": "tối ưu trong điều kiện thử nghiệm"},
+
+    # Nhóm 3: Miêu tả hoa mỹ dài dòng & Ẩn dụ văn học (Purple Prose)
+    {"pattern": r"bức tranh tráng lệ", "category": "Miêu tả hoa mỹ (Purple Prose)", "suggestion": "bối cảnh tổng quan"},
+    {"pattern": r"bức tranh muôn màu", "category": "Miêu tả hoa mỹ (Purple Prose)", "suggestion": "diễn biến đa dạng"},
+    {"pattern": r"như ánh bình minh", "category": "Miêu tả hoa mỹ (Purple Prose)", "suggestion": "tạo tiền đề phát triển"},
+    {"pattern": r"bước chuyển mình ngoạn mục", "category": "Miêu tả hoa mỹ (Purple Prose)", "suggestion": "sự cải tiến rõ nét"},
+
+    # Nhóm 4: Từ ngữ phi khoa học / Giật gân / Tiếp thị
+    {"pattern": r"\brất hay\b", "category": "Từ ngữ phi khoa học (Non-academic)", "suggestion": "phù hợp"},
+    {"pattern": r"\bkỳ diệu\b", "category": "Từ ngữ phi khoa học (Non-academic)", "suggestion": "khả quan"},
+    {"pattern": r"\bthần kỳ\b", "category": "Từ ngữ phi khoa học (Non-academic)", "suggestion": "hiệu quả"},
+    {"pattern": r"như một phép màu", "category": "Từ ngữ phi khoa học (Non-academic)", "suggestion": "vượt kỳ vọng ban đầu"},
+    {"pattern": r"thật bất ngờ khi", "category": "Từ ngữ phi khoa học (Non-academic)", "suggestion": "kết quả ghi nhận"}
+]
 
 
 class HumanizerEngine:
@@ -249,6 +378,13 @@ class HumanizerEngine:
         structural_issues = []
         ai_risk = 0
 
+        # 5. Kiểm toán Tiết chế học thuật & Văn phong khoa học (Epistemic Hedging)
+        hedging_audit = self.audit_scientific_hedging(text)
+        if not hedging_audit["is_hedged"]:
+            for rec in hedging_audit["recommendations"]:
+                structural_issues.append(f"⚖️ Tiết chế học thuật: {rec}")
+            ai_risk += min(20, hedging_audit["total_violations"] * 4)
+
         if burstiness_score < 4.0 and len(raw_sentences) >= 2:
             ai_risk += 30
             structural_issues.append("⚠️ Độ biến thiên nhịp điệu thấp (< 4.0): Câu văn đều tăm tắp, thiếu đan xen giữa câu ngắn đanh thép (4-8 từ) và câu dài phức (25-35 từ).")
@@ -302,7 +438,88 @@ class HumanizerEngine:
                 "has_research_gap": has_gap,
                 "has_threats_to_validity": has_validity
             },
+            "scientific_hedging_audit": hedging_audit,
             "highlighted_html": highlighted_text
+        }
+
+    def audit_scientific_hedging(self, text: str) -> Dict[str, Any]:
+        """
+        Kiểm toán chuyên sâu tính tiết chế học thuật (Epistemic Hedging) và văn phong khoa học:
+        Tự động phát hiện và đề xuất thay thế:
+        1. Khẳng định quá mức (Over-assertion)
+        2. Nhấn mạnh quá mức (Over-emphasis / Sensationalism)
+        3. Miêu tả hoa mỹ dài dòng (Purple Prose)
+        4. Từ ngữ phi khoa học / khẩu ngữ / tiếp thị (Non-academic diction)
+        """
+        if not text or not text.strip():
+            return {
+                "hedging_score": 100.0,
+                "is_hedged": True,
+                "total_violations": 0,
+                "violations": [],
+                "category_counts": {
+                    "over_assertion": 0,
+                    "over_emphasis": 0,
+                    "purple_prose": 0,
+                    "non_academic": 0
+                },
+                "recommendations": ["Văn bản tuân thủ tốt tính tiết chế học thuật."]
+            }
+
+        found_violations = []
+        cat_counts = {
+            "over_assertion": 0,
+            "over_emphasis": 0,
+            "purple_prose": 0,
+            "non_academic": 0
+        }
+
+        for item in SCIENTIFIC_HEDGING_VIOLATIONS:
+            pat = re.compile(item["pattern"], re.IGNORECASE)
+            matches = list(pat.finditer(text))
+            if matches:
+                count = len(matches)
+                cat = item["category"]
+                found_violations.append({
+                    "phrase": matches[0].group(0),
+                    "category": cat,
+                    "suggestion": item["suggestion"],
+                    "count": count
+                })
+                if "Khẳng định" in cat:
+                    cat_counts["over_assertion"] += count
+                elif "Nhấn mạnh" in cat:
+                    cat_counts["over_emphasis"] += count
+                elif "Miêu tả" in cat:
+                    cat_counts["purple_prose"] += count
+                else:
+                    cat_counts["non_academic"] += count
+
+        total_v = sum(v["count"] for v in found_violations)
+        penalty = min(80, total_v * 12)
+        hedging_score = round(max(20.0, 100.0 - penalty), 1)
+        is_hedged = hedging_score >= 85.0
+
+        recommendations = []
+        if cat_counts["over_assertion"] > 0:
+            recommendations.append("Cần tiết chế tri nhận (Epistemic Hedging): Dùng mệnh đề cẩn trọng ('kết quả gợi ý rằng', 'dữ liệu cho thấy xu hướng') thay cho khẳng định tuyệt đối.")
+        if cat_counts["over_emphasis"] > 0:
+            recommendations.append("Cần lượng hóa thay cho nhấn mạnh: Dùng số liệu đo lường, sai số ± và khoảng tin cậy 95% thay cho phó từ/tính từ phóng đại ('vô cùng', 'cực kỳ', 'vượt trội hoàn toàn').")
+        if cat_counts["purple_prose"] > 0:
+            recommendations.append("Loại bỏ miêu tả hoa mỹ: Tránh ví von văn học, ẩn dụ; duy trì mật độ thông tin học thuật cao và cô đọng.")
+        if cat_counts["non_academic"] > 0:
+            recommendations.append("Chuẩn hóa thuật ngữ khoa học: Tránh khẩu ngữ, cảm xúc cá nhân hoặc ngôn ngữ giật gân/tiếp thị.")
+
+        if not recommendations:
+            recommendations.append("Văn phong đạt chuẩn mực tiết chế học thuật quốc tế (Nature/IEEE/Elsevier).")
+
+        return {
+            "hedging_score": hedging_score,
+            "is_hedged": is_hedged,
+            "total_violations": total_v,
+            "violations": found_violations,
+            "category_counts": cat_counts,
+            "recommendations": recommendations
         }
 
     def calculate_burstiness_metrics(self, text: str) -> Dict[str, Any]:

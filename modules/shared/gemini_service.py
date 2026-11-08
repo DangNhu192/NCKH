@@ -12,24 +12,14 @@ CONFIG_FILE = Path(__file__).resolve().parent.parent.parent / "config.json"
 
 OFFICIAL_FALLBACK_MODELS = [
     {
-        "name": "models/gemini-3.6-flash",
-        "clean_name": "gemini-3.6-flash",
-        "displayName": "Gemini 3.6 Flash (Khuyến nghị chuẩn)",
+        "name": "models/gemini-2.0-flash",
+        "clean_name": "gemini-2.0-flash",
+        "displayName": "Gemini 2.0 Flash (Khuyến nghị chuẩn)",
         "description": "Mô hình Flash thế hệ mới nhất của Google, cân bằng tối ưu giữa tốc độ và chất lượng lập luận học thuật.",
         "inputTokenLimit": 1048576,
         "outputTokenLimit": 8192,
         "is_latest": True,
         "score": 400
-    },
-    {
-        "name": "models/gemini-3.7-flash",
-        "clean_name": "gemini-3.7-flash",
-        "displayName": "Gemini 3.7 Flash (Lập luận nâng cao)",
-        "description": "Mô hình Flash cao cấp, hỗ trợ suy luận sâu cho nghiên cứu khoa học.",
-        "inputTokenLimit": 1048576,
-        "outputTokenLimit": 8192,
-        "is_latest": False,
-        "score": 390
     },
     {
         "name": "models/gemini-1.5-flash",
@@ -39,17 +29,27 @@ OFFICIAL_FALLBACK_MODELS = [
         "inputTokenLimit": 1048576,
         "outputTokenLimit": 8192,
         "is_latest": False,
-        "score": 350
+        "score": 380
     },
     {
         "name": "models/gemini-1.5-pro",
         "clean_name": "gemini-1.5-pro",
         "displayName": "Gemini 1.5 Pro (Ngữ cảnh 2M token)",
-        "description": "Mô hình Pro ổn định với cửa sổ ngữ cảnh 2 triệu token.",
+        "description": "Mô hình Pro ổn định với cửa sổ ngữ cảnh 2 triệu token và tư duy sâu.",
         "inputTokenLimit": 2097152,
         "outputTokenLimit": 8192,
         "is_latest": False,
-        "score": 320
+        "score": 360
+    },
+    {
+        "name": "models/gemini-2.0-flash-lite",
+        "clean_name": "gemini-2.0-flash-lite",
+        "displayName": "Gemini 2.0 Flash Lite (Tốc độ cực nhanh)",
+        "description": "Mô hình gọn nhẹ, phản hồi tức thì cho các tác vụ phân tích từ khóa và đề cương.",
+        "inputTokenLimit": 1048576,
+        "outputTokenLimit": 8192,
+        "is_latest": False,
+        "score": 340
     }
 ]
 
@@ -240,7 +240,7 @@ class GeminiService:
         fetch_res = self.fetch_available_models(api_key)
         if fetch_res.get("success") and fetch_res.get("models"):
             return fetch_res["models"][0]["clean_name"]
-        return "gemini-3.6-flash"
+        return "gemini-2.0-flash"
 
     def generate_text(self, prompt: str, model_name: str = None, api_key: str = None, timeout: int = 90) -> Optional[str]:
         """
@@ -260,13 +260,11 @@ class GeminiService:
 
         preferred_model = model_name or self.get_active_model(key)
         
-        # Candidate models for failover (active Google v1beta models)
+        # Candidate models for failover (active Google v1beta models, max 2 attempts)
         candidate_models = [
-            "gemini-3.6-flash",
             preferred_model,
-            "gemini-3.7-flash",
-            "gemini-flash-latest",
-            "gemini-pro-latest"
+            "gemini-2.0-flash",
+            "gemini-1.5-flash"
         ]
         seen = set()
         ordered_candidates = []
@@ -277,7 +275,7 @@ class GeminiService:
                 ordered_candidates.append(c)
 
         now_t = time.time()
-        for attempt_model in ordered_candidates:
+        for attempt_model in ordered_candidates[:2]:
             if self._model_429_until.get(attempt_model, 0) > now_t:
                 continue
 
@@ -292,7 +290,7 @@ class GeminiService:
             }
 
             try:
-                effective_timeout = min(timeout, 75)
+                effective_timeout = min(timeout, 8)
                 res = requests.post(url, json=payload, timeout=effective_timeout)
                 if res.status_code == 200:
                     data = res.json()
@@ -305,11 +303,17 @@ class GeminiService:
                     self._model_429_until[attempt_model] = time.time() + 60
                     file_mgr.add_log("gemini_service", f"Mô hình '{attempt_model}' tạm chạm hạn mức (HTTP 429). Đang chuyển sang mô hình tiếp theo...")
                     continue
+                elif res.status_code == 400 and ("api key" in res.text.lower() or "invalid" in res.text.lower()):
+                    file_mgr.add_log("gemini_service", f"Google API Key không hợp lệ (HTTP 400). Chuyển sang chế độ Fallback viện hàn lâm.")
+                    break
                 elif res.status_code in [404, 400]:
                     file_mgr.add_log("gemini_service", f"Mô hình '{attempt_model}' trả về {res.status_code}. Thử mô hình tiếp theo...")
                     continue
                 else:
                     file_mgr.add_log("gemini_service", f"Gọi Gemini ({attempt_model}) thất bại: HTTP {res.status_code} - {res.text[:200]}")
+            except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e_conn:
+                file_mgr.add_log("gemini_service", f"Lỗi kết nối mạng tới Google Gemini API: {e_conn}. Sử dụng Fallback học thuật.")
+                break
             except Exception as e:
                 file_mgr.add_log("gemini_service", f"Ngoại lệ khi gọi Gemini ({attempt_model}): {e}")
 
@@ -333,7 +337,7 @@ class GeminiService:
             return None
 
         preferred_model = model_name or self.get_active_model(key)
-        candidate_models = ["gemini-3.6-flash", preferred_model, "gemini-3.7-flash", "gemini-flash-latest"]
+        candidate_models = ["gemini-2.0-flash", preferred_model, "gemini-1.5-flash", "gemini-1.5-pro", "gemini-flash-latest"]
         seen = set()
         ordered_candidates = []
         for m in candidate_models:

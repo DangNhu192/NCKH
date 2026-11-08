@@ -88,6 +88,13 @@ const NeedleAdminUI = (() => {
 
     if (inputEl) inputEl.value = '';
 
+    const btn = document.getElementById('btn-needle-send-command');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:6px; vertical-align:middle;"></span>Đang gửi...`;
+    }
+
     // Append User Message to Terminal
     appendChatMessage('admin', prompt);
 
@@ -116,6 +123,11 @@ const NeedleAdminUI = (() => {
       }
     } catch (e) {
       appendChatMessage('needle', `❌ Ngoại lệ: ${e.message}`);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
     }
   }
 

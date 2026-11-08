@@ -1,4 +1,91 @@
-/* Theme Option Buttons */
+/* Theme Option Buttons & Modern Academic Preview Cards */
+.theme-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.theme-preview-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  background: var(--bg-surface-elevated, #1a2234);
+  border: 1.5px solid var(--border-color, rgba(255,255,255,0.1));
+  border-radius: var(--radius-lg, 12px);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.theme-preview-card:hover {
+  background: var(--bg-surface-hover, #222d42);
+  border-color: var(--accent-primary, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 6px 18px rgba(0,0,0,0.3));
+}
+
+.theme-preview-card.active {
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-color: var(--accent-primary, #3b82f6) !important;
+  box-shadow: 0 0 16px var(--accent-glow, rgba(59, 130, 246, 0.35)) !important;
+}
+
+.theme-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.theme-card-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-card-desc {
+  font-size: 11.5px;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.theme-swatches-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color, rgba(255,255,255,0.06));
+}
+
+.theme-swatch-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.theme-active-indicator {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.15);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.theme-preview-card.active .theme-active-indicator {
+  display: inline-block;
+}
+
 .theme-option-btn {
   display: inline-flex;
   align-items: center;
@@ -25,6 +112,7 @@
   color: #60a5fa !important;
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
 }
+
 /* ===== ONBOARDING NOTICE BAR ===== */
 .onboard-notice-bar {
   position: fixed;
@@ -112,9 +200,9 @@
 }
 .onboard-steps li {
   padding: 10px 14px;
-  background: rgba(255,255,255,0.05);
-  border-left: 3px solid #3b82f6;
-  border-radius: 0 8px 8px 0;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
   font-size: 13px;
   color: #e2e8f0;
   line-height: 1.5;
@@ -895,7 +983,8 @@ body.high-contrast-mode .form-control {
    ========================================================================== */
 
 .app-sidebar {
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease !important;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
+  will-change: transform;
   background: rgba(15, 23, 42, 0.75) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1054,13 +1143,17 @@ body.high-contrast-mode .form-control {
 .nav-branch-arrow {
   font-size: 9px;
   color: #64748b;
+  display: inline-block;
   transition: transform 0.2s ease;
 }
 .nav-branch-group.collapsed .nav-branch-arrow {
-  transform: rotate(-90deg);
+  transform: rotate(-90deg) !important;
+}
+.nav-branch-group:not(.collapsed) .nav-branch-arrow {
+  transform: rotate(0deg) !important;
 }
 .nav-branch-group.collapsed .nav-branch-tree {
-  display: none;
+  display: none !important;
 }
 .nav-branch-tree {
   display: flex;
@@ -1133,8 +1226,11 @@ body.high-contrast-mode .form-control {
 /* ==========================================================================
    MINI-DOCK COMPACT MODE (.app-sidebar.sidebar-compact)
    ========================================================================== */
-.app-sidebar.sidebar-compact {
-  width: 64px !important;
+.app-sidebar.sidebar-compact,
+.app-sidebar.sidebar-collapsed {
+  width: 68px !important;
+  min-width: 68px !important;
+  max-width: 68px !important;
   padding: 10px 6px !important;
 }
 .app-sidebar.sidebar-compact .sidebar-mini-title,
@@ -1157,7 +1253,7 @@ body.high-contrast-mode .form-control {
   margin-bottom: 2px;
 }
 .app-sidebar.sidebar-compact .nav-branch-header {
-  padding: 4px;
+  padding: 6px;
   justify-content: center;
   border: none;
   background: transparent;
@@ -1166,7 +1262,10 @@ body.high-contrast-mode .form-control {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
 }
-.app-sidebar.sidebar-compact .nav-branch-tree {
+.app-sidebar.sidebar-compact .nav-branch-group.collapsed .nav-branch-tree {
+  display: none !important;
+}
+.app-sidebar.sidebar-compact .nav-branch-group:not(.collapsed) .nav-branch-tree {
   display: flex !important;
   margin-left: 0;
   padding: 0;
@@ -1376,5 +1475,229 @@ body.high-contrast-mode .form-control {
   border: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
 }
+
+/* ============================================================
+   IMPECCABLE ADAPT: MULTI-DEVICE, VIEWPORT & ACCESSIBILITY RULES
+   ============================================================ */
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* 1. Ultrawide & 4K Display Containment (Prevents horizontal stretch) */
+.app-main > .tab-pane,
+.home-dashboard-wrapper,
+.pipeline-step-board,
+.workspace-page,
+.editorial-container,
+.academic-writer-container {
+  max-width: 1680px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 2. Safe Area Insets Padding */
+.app-header {
+  padding-top: max(10px, var(--sat));
+  padding-left: max(16px, var(--sal));
+  padding-right: max(16px, var(--sar));
+}
+
+.app-main {
+  padding-left: max(20px, var(--sal));
+  padding-right: max(20px, var(--sar));
+  padding-bottom: max(24px, var(--sab));
+}
+
+/* 3. Mobile Navigation Toggle & Backdrop */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #f8fafc;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+.mobile-menu-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 4. Touch Targets & Coarse Pointer Ergonomics (>= 44x44px) */
+@media (pointer: coarse), (hover: none) {
+  .nav-item,
+  .branch-header,
+  .sidebar-action-btn,
+  .theme-option-btn,
+  .btn,
+  .cluster-branch-item,
+  .tab-button {
+    min-height: 44px;
+  }
+  
+  .branch-header {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  
+  .nav-item {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  /* Prevent auto-zoom on iOS when tapping input */
+  input[type="text"],
+  input[type="search"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* 5. Tablet Breakpoint (<= 1024px) */
+@media (max-width: 1024px) {
+  .app-header .header-center {
+    display: none;
+  }
+  
+  .home-clusters-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .workflow-steps-track {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* 6. Mobile Breakpoint (<= 768px): Off-Canvas Drawer Sidebar & Fluid Reflow */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+  
+  .brand-desc {
+    display: none;
+  }
+  
+  .app-header {
+    padding: 8px 12px;
+  }
+  
+  .app-header .brand-logo h1 {
+    font-size: 15px;
+  }
+  
+  .app-header .header-right {
+    gap: 6px;
+  }
+  
+  .app-header .btn-sm {
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+
+  /* Off-canvas sidebar */
+  .app-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 290px !important;
+    max-width: 85vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 999 !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s ease !important;
+    box-shadow: none !important;
+    padding-top: max(16px, var(--sat)) !important;
+    padding-bottom: max(20px, var(--sab)) !important;
+    background: var(--bg-surface, #111827) !important;
+    border-right: 1px solid var(--border-color-strong, rgba(255, 255, 255, 0.16)) !important;
+  }
+
+  .app-sidebar.mobile-open,
+  body.mobile-sidebar-open .app-sidebar {
+    transform: translateX(0) !important;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .sidebar-backdrop.active,
+  body.mobile-sidebar-open .sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .app-main {
+    padding: 12px;
+    width: 100%;
+  }
+
+  .home-clusters-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .workflow-steps-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Modal responsive fits */
+  .modal-dialog,
+  .onboard-modal,
+  .settings-modal-card {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    margin: 10px auto !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* 7. Small Mobile Breakpoint (<= 480px) */
+@media (max-width: 480px) {
+  .workflow-steps-track {
+    grid-template-columns: 1fr;
+  }
+  
+  .home-cluster-card {
+    padding: 16px 14px;
+  }
+  
+  .pipeline-showcase-box {
+    padding: 16px;
+  }
+}
+
 
 

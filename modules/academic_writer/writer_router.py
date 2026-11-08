@@ -124,6 +124,10 @@ def generate_2file_report(payload: dict = Body(...), user: dict = Depends(requir
     custom_outline = payload.get("custom_outline", None)
     outline_tree = payload.get("outline_tree", None)
     
+    target_papers = payload.get("target_papers", None)
+    target_words = payload.get("target_words", 5000)
+    target_pages = payload.get("target_pages", 12)
+    
     if not topic:
         raise HTTPException(status_code=400, detail="Vui lòng nhập chủ đề.")
     
@@ -139,6 +143,9 @@ def generate_2file_report(payload: dict = Body(...), user: dict = Depends(requir
         author_name=full_author,
         custom_outline=custom_outline,
         outline_tree=outline_tree,
+        target_papers=target_papers,
+        target_words=target_words,
+        target_pages=target_pages,
         gemini_key=gemini_key,
         openai_key=openai_key
     )

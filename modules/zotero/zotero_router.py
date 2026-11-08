@@ -138,3 +138,103 @@ async def sync_references_to_zotero_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi đồng bộ vào Zotero: {str(e)}")
 
+
+@zotero_router.post("/api/zotero/export-ris")
+async def export_ris_endpoint(
+    payload: dict,
+    user: dict = Depends(require_operational_user)
+):
+    """Xuất bản danh mục tài liệu tham khảo sang định dạng chuẩn RIS tương thích Zotero."""
+    papers = payload.get("papers") or payload.get("items") or []
+    if not papers:
+        papers = zotero_converter.load_library(force=False)
+    try:
+        from modules.zotero.zotero_converter_engine import export_batch_ris
+        ris_text = export_batch_ris(papers)
+        return {
+            "status": "success",
+            "ris_content": ris_text,
+            "total_records": len(papers),
+            "format": "ris"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi xuất tệp RIS: {str(e)}")
+
+
+@zotero_router.post("/api/zotero/export-bibtex")
+async def export_bibtex_endpoint(
+    payload: dict,
+    user: dict = Depends(require_operational_user)
+):
+    """Xuất bản danh mục tài liệu tham khảo sang định dạng chuẩn BibTeX (.bib)."""
+    papers = payload.get("papers") or payload.get("items") or []
+    if not papers:
+        papers = zotero_converter.load_library(force=False)
+    try:
+        from modules.zotero.zotero_converter_engine import export_batch_bibtex
+        bib_text = export_batch_bibtex(papers)
+        return {
+            "status": "success",
+            "bib_content": bib_text,
+            "total_records": len(papers),
+            "format": "bibtex"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi xuất tệp BibTeX: {str(e)}")
+
+
+@zotero_router.post("/api/zotero/standardize-vietnamese-names")
+async def standardize_vietnamese_names_endpoint(
+    payload: Optional[dict] = None,
+    user: dict = Depends(require_operational_user)
+):
+    """Quét và chuẩn hóa tên tác giả tiếng Việt trong Zotero Cloud sang cấu trúc Hai ô (Two-Field Mode theo Thông báo 5343/TB-ĐHĐT)."""
+    p = payload or {}
+    try:
+        res = zotero_converter.standardize_vietnamese_creators_via_api(
+            user_id=p.get("user_id"),
+            api_key=p.get("api_key")
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi chuẩn hóa tên tiếng Việt: {str(e)}")
+
+
+@zotero_router.post("/api/zotero/optimize-storage")
+async def optimize_storage_endpoint(
+    payload: Optional[dict] = None,
+    user: dict = Depends(require_operational_user)
+):
+    """Giao thức Zero-Risk: Quét và giải phóng tệp PDF đính kèm đã có DOI/URL trực tuyến, kèm sao lưu ZIP dự phòng."""
+    p = payload or {}
+    try:
+        res = zotero_converter.optimize_storage_cleanup_pdfs(
+            user_id=p.get("user_id"),
+            api_key=p.get("api_key"),
+            storage_dir=p.get("storage_dir"),
+            backup_zip_path=p.get("backup_zip_path")
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi tối ưu dung lượng Zotero: {str(e)}")
+
+
+@zotero_router.post("/api/zotero/convert-hyperlinks")
+async def convert_hyperlinks_endpoint(
+    payload: dict,
+    user: dict = Depends(require_operational_user)
+):
+    """Chuyển đổi URL/DOI trong file Word thành đối tượng <w:hyperlink> tương tác hỗ trợ Ctrl + Click."""
+    docx_path = payload.get("docx_path")
+    if not docx_path:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp đường dẫn docx_path.")
+    try:
+        res = zotero_converter.convert_urls_to_interactive_hyperlinks(
+            docx_path=docx_path,
+            output_path=payload.get("output_path")
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi chuyển đổi liên kết: {str(e)}")
+
+

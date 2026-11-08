@@ -2,13 +2,17 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>WEB SUPER - Nền Tảng Nghiên Cứu, Học Thuật & Tòa Soạn AI</title>
   <meta name="description" content="Nền tảng hợp nhất toàn diện các kỹ năng nghiên cứu: Thu thập bài báo khoa học, Tích hợp NotebookLM/Zotero, Chuyển đổi mã trích dẫn Zotero Word, Viết học thuật 2-File Paradigm, Tòa soạn báo AI v3.1 và Khử dấu vết AI.">
   
   <!-- Resource Hints for LCP & Subpart Optimization -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://accounts.google.com" crossorigin>
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="dns-prefetch" href="https://accounts.google.com">
 
@@ -31,6 +35,9 @@
   <!-- Top Navigation Header -->
   <header class="app-header">
     <div class="header-left">
+      <button id="mobile-menu-toggle" class="mobile-menu-btn" onclick="App.toggleMobileSidebar(); return false;" title="Mở danh mục điều hướng" aria-label="Toggle navigation menu">
+        <span>☰</span>
+      </button>
       <a href="#" class="brand-logo" onclick="App.switchTab('home-tab'); return false;">
         <div class="logo-badge">⚡</div>
         <div class="brand-info">
@@ -47,9 +54,49 @@
       </div>
       <span id="badge-google-status" class="badge badge-orange">Google Auth: Sẵn sàng</span>
       <span id="badge-gemini-status" class="badge badge-green">AI: Sẵn sàng</span>
+      <span id="badge-looped-flows-status" class="badge" style="background: rgba(99, 102, 241, 0.18); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: 600; font-size: 11px;" title="Giao thức Suy luận Luồng lặp (arXiv:2609.11801)">🧠 Looped Flows</span>
+      <a href="/web_super_architecture.html" target="_blank" id="badge-archify-status" class="badge" style="background: rgba(16, 185, 129, 0.18); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); font-weight: 600; font-size: 11px; text-decoration: none;" title="Xem Sơ đồ Kiến trúc Hệ thống Tương tác (Archify Showcase v2.17)">🏛️ Archify Architecture</a>
     </div>
 
     <div class="header-right">
+      <!-- Quick Academic Theme Switcher -->
+      <div class="theme-quick-switch">
+        <button id="header-theme-quick-btn" class="theme-quick-btn" onclick="ThemeManager.toggleQuickMenu()" title="Đổi giao diện học thuật nhanh">
+          <span class="theme-quick-label">🎨 Theme</span>
+          <span style="font-size:10px; opacity:0.7;">▼</span>
+        </button>
+        <div id="header-theme-quick-menu" class="theme-quick-menu">
+          <button type="button" class="theme-quick-item" data-theme="oxford-dark" onclick="ThemeManager.setMode('oxford-dark'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:#070c18; border-color:#e0a96d;"></span>
+            <span>🏛️ Oxford Dark (Quý phái)</span>
+          </button>
+          <button type="button" class="theme-quick-item" data-theme="cambridge-light" onclick="ThemeManager.setMode('cambridge-light'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:#f5f7fa; border-color:#1d4ed8;"></span>
+            <span>📜 Cambridge Light (Sắc nét)</span>
+          </button>
+          <button type="button" class="theme-quick-item" data-theme="nature-emerald" onclick="ThemeManager.setMode('nature-emerald'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:#031c16; border-color:#10b981;"></span>
+            <span>🌿 Nature Emerald (Khoa học)</span>
+          </button>
+          <button type="button" class="theme-quick-item" data-theme="ieee-computational" onclick="ThemeManager.setMode('ieee-computational'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:#070a12; border-color:#6366f1;"></span>
+            <span>⚡ IEEE Tech (Than chì & Indigo)</span>
+          </button>
+          <button type="button" class="theme-quick-item" data-theme="dark" onclick="ThemeManager.setMode('dark'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:#0b0f17; border-color:#3b82f6;"></span>
+            <span>🌙 Cổ Điển Tối (Chuẩn)</span>
+          </button>
+          <button type="button" class="theme-quick-item" data-theme="light" onclick="ThemeManager.setMode('light'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:#ffffff; border-color:#94a3b8;"></span>
+            <span>☀️ Cổ Điển Sáng (Rõ nét)</span>
+          </button>
+          <button type="button" class="theme-quick-item" data-theme="system" onclick="ThemeManager.setMode('system'); ThemeManager.toggleQuickMenu(false);">
+            <span class="theme-swatch-dot" style="background:linear-gradient(135deg, #070c18 50%, #f5f7fa 50%); border-color:#94a3b8;"></span>
+            <span>💻 Theo Hệ Thống</span>
+          </button>
+        </div>
+      </div>
+
       <button class="btn btn-secondary btn-sm" onclick="App.openWindowsExplorer()" title="Mở Thư Mục Workspace trên Windows Explorer">
         📁 Mở Folder
       </button>
@@ -66,7 +113,9 @@
 
   <!-- Main Body Layout -->
   <div class="app-body">
-    <!-- Sidebar Navigation: Hierarchical Branch Structure (Cấu trúc Nhánh trong Thẻ Lớn) -->
+    <!-- Backdrop overlay for Mobile Drawer Navigation -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="App.toggleMobileSidebar(false)"></div>
+
     <!-- Sidebar Navigation: Dynamic Hierarchical Branch Structure -->
     <aside class="app-sidebar" id="app-sidebar">
       <!-- Sidebar Control Strip -->
@@ -192,7 +241,7 @@
             <span class="nav-branch-text">Kỹ Thuật &amp; Kiểm Định</span>
           </span>
           <div class="nav-branch-meta">
-            <span class="nav-branch-badge">2</span>
+            <span class="nav-branch-badge">3</span>
             <span class="nav-branch-arrow">▼</span>
           </div>
         </div>
@@ -206,6 +255,11 @@
             <span class="nav-icon">📐</span>
             <span class="nav-item-label">8. Toán - Hóa - Biểu Đồ</span>
             <span class="badge badge-blue" style="font-size:8.5px; margin-left:auto;">300 DPI</span>
+          </a>
+          <a class="nav-branch-item nav-item" data-tab="inspector-tab" data-tooltip="9. Đối Soát Song Song v4.2 & Cổng Kiểm Duyệt 4 Tầng" title="Hệ thống đối soát thực chứng song song IMRaD 🔁 PDF.js và Cổng kiểm định 4 tầng">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-item-label">9. Đối Soát Song Song</span>
+            <span class="badge badge-green" style="font-size:8.5px; margin-left:auto;">GATE 4.2</span>
           </a>
         </div>
       </div>
@@ -264,7 +318,7 @@
           <h1 style="font-size: 26px; font-weight: 800; color: #fff; margin: 0 0 8px 0; line-height: 1.35; letter-spacing: -0.4px;">
             Hệ Thống Nghiên Cứu Khoa Học, Học Thuật &amp; Tòa Soạn Báo AI
             <br>
-            <span style="background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <span style="color: #38bdf8; font-weight: 800;">
               Chuẩn Mực ISI / Scopus · 100% Zero-Fabrication
             </span>
           </h1>
@@ -296,9 +350,23 @@
             </div>
           </div>
 
+          <!-- Focused Research Launchpad (Trọng Tâm Khởi Tạo Đề Tài 1-Click) -->
+          <div class="home-launchpad-box" style="margin-top: 18px; margin-bottom: 18px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 14px 16px;">
+            <label style="font-size: 13px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span>🎯</span> Nhập Đề Tài Khoa Học Hoặc Câu Hỏi Nghiên Cứu:
+            </label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <input type="text" id="home-direct-topic-input" class="form-control" placeholder="Ví dụ: Ứng dụng Học Sâu và Trí Tuệ Nhân Tạo trong Chẩn Đoán Ung Thư Phổi..." style="flex: 1; min-width: 280px; font-size: 13.5px; padding: 10px 14px; background: rgba(11, 15, 23, 0.85); border-color: rgba(255,255,255,0.15);" onkeydown="if(event.key==='Enter') App.launchTopicFromHome();">
+              <button class="btn btn-primary" onclick="App.launchTopicFromHome()" style="padding: 10px 22px; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+                ⚡ Khởi Chạy Ngay
+              </button>
+            </div>
+          </div>
+
           <!-- Quick Action Launchers -->
           <div class="home-quick-actions">
-            <button class="btn btn-primary btn-md" onclick="App.switchTab('pipeline-tab')" style="box-shadow: 0 0 20px rgba(59,130,246,0.4); font-weight:700;">
+            <div id="home-auth-cta-box" style="display:inline-flex; align-items:center;"></div>
+            <button class="btn btn-primary btn-md" onclick="App.switchTab('pipeline-tab')" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); font-weight:700;">
               ⚡ Bắt Đầu Quy Trình 7 Bước
             </button>
             <button class="btn btn-secondary btn-md" onclick="App.switchTab('zotero-tab')" style="font-weight:700;">
@@ -357,6 +425,10 @@
             <div class="workflow-mini-step" onclick="if(window.PipelineUI){PipelineUI.setStep(7);} App.switchTab('pipeline-tab');" style="cursor: pointer;" title="Bước 7: Khử Dấu Vết AI, Kiểm Toán Turnitin & Xuất Bản DOCX">
               <div class="workflow-mini-num">BƯỚC 7</div>
               <div class="workflow-mini-name">✨ Khử AI &amp; Xuất Bản</div>
+            </div>
+            <div class="workflow-mini-step" onclick="if(window.PipelineUI){PipelineUI.setStep(8);} App.switchTab('pipeline-tab');" style="cursor: pointer;" title="Bước 8: Cổng Kiểm Duyệt 5 Lớp & Đối Soát Song Song Dual-Pane">
+              <div class="workflow-mini-num">BƯỚC 8</div>
+              <div class="workflow-mini-name">🔬 Đối Soát 5 Lớp</div>
             </div>
           </div>
         </div>
@@ -494,6 +566,16 @@
                 </div>
                 <span class="cluster-branch-badge">Math/Chem Pro</span>
               </div>
+              <div class="cluster-branch-item" onclick="App.switchTab('inspector-tab')">
+                <div class="cluster-branch-left">
+                  <span class="branch-icon">🛡️</span>
+                  <div>
+                    <div class="branch-text">9. Đối Soát Song Song v4.2</div>
+                    <div class="branch-sub">Dual-Pane Inspector, Kiểm duyệt 4 Tầng &amp; Ma trận A4 Landscape</div>
+                  </div>
+                </div>
+                <span class="cluster-branch-badge" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3);">Gate 4.2 Pro</span>
+              </div>
               <div class="cluster-branch-item" onclick="App.switchTab('agency-tab')">
                 <div class="cluster-branch-left">
                   <span class="branch-icon">🎭</span>
@@ -589,8 +671,16 @@
               <span id="pipeline-progress-status" style="font-size: 13px; font-weight: 600; color: #cbd5e1;">📊 Tiến Trình Tổng Thể: Sẵn sàng thực hiện</span>
               <span id="pipeline-progress-percent" style="font-size: 14px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);">0%</span>
             </div>
-            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
-              <div id="pipeline-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 4px;"></div>
+            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; position: relative;">
+              <div id="pipeline-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4, #10b981); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: left; border-radius: 4px; will-change: width, transform;"></div>
+            </div>
+            <!-- Granular Micro-Milestones Live Indicator -->
+            <div id="pipeline-micro-status" style="margin-top: 8px; font-size: 11.5px; color: #94a3b8; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="micro-status-indicator" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #38bdf8;"></span>
+                <span id="pipeline-micro-text">Sẵn sàng nhận lệnh thực thi</span>
+              </div>
+              <span id="pipeline-micro-time" style="font-size: 11px; color: #64748b;">Thời gian thực</span>
             </div>
           </div>
 
@@ -624,6 +714,10 @@
               <div class="step-circle"><span class="step-num">7</span></div>
               <span class="step-label">Khử AI & Xuất Bản</span>
             </div>
+            <div class="step-node" data-step="8" onclick="PipelineUI.setStep(8)" title="Bước 8: Cổng Kiểm Duyệt 5 Lớp & Đối Soát Song Song Dual-Pane">
+              <div class="step-circle"><span class="step-num">8</span></div>
+              <span class="step-label">Đối Soát 5 Lớp</span>
+            </div>
           </div>
 
           <!-- Step 1 Card: PICO Scope & Research Trends -->
@@ -641,7 +735,7 @@
               </span>
             </div>
             
-            <div class="pipeline-ctrl-box" style="border-left: 4px solid #3b82f6;">
+            <div class="pipeline-ctrl-box" style="border: 1px solid rgba(59, 130, 246, 0.35); background: rgba(15, 23, 42, 0.65);">
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
                 <div>
                   <label style="font-size: 12.5px; font-weight: 700; color: #93c5fd; display: block; margin-bottom: 6px;">
@@ -669,7 +763,7 @@
 
               <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; margin-top: 4px;">
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                  <button id="btn-run-step-1" class="btn btn-primary" onclick="PipelineUI.runStep(1)" style="font-size: 13.5px; font-weight: 700; padding: 9px 22px; box-shadow: 0 4px 14px rgba(59,130,246,0.4);">
+                  <button id="btn-run-step-1" class="btn btn-primary" onclick="PipelineUI.runStep(1)" style="font-size: 13.5px; font-weight: 700; padding: 9px 22px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
                     🚀 Phân Tích PICO & Xu Hướng Nghiên Cứu
                   </button>
                   <button id="btn-next-step-1" class="btn btn-secondary" onclick="PipelineUI.goToNextStep(2)" style="display: none; font-size: 13px; padding: 9px 18px;">
@@ -699,7 +793,7 @@
             </div>
 
             <!-- Vault Controls Panel -->
-            <div class="pipeline-ctrl-box" style="border-left: 4px solid #10b981; margin-bottom: 16px;">
+            <div class="pipeline-ctrl-box" style="border: 1px solid rgba(16, 185, 129, 0.35); background: rgba(15, 23, 42, 0.65); margin-bottom: 16px;">
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;">
                 <!-- Harvester Live Download -->
                 <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
@@ -733,11 +827,14 @@
                     📂 3. Nạp từ Workspace có sẵn:
                   </label>
                   <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn btn-secondary" onclick="PipelineUI.refreshVaultList()" style="flex: 1; font-size: 12px; font-weight: 700; padding: 7px 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="PipelineUI.refreshVaultList()" style="flex: 1; font-size: 12px; font-weight: 700; padding: 7px 8px;">
                       🔄 Làm Mới Vault
                     </button>
-                    <button type="button" class="btn btn-ghost" onclick="PipelineUI.clearVault()" style="font-size: 12px; color: #f87171; padding: 7px 10px;" title="Làm trống Evidence Vault">
-                      🗑️ Xóa Vault
+                    <button type="button" class="btn btn-secondary" onclick="PipelineUI.autocleanEvidenceDatabase()" style="flex: 1; font-size: 12px; font-weight: 700; padding: 7px 8px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Tự động phát hiện outliers, chuẩn hóa đơn vị SI và định dạng số thập phân tiếng Việt">
+                      🧹 Làm Sạch Số Liệu
+                    </button>
+                    <button type="button" class="btn btn-ghost" onclick="PipelineUI.clearVault()" style="font-size: 12px; color: #f87171; padding: 7px 8px;" title="Làm trống Evidence Vault">
+                      🗑️ Xóa
                     </button>
                   </div>
                 </div>
@@ -846,8 +943,35 @@
               <h4 style="color: #fff; font-size: 15px; margin: 0; font-weight: 800;">Bước 7: Khử Dấu Vết AI & Xuất Bản Hoàn Tất (Final QA & Publishing)</h4>
               <span class="badge badge-green" style="font-size: 11.5px; padding: 3px 10px;">⏱️ Dự kiến: ~5 - 10s</span>
             </div>
-            <button id="btn-run-step-7" class="btn btn-success btn-lg" onclick="PipelineUI.runStep(7)">🎉 Hoàn Tất & Xuất Bản Báo Cáo (Final QA)</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+              <button id="btn-run-step-7" class="btn btn-success btn-lg" onclick="PipelineUI.runStep(7)">🎉 Hoàn Tất & Xuất Bản Báo Cáo (Final QA)</button>
+              <button id="btn-next-step-7" class="btn btn-secondary btn-lg" onclick="PipelineUI.goToNextStep(8)" style="display: none;">Tiếp tục sang Bước 8 (Đối Soát Song Song 5 Lớp 🔬) ➔</button>
+            </div>
             <div id="pipeline-step-7-output" style="margin-top: 16px;"></div>
+          </div>
+
+          <!-- Step 8 Card: Academic Evidence Scanner & Dual-Pane Auditor (5-Layer Pre-Commit Verification Gate) -->
+          <div class="pipeline-step-card" data-step="8" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <h4 style="color: #fff; font-size: 15px; margin: 0; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <span>🔬</span> Bước 8: Cổng Kiểm Duyệt 5 Lớp & Đối Soát Song Song (Dual-Pane Evidence Scanner)
+              </h4>
+              <span class="badge" style="font-size: 11.5px; padding: 3px 10px; background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.4);">
+                🛡️ Zero-Hallucination v4.5
+              </span>
+            </div>
+            <p style="font-size: 12px; color: #94a3b8; margin: 0 0 14px 0;">
+              Kiểm toán đối soát số liệu định lượng 1:1 giữa Báo cáo Word và tệp PDF toàn văn gốc. Phân tách rành mạch số trang in tạp chí và số trang PDF (loại trừ hiểu lầm sai trang), diệt sạch 100% tài liệu/dữ liệu mồ côi.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button id="btn-run-step-8" class="btn btn-primary btn-lg" onclick="PipelineUI.runStep(8)" style="background: linear-gradient(135deg, #0284c7, #4f46e5); border: none;">
+                ⚡ Chạy Cổng Kiểm Duyệt 5 Lớp &amp; Sinh Gói Đối Soát
+              </button>
+              <a href="/doi_soat.html" target="_blank" class="btn btn-secondary btn-lg" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <span>👁️</span> Mở Trình Đối Soát Song Song (Dual-Pane)
+              </a>
+            </div>
+            <div id="pipeline-step-8-output" style="margin-top: 16px;"></div>
           </div>
         </div>
       </section>
@@ -859,7 +983,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
               <h2 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span>🧠</span> Kho Tri Thức Học Thuật (Open-Notebook)
+                <span>🧠</span> <span id="open-notebook-active-title">Kho Tri Thức Học Thuật (Open-Notebook)</span>
               </h2>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <select id="open-notebook-selector" class="form-control" style="width: 260px; background: #0f172a; font-weight: 600;" onchange="NotebookLMUI.onNotebookChange(this.value)"></select>
@@ -978,7 +1102,7 @@
               <div style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
                 
                 <!-- Card 0: Literature Review Matrix 7 Columns -->
-                <div class="transform-card" style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);" onclick="NotebookLMUI.switchViewTab('transform'); NotebookLMUI.generateTransform('literature_matrix');">
+                <div class="transform-card" style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);" onclick="NotebookLMUI.switchViewTab('transform'); NotebookLMUI.generateTransform('literature_matrix');">
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                     <span style="font-size: 18px;">📊</span>
                     <strong style="color: #38bdf8; font-size: 13px;">Ma Trận Tổng Thuật Y Văn (7 Cột Chuẩn)</strong>
@@ -1067,8 +1191,8 @@
                 📌 Chủ đề / Câu hỏi nghiên cứu:
               </label>
               <div style="display: flex; gap: 8px;">
-                <input type="text" id="harvester-topic" class="form-control" placeholder="Nhập chủ đề khoa học (VD: Lúa sạch trên đất phèn Đồng bằng sông Cửu Long)..." style="flex: 1; font-size: 13.5px; padding: 10px 14px;">
-                <button type="button" class="btn btn-primary" onclick="HarvesterUI.generateKeywordsAndQuery()" style="white-space: nowrap; font-weight: 700;">
+                <input type="text" id="harvester-topic" class="form-control" placeholder="Nhập chủ đề khoa học (VD: Lúa sạch trên đất phèn Đồng bằng sông Cửu Long)..." style="flex: 1; font-size: 13.5px; padding: 10px 14px;" onkeydown="if(event.key==='Enter') HarvesterUI.generateKeywordsAndQuery()">
+                <button type="button" id="btn-harvester-generate-kw" class="btn btn-primary" onclick="HarvesterUI.generateKeywordsAndQuery()" style="white-space: nowrap; font-weight: 700;">
                   ⚡ Sinh Từ Khóa & Query
                 </button>
               </div>
@@ -1140,6 +1264,7 @@
                   <option value="arxiv">arXiv.org (Preprints & Full Text PDF)</option>
                   <option value="openalex">OpenAlex Global Graph</option>
                   <option value="crossref">CrossRef DOI Registry</option>
+                  <option value="reactome">Reactome Pathways (Đường dẫn sinh học & Phản ứng)</option>
                 </select>
               </div>
 
@@ -1160,13 +1285,13 @@
             <!-- Custom Query Input -->
             <div style="margin-bottom: 14px;">
               <label style="font-size: 12px; color: #cbd5e1; font-weight: 700; display: block; margin-bottom: 6px;">🔍 Câu truy vấn tìm kiếm (Tự động nhận từ Phần 1 hoặc tùy chỉnh):</label>
-              <input type="text" id="harvester-custom-query" class="form-control" placeholder="Nhập từ khóa hoặc chuỗi Boolean Query..." style="font-size: 13px; padding: 9px 12px; background: rgba(15,23,42,0.8);">
+              <input type="text" id="harvester-custom-query" class="form-control" placeholder="Nhập từ khóa hoặc chuỗi Boolean Query..." style="font-size: 13px; padding: 9px 12px; background: rgba(15,23,42,0.8);" onkeydown="if(event.key==='Enter') HarvesterUI.startHarvest()">
             </div>
 
             <!-- Search Action Buttons -->
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
               <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <button id="btn-start-harvest" class="btn btn-primary" onclick="HarvesterUI.startHarvest()" style="font-size: 13.5px; font-weight: 700; padding: 9px 22px; box-shadow: 0 4px 14px rgba(59,130,246,0.4);">
+                <button id="btn-start-harvest" class="btn btn-primary" onclick="HarvesterUI.startHarvest()" style="font-size: 13.5px; font-weight: 700; padding: 9px 22px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
                   🔍 Tìm Kiếm & Sàng Lọc Bài Báo
                 </button>
                 <button class="btn btn-secondary" onclick="HarvesterUI.clearTempCache()" style="color: #ef4444; font-size: 12.5px; padding: 8px 14px;">
@@ -1182,6 +1307,39 @@
               <div class="empty-state-icon">🔬</div>
               <h4>Chưa có kết quả tìm kiếm</h4>
               <p>Nhập chủ đề và bấm <strong>"🔍 Tìm Kiếm & Sàng Lọc Bài Báo"</strong> để bắt đầu quét các kho học thuật.</p>
+            </div>
+          </div>
+          <!-- SECTION 4: REACTOME PATHWAYS & REACTIONS EXPLORER -->
+          <div class="card" style="margin-top: 24px; border-color: rgba(52, 211, 153, 0.35); background: linear-gradient(135deg, rgba(6, 78, 59, 0.2) 0%, rgba(15, 23, 42, 0.7) 100%);">
+            <div class="card-header" style="border-bottom: 1px solid rgba(52, 211, 153, 0.25);">
+              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 24px;">🧬</span>
+                  <div>
+                    <h3 style="font-size: 16px; font-weight: 800; color: #6ee7b7; margin: 0;">Tra Cứu Con Đường Sinh Học & Phản Ứng (Reactome Pathways Explorer)</h3>
+                    <p style="font-size: 12px; color: #a7f3d0; margin: 2px 0 0 0;">
+                      Truy vấn trực tiếp cơ sở dữ liệu quốc tế Reactome Content API (Hóa sinh, Chuyển hóa Đạm/Lân/Kali, Đất ngập nước, Xử lý sinh học).
+                    </p>
+                  </div>
+                </div>
+                <span class="badge badge-green" style="font-size: 11px;">REACTOME OPEN API</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+                <span class="mathchem-quick-chip" onclick="HarvesterUI.quickSearchReactome('nitrogen metabolism')">🌱 Chuyển hóa Nitơ</span>
+                <span class="mathchem-quick-chip" onclick="HarvesterUI.quickSearchReactome('ammonia')">💧 Amoni (NH4+)</span>
+                <span class="mathchem-quick-chip" onclick="HarvesterUI.quickSearchReactome('sulfur metabolism')">🧪 Chu trình Lưu huỳnh</span>
+                <span class="mathchem-quick-chip" onclick="HarvesterUI.quickSearchReactome('detoxification')">🛡️ Giải độc Kim loại nặng</span>
+                <span class="mathchem-quick-chip" onclick="HarvesterUI.quickSearchReactome('glycolysis')">⚡ Đường phân & Năng lượng</span>
+              </div>
+              <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                <input type="text" id="harvester-reactome-query" class="form-control" placeholder="Nhập tên con đường hoặc phản ứng sinh học (VD: nitrogen, ammonia, biochar, detoxification)..." style="font-size: 13px;" onkeydown="if(event.key==='Enter') HarvesterUI.searchReactome()">
+                <button type="button" id="btn-harvester-reactome-search" class="btn btn-green" onclick="HarvesterUI.searchReactome()" style="white-space: nowrap; font-weight: 700; font-size: 13px;">
+                  🧬 Tra Cứu Reactome
+                </button>
+              </div>
+              <div id="harvester-reactome-results"></div>
             </div>
           </div>
         </div>
@@ -1277,7 +1435,7 @@
                   <li><strong>Tổ chức quốc tế &amp; Đa năm:</strong> <code>(IPCC, 2021)</code>, <code>(Quốc hội, 2020, 2023)</code>, <code>(WHO, 2022)</code>.</li>
                   <li><strong>Nhóm nhiều tài liệu &amp; Số trang:</strong> <code>(Smith, 2019; Nguyen, 2023, tr. 45)</code>.</li>
                 </ul>
-                <div style="background:rgba(59,130,246,0.1); border-left:3px solid #3b82f6; padding:8px 12px; border-radius:0 6px 6px 0; font-size:11.5px; color:#93c5fd;">
+                <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.25); padding:10px 14px; border-radius:8px; font-size:11.5px; color:#93c5fd;">
                   💡 <em>Sau khi tải file Word đã chuyển đổi, chỉ cần mở Word và bấm nút <strong>Zotero ➔ Refresh</strong> để đồng bộ tức thì!</em>
                 </div>
               </div>
@@ -1368,7 +1526,7 @@
               </div>
 
               <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-                <button id="zotero-btn-run-norm" class="btn btn-primary btn-lg" onclick="ZoteroUI.runCitationNormalization()" style="font-weight: 700; font-size: 14px; padding: 10px 24px; box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
+                <button id="zotero-btn-run-norm" class="btn btn-primary btn-lg" onclick="ZoteroUI.runCitationNormalization()" style="font-weight: 700; font-size: 14px; padding: 10px 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
                   🚀 Chuẩn Hóa Danh Mục &amp; Tra Cứu Google Scholar
                 </button>
                 <span style="font-size: 12px; color: #94a3b8;">💡 Sử dụng tài khoản Google đăng nhập để truy cập dữ liệu trích dẫn Google Scholar</span>
@@ -1388,6 +1546,18 @@
               <h2 class="card-title">🎓 Viết Học Thuật Chuyên Sâu 2-File Paradigm</h2>
               <p class="card-subtitle">Đóng vai Senior Research Scientist (40 năm kinh nghiệm), tổng hợp tri thức 4 tầng, xuất bản Bộ 2 Tệp Chuẩn mực và kiểm toán 100% trích dẫn.</p>
             </div>
+          </div>
+
+          <!-- Looped Flows Reasoning Protocol Banner -->
+          <div style="margin: 4px 0 14px 0; padding: 10px 14px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">🧠</span>
+              <div>
+                <span style="font-size: 12px; font-weight: 700; color: #a5b4fc;">Looped Flows Reasoning (arXiv:2609.11801):</span>
+                <span style="font-size: 11.5px; color: #cbd5e1; margin-left: 4px;">Khử nhiễu đa tầng t₀ → tₖ, Chống bẫy ngụy biện tự tin (Spurious Attractor Guard) & Bão hòa kiểm chứng ACT q(z) ≥ 0,95.</span>
+              </div>
+            </div>
+            <span class="badge badge-green" style="font-size: 11px; font-weight: 600;">BẬT TỰ ĐỘNG</span>
           </div>
 
           <!-- Google AI Activation Helper Banner -->
@@ -1437,7 +1607,7 @@
                 <button id="btn-writer-clear-outline" class="btn btn-secondary" onclick="document.getElementById('writer-custom-outline').value=''; document.getElementById('writer-custom-outline').focus();" style="display: inline-flex; align-items: center; gap: 6px;">
                   ✏️ Tự Nhập Đề Cương Mới
                 </button>
-                <button id="btn-writer-generate" class="btn btn-primary" onclick="AcademicWriterUI.generate2Files()" style="display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);">
+                <button id="btn-writer-generate" class="btn btn-primary" onclick="AcademicWriterUI.generate2Files()" style="display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
                   🚀 Soạn Thảo Theo Đề Cương & Xuất Bản 2 Tệp
                 </button>
               </div>
@@ -1451,6 +1621,7 @@
                   </label>
                   <span style="font-size: 11px; color: #34d399;">Hỗ trợ tùy biến 100% số chương/mục</span>
                 </div>
+                <div id="writer-interactive-tree-container"></div>
                 <textarea id="writer-custom-outline" class="form-control" style="min-height: 200px; font-family: monospace; font-size: 12.5px; line-height: 1.5;" placeholder="Nhập hoặc dán đề cương của bạn tại đây (Ví dụ:
 Chương 1: Tổng quan thực trạng...
   1.1 Khái niệm
@@ -1483,6 +1654,18 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
               <h2 class="card-title">📰 Tòa Soạn Báo AI v3.1 — Tổng Biên Tập & Điều Phối GATE</h2>
               <p class="card-subtitle">Mô hình phân quyền 6 Ban: Thu thập, Biên tập, Kiểm duyệt, Xuất bản, Tư liệu, Phát triển. Thiết kế quy trình GATE linh hoạt.</p>
             </div>
+          </div>
+
+          <!-- Looped Flows Verification Banner -->
+          <div style="margin: 4px 0 14px 0; padding: 10px 14px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">🧠</span>
+              <div>
+                <span style="font-size: 12px; font-weight: 700; color: #a5b4fc;">Looped Flows Verification (arXiv:2609.11801):</span>
+                <span style="font-size: 11.5px; color: #cbd5e1; margin-left: 4px;">Kiểm toán thực chứng Q1, rà soát Spurious Attractor và phản biện đối kháng độc lập qua GS. Adversarius Grimm.</span>
+              </div>
+            </div>
+            <span class="badge badge-green" style="font-size: 11px; font-weight: 600;">BẬT TỰ ĐỘNG</span>
           </div>
 
           <!-- Google AI Activation Helper Banner -->
@@ -1565,6 +1748,9 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
               <button id="btn-editorial-analyze" class="btn btn-primary btn-lg" onclick="EditorialUI.analyzeRequest()" style="width: 100%; margin-top: 10px;">
                 🔍 Phân Tích Đề Bài & Lập Ma Trận Ban (TBT)
               </button>
+              <button type="button" id="btn-editorial-fact-check-standalone" class="btn btn-secondary btn-md" onclick="EditorialUI.runStandaloneFactCheck()" style="width: 100%; margin-top: 8px; border-color: rgba(56, 189, 248, 0.5); color: #38bdf8; font-weight: 700;">
+                🛡️ Thẩm Định Dấu Chân Số Liệu & DOI Độc Lập (Fact-Checker)
+              </button>
             </div>
 
             <div>
@@ -1643,7 +1829,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
           </div>
 
           <!-- 5-Gauge Scientific Dashboard with Progress Rings -->
-          <div class="grid-4" style="margin-bottom: 16px; gap: 12px; grid-template-columns: repeat(4, 1fr);">
+          <div class="grid-4" style="margin-bottom: 16px; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
             <!-- Human Score -->
             <div class="score-gauge-card" style="border-top: 3px solid #10b981;">
               <div class="gauge-lbl">Điểm Người Viết (Human Score)</div>
@@ -1670,6 +1856,20 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
                 <span class="gauge-ring-val gauge-val" id="gauge-similarity-index" style="color: #a78bfa;">--%</span>
               </div>
               <div id="gauge-sim-desc" style="font-size: 11px; color: #c4b5fd;">Mục tiêu Turnitin An Toàn (< 10%)</div>
+            </div>
+
+            <!-- AI Probability & Risk Level -->
+            <div class="score-gauge-card" style="border-top: 3px solid #ef4444;">
+              <div class="gauge-lbl">Xác Suất AI (AI Probability)</div>
+              <div class="gauge-ring-wrap">
+                <svg class="gauge-ring" viewBox="0 0 36 36">
+                  <circle class="gauge-track" cx="18" cy="18" r="15.9"/>
+                  <circle class="gauge-fill" id="ring-fill-ai" cx="18" cy="18" r="15.9"
+                          style="stroke-dasharray: 0 100; stroke: #ef4444;"/>
+                </svg>
+                <span class="gauge-ring-val gauge-val" id="gauge-ai-prob" style="color: #f87171;">--%</span>
+              </div>
+              <div id="gauge-risk-level" style="font-size: 11px; color: #fca5a5;">Mục tiêu Zero-AI (&lt; 10%)</div>
             </div>
 
             <!-- Burstiness Wave (Sóng 3 Tầng) -->
@@ -1729,7 +1929,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
                 <button class="btn btn-secondary" onclick="HumanizerUI.analyzeText()" id="btn-humanize-analyze" style="display: inline-flex; align-items: center; gap: 6px;">
                   🔍 Phân Tích Chỉ Số AI Chi Tiết
                 </button>
-                <button id="btn-humanize-unified" class="btn btn-primary" onclick="HumanizerUI.processUnifiedHumanizeTurnitin()" style="background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: white; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; font-size: 13px; box-shadow: 0 0 18px rgba(124, 58, 237, 0.45); transition: all 0.2s ease;">
+                <button id="btn-humanize-unified" class="btn btn-primary" onclick="HumanizerUI.processUnifiedHumanizeTurnitin()" style="background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); color: white; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; font-size: 13px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); transition: all 0.2s ease;">
                   ⚡ Khử AI & Chống Đạo Văn Turnitin (1-Click)
                 </button>
                 <button id="btn-plagiarism-audit" class="btn btn-secondary" onclick="HumanizerUI.processPlagiarismAudit()" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -2134,10 +2334,10 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" style="font-size: 11.5px;">Ghi chú / Người nhận:</label>
-                  <input type="text" id="admin-new-key-note" class="form-control" placeholder="Ví dụ: Cấp cho Lớp KHMT K32" style="font-size: 12px;">
+                  <input type="text" id="admin-new-key-note" class="form-control" placeholder="Ví dụ: Cấp cho Lớp KHMT K32" style="font-size: 12px;" onkeydown="if(event.key==='Enter') AdminUI.createNewLicenseKey()">
                 </div>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="AdminUI.createNewLicenseKey()" style="box-shadow: 0 0 14px rgba(59, 130, 246, 0.4);">
+              <button id="btn-admin-create-key" class="btn btn-primary btn-sm" onclick="AdminUI.createNewLicenseKey()" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
                 ➕ Sinh Mã License Key Ngay
               </button>
             </div>
@@ -2193,7 +2393,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
                 </ul>
               </div>
 
-              <div class="card" style="background: rgba(59, 130, 246, 0.1); border: 2px solid #3b82f6; padding: 18px; box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);">
+              <div class="card" style="background: rgba(59, 130, 246, 0.1); border: 2px solid #3b82f6; padding: 18px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);">
                 <div class="badge badge-blue" style="font-size: 10px; margin-bottom: 6px;">KHUYÊN DÙNG</div>
                 <h3 style="font-size: 16px; color: #38bdf8; font-weight: 800; margin-bottom: 8px;">Gói Chuyên Nghiệp (Pro)</h3>
                 <div style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 12px;">499.000 VNĐ <span style="font-size: 11px; color: #94a3b8;">/ quý</span></div>
@@ -2246,7 +2446,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
               </div>
 
               <!-- Executive Summary Alert Box -->
-              <div style="background: rgba(0, 0, 0, 0.3); border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #e2e8f0; line-height: 1.6;" id="needle-executive-summary">
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #e2e8f0; line-height: 1.6;" id="needle-executive-summary">
                 🤖 Đang khởi động Needle AI Sentinel để chẩn đoán hệ thống...
               </div>
             </div>
@@ -2322,7 +2522,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
               <!-- Command Input Bar -->
               <div style="padding: 12px 16px; background: #1e293b; display: flex; gap: 10px; border-top: 1px solid var(--border-color);">
                 <input type="text" id="needle-chat-input" class="form-control" placeholder="💬 Nhập yêu cầu cho Needle AI (Ví dụ: 'Tạo 3 key Enterprise', 'Kiểm tra lỗi hệ thống', 'Dọn dẹp logs')..." style="flex: 1; font-size: 13px;" onkeydown="if(event.key==='Enter') NeedleAdminUI.sendAdminCommand()">
-                <button class="btn btn-primary btn-sm" onclick="NeedleAdminUI.sendAdminCommand()" style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                <button id="btn-needle-send-command" class="btn btn-primary btn-sm" onclick="NeedleAdminUI.sendAdminCommand()" style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
                   🚀 Gửi Lệnh
                 </button>
               </div>
@@ -2366,6 +2566,9 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
               </button>
               <button type="button" class="settings-subtab-btn mathchem-subtab-btn" data-subtab="enhance" onclick="MathChemProUI.switchSubtab('enhance')">
                 <span>⚡</span> <span>Nâng Cấp File Word 1-Click</span>
+              </button>
+              <button type="button" class="settings-subtab-btn mathchem-subtab-btn" data-subtab="pubchem" onclick="MathChemProUI.switchSubtab('pubchem')">
+                <span>🧪</span> <span>Tra Cứu PubChem Database</span>
               </button>
             </div>
 
@@ -2698,6 +2901,148 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
               </div>
             </div>
 
+            <!-- SUBTAB 6: PUBCHEM DATABASE -->
+            <div id="mathchem-pane-pubchem" class="mathchem-subtab-pane" style="display: none;">
+              <div class="grid-2" style="gap: 20px;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                    <h4 style="color:#60a5fa; font-size:14px; font-weight:700; margin:0;">🧪 Tra Cứu Hợp Chất &amp; Cấu Trúc PubChem:</h4>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('FeS2')">Pyrite (FeS₂)</span>
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('H2SO4')">Axit Sunfuric (H₂SO₄)</span>
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('Chitosan')">Chitosan</span>
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('Glyphosate')">Thuốc trừ cỏ Glyphosate</span>
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('Urea')">Phân Đạm Urê</span>
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('NH4+')">Ion Amoni (NH₄⁺)</span>
+                    <span class="mathchem-quick-chip" onclick="MathChemProUI.quickSearchPubChem('Biochar')">Than sinh học Biochar</span>
+                  </div>
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:12px; color:#cbd5e1; font-weight:700;">Nhập Tên Hợp Chất hoặc Công Thức:</label>
+                    <div style="display:flex; gap:8px;">
+                      <input type="text" id="mathchem-pubchem-input" class="form-control" placeholder="Ví dụ: FeS2, Chitosan, Glyphosate, H2SO4, Urea..." onkeydown="if(event.key==='Enter') MathChemProUI.searchPubChem()">
+                      <button type="button" id="btn-mathchem-pubchem-search" class="btn btn-primary" onclick="MathChemProUI.searchPubChem()" style="white-space:nowrap; font-weight:700;">
+                        🔍 Tra Cứu
+                      </button>
+                    </div>
+                  </div>
+                  <div id="mathchem-pubchem-quick-info" style="font-size:12px; color:#94a3b8; line-height:1.6; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+                    💡 <strong>PubChem</strong> là kho dữ liệu hóa học mở lớn nhất thế giới của Viện Y Tế Quốc Gia Hoa Kỳ (NIH). Hệ thống hỗ trợ phân giải danh pháp IUPAC, Khối lượng phân tử, Mã định danh CID, cấu trúc 2D và nạp nhanh vào bài viết khoa học.
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style="color:#60a5fa; font-size:14px; font-weight:700; margin-bottom:10px;">📋 Kết Quả Phân Tích Cấu Trúc &amp; Hóa Tính:</h4>
+                  <div id="mathchem-pubchem-result-box" style="background:rgba(0,0,0,0.35); border:1.5px solid rgba(59,130,246,0.3); border-radius:8px; padding:16px; min-height:220px;">
+                    <div style="text-align:center; padding:40px 10px; color:#94a3b8; font-size:13px;">
+                      <span style="font-size:32px; display:block; margin-bottom:8px;">🔬</span>
+                      Nhập tên hoặc công thức hóa học và bấm <strong>"🔍 Tra Cứu"</strong> để xem cấu trúc và thuộc tính chuẩn quốc tế.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 9: ĐỐI SOÁT THỰC CHỨNG SONG SONG & KIỂM DUYỆT 4 TẦNG (DUAL-PANE INSPECTOR v4.2) -->
+      <section id="inspector-tab" class="tab-pane">
+        <div class="card" style="margin-bottom: 24px; border-color: rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(6, 78, 59, 0.25) 0%, rgba(15, 23, 42, 0.95) 100%);">
+          <div class="card-header" style="border-bottom: 1px solid rgba(16, 185, 129, 0.3);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="font-size: 32px;">🛡️</span>
+                <div>
+                  <h2 style="font-size: 20px; font-weight: 800; color: #f8fafc; margin: 0;">Dual-Pane Evidence Inspector v4.2 &amp; 4-Layer Verification Gate</h2>
+                  <p style="font-size: 13px; color: #6ee7b7; margin: 3px 0 0 0;">
+                    Hệ thống đối soát thực chứng song song IMRaD 🔁 PDF Canvas, Truy xuất nguồn gốc 1:1:1:1 và Cổng kiểm định liêm chính học thuật 4 tầng.
+                  </p>
+                </div>
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="badge badge-green" style="font-size: 11px; padding: 5px 12px;">EVIDENCE FIRST</span>
+                <span class="badge badge-blue" style="font-size: 11px; padding: 5px 12px;">DUAL-PANE v4.2</span>
+                <span class="badge badge-purple" style="font-size: 11px; padding: 5px 12px;">4-LAYER GATE</span>
+                <span class="badge badge-orange" style="font-size: 11px; padding: 5px 12px;">A4 LANDSCAPE</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Toolbar / Action Buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:10px; padding:12px 16px; margin-bottom:20px;">
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <button type="button" id="btn-inspector-gen-bundle" class="btn btn-primary" onclick="InspectorUI.generateBundle()" style="font-weight:700; display:flex; align-items:center; gap:6px;">
+                  <span>⚡</span> <span>Tạo Gói Đối Soát &amp; Kiểm Duyệt 4 Tầng</span>
+                </button>
+                <button type="button" id="btn-inspector-verify-gate" class="btn btn-secondary" onclick="InspectorUI.runGateVerification()" style="font-weight:700; display:flex; align-items:center; gap:6px; border-color:rgba(16,185,129,0.5); color:#6ee7b7;">
+                  <span>🛡️</span> <span>Chạy Kiểm Duyệt 4 Tầng</span>
+                </button>
+                <button type="button" class="btn btn-outline" onclick="InspectorUI.downloadMatrixDocx()" style="font-weight:700; display:flex; align-items:center; gap:6px;">
+                  <span>📊</span> <span>Xuất Ma Trận (.docx A4 Khổ Ngang)</span>
+                </button>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="btn btn-success" onclick="InspectorUI.openStandaloneWindow()" style="font-weight:700; display:flex; align-items:center; gap:6px;">
+                  <span>🚀</span> <span>Mở Cửa Sổ Đối Soát (Port 8765 / HTML)</span>
+                </button>
+                <button type="button" class="btn btn-ghost" onclick="InspectorUI.loadCatalog()" title="Tải lại danh mục">
+                  <span>🔄</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Verification Gate Scorecard (4 Layers) -->
+            <div id="inspector-gate-scorecard" style="display:none;"></div>
+
+            <!-- Catalog Data Table -->
+            <div class="card" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:10px;">
+              <div class="card-header" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:16px;">📑</span>
+                  <h3 style="font-size:14px; font-weight:700; color:#f8fafc; margin:0;">
+                    Danh Mục Vi Luận Điểm Thực Chứng Đối Soát (Multi-Evidence Catalog)
+                  </h3>
+                </div>
+                <span id="inspector-catalog-count" class="badge badge-blue" style="font-size:11px;">0 vi luận điểm</span>
+              </div>
+              <div class="table-responsive" style="max-height:480px; overflow-y:auto;">
+                <table class="table" style="width:100%; border-collapse:collapse;">
+                  <thead>
+                    <tr style="background:rgba(0,0,0,0.3); border-bottom:1px solid var(--border-color); font-size:11px; color:#94a3b8; text-transform:uppercase;">
+                      <th style="width:40px; text-align:center; padding:10px;">#</th>
+                      <th style="width:180px; padding:10px;">Vi Luận Điểm &amp; Tác Giả</th>
+                      <th style="width:200px; padding:10px;">Tệp PDF Gốc</th>
+                      <th style="width:80px; text-align:center; padding:10px;">Trang</th>
+                      <th style="padding:10px;">Trích Đoạn Thực Chứng Gốc (Quote EN/VI)</th>
+                      <th style="width:140px; padding:10px;">Thông Số Khóa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inspector-catalog-tbody">
+                    <tr>
+                      <td colspan="6" style="text-align:center; padding:24px; color:#94a3b8;">
+                        Chưa có dữ liệu danh mục. Vui lòng bấm <strong>"⚡ Tạo Gói Đối Soát &amp; Kiểm Duyệt 4 Tầng"</strong>.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Hướng dẫn Quy trình 1:1:1:1 -->
+            <div style="margin-top:20px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:14px 18px;">
+              <h4 style="color:#60a5fa; font-size:13px; font-weight:700; margin:0 0 6px 0; display:flex; align-items:center; gap:6px;">
+                <span>💡</span> Quy Chuẩn Liêm Chính Học Thuật v4.2 (Zero-Hallucination Protocol):
+              </h4>
+              <ul style="font-size:12px; color:#cbd5e1; margin:0; padding-left:18px; line-height:1.7;">
+                <li><strong>Nguyên Tắc Bất Biến 1:1:1:1:</strong> Mỗi tệp PDF toàn văn tương ứng chính xác 1 tệp Markdown ghi chú, 1 cụm trích dẫn DOCX, 1 bản ghi RIS và 1 bộ spotlight tương tác HTML.</li>
+                <li><strong>Single-Row Clean Access Standard:</strong> Cặp nút <code>[🌐 DOI NXB]</code> và <code>[⚡ Sci-Hub VN]</code> chỉ xuất hiện duy nhất trên dòng Mã Định Danh DOI của thẻ tiêu điểm (Spotlight Card), giữ sạch hoàn toàn cột bản thảo IMRaD và danh mục tài liệu tham khảo APA 7th.</li>
+                <li><strong>Cổng Kiểm Duyệt 4 Tầng:</strong> Bắt buộc vượt qua Tầng 1 (Match $\ge 0,60$), Tầng 2 (Audit nút bấm &amp; Chống gian lận chủ đề), Tầng 3 (Đồng bộ Word DOCX và Web HTML), và Tầng 4 (Ngắt mạch liêm chính nếu sai lệch số liệu).</li>
+              </ul>
+            </div>
+
           </div>
         </div>
       </section>
@@ -2954,7 +3299,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
 
     <!-- Google One-Tap & Sign-In Button -->
     <div style="padding: 20px 10px 24px;">
-      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(66, 133, 244, 0.1); border: 2px solid rgba(66, 133, 244, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 0 20px rgba(66, 133, 244, 0.2);">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(66, 133, 244, 0.1); border: 2px solid rgba(66, 133, 244, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
         <svg width="28" height="28" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -2986,7 +3331,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
           <p style="font-size: 11.5px; color: var(--text-muted, #94a3b8); margin: 2px 0 0 0;">Cấu hình AI, Zotero, kho lưu trữ và tối ưu giao diện hiển thị</p>
         </div>
       </div>
-      <button class="btn btn-secondary btn-sm modal-close-btn" style="padding: 4px 8px; font-size: 13px;">✕</button>
+      <button class="btn btn-secondary btn-sm modal-close-btn" onclick="App.closeSettingsModal()" style="padding: 4px 8px; font-size: 13px;">✕</button>
     </div>
 
     <!-- Segmented Subtabs Navigation Bar -->
@@ -3095,26 +3440,127 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
 
     <!-- TAB 3: GIAO DIỆN & TƯƠNG PHẢN CHỮ -->
     <div id="settings-subtab-theme" class="settings-subtab-pane" style="display: none;">
-      <!-- Theme Mode Selector -->
-      <div class="form-group" style="margin-bottom: 16px;">
-        <label class="form-label" style="font-weight: 700; margin-bottom: 10px; display: block;">Chế độ giao diện hiển thị:</label>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <label class="theme-option-btn" data-theme="dark" title="Giao diện tối (mặc định)">
-            <input type="radio" name="theme-mode" value="dark" style="display:none;">
-            <span class="theme-btn-inner">🌙 Tối (Sắc nét)</span>
-          </label>
-          <label class="theme-option-btn" data-theme="light" title="Giao diện sáng">
-            <input type="radio" name="theme-mode" value="light" style="display:none;">
-            <span class="theme-btn-inner">☀️ Sáng (Rõ nét)</span>
-          </label>
-          <label class="theme-option-btn" data-theme="system" title="Theo cài đặt hệ thống">
-            <input type="radio" name="theme-mode" value="system" style="display:none;">
-            <span class="theme-btn-inner">💻 Hệ Thống</span>
-          </label>
-          <label class="theme-option-btn" data-theme="custom" title="Hình nền tùy chỉnh">
-            <input type="radio" name="theme-mode" value="custom" style="display:none;">
-            <span class="theme-btn-inner">🖼️ Tùy Chỉnh Hình Nền</span>
-          </label>
+      <!-- Academic Theme Presets Selector -->
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label class="form-label" style="font-weight: 700; margin-bottom: 12px; display: block; font-size: 13.5px; color: var(--text-primary);">
+          🎨 Bộ Giao Diện &amp; Không Gian Học Thuật Chuyên Sâu:
+        </label>
+        <div class="theme-card-grid">
+          <!-- 1. Oxford Dark -->
+          <div class="theme-preview-card" data-theme="oxford-dark">
+            <div class="theme-card-top">
+              <span class="theme-card-name">🏛️ Oxford Dark</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Hoàng gia Oxford: Xanh hải quân sâu, viền và điểm nhấn vàng đồng cổ điển, giảm mỏi mắt khi làm việc lâu.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:#070c18;" title="Nền chính #070c18"></span>
+              <span class="theme-swatch-circle" style="background:#0e172a;" title="Bề mặt thẻ #0e172a"></span>
+              <span class="theme-swatch-circle" style="background:#3b82f6;" title="Màu nhấn #3b82f6"></span>
+              <span class="theme-swatch-circle" style="background:#e0a96d;" title="Vàng đồng #e0a96d"></span>
+            </div>
+          </div>
+
+          <!-- 2. Cambridge Light -->
+          <div class="theme-preview-card" data-theme="cambridge-light">
+            <div class="theme-card-top">
+              <span class="theme-card-name">📜 Cambridge Light</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Nền giấy ngà sáng dịu, bề mặt thẻ trắng tinh khiết, chữ đen xám sắc nét đạt chuẩn tương phản WCAG AAA.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:#f5f7fa;" title="Nền giấy ngà #f5f7fa"></span>
+              <span class="theme-swatch-circle" style="background:#ffffff;" title="Bề mặt thẻ #ffffff"></span>
+              <span class="theme-swatch-circle" style="background:#1d4ed8;" title="Màu nhấn #1d4ed8"></span>
+              <span class="theme-swatch-circle" style="background:#0f172a;" title="Chữ đen đậm #0f172a"></span>
+            </div>
+          </div>
+
+          <!-- 3. Nature Emerald -->
+          <div class="theme-preview-card" data-theme="nature-emerald">
+            <div class="theme-card-top">
+              <span class="theme-card-name">🌿 Nature Emerald</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Tòa soạn Nature / Springer: Ngọc lục bảo rừng sâu và mint phát quang chuyên biệt cho khối khoa học tự nhiên.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:#031c16;" title="Nền ngọc sâu #031c16"></span>
+              <span class="theme-swatch-circle" style="background:#062b22;" title="Bề mặt thẻ #062b22"></span>
+              <span class="theme-swatch-circle" style="background:#10b981;" title="Màu nhấn #10b981"></span>
+              <span class="theme-swatch-circle" style="background:#34d399;" title="Mint phát quang #34d399"></span>
+            </div>
+          </div>
+
+          <!-- 4. IEEE Computational -->
+          <div class="theme-preview-card" data-theme="ieee-computational">
+            <div class="theme-card-top">
+              <span class="theme-card-name">⚡ IEEE Modern</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">IEEE / ACM: Than chì công nghệ, tím chàm Indigo điện tử & Cyan số liệu, tối ưu chip dữ liệu và công thức.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:#070a12;" title="Nền than chì #070a12"></span>
+              <span class="theme-swatch-circle" style="background:#0c111e;" title="Bề mặt #0c111e"></span>
+              <span class="theme-swatch-circle" style="background:#6366f1;" title="Indigo #6366f1"></span>
+              <span class="theme-swatch-circle" style="background:#06b6d4;" title="Cyan #06b6d4"></span>
+            </div>
+          </div>
+
+          <!-- 5. Classic Dark -->
+          <div class="theme-preview-card" data-theme="dark">
+            <div class="theme-card-top">
+              <span class="theme-card-name">🌙 Cổ Điển Tối</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Giao diện tối truyền thống của WEB SUPER với độ tương phản cân bằng và ánh sáng lam quen thuộc.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:#0b0f17;" title="Nền #0b0f17"></span>
+              <span class="theme-swatch-circle" style="background:#111827;" title="Bề mặt #111827"></span>
+              <span class="theme-swatch-circle" style="background:#3b82f6;" title="Xanh lam #3b82f6"></span>
+              <span class="theme-swatch-circle" style="background:#94a3b8;" title="Chữ xám #94a3b8"></span>
+            </div>
+          </div>
+
+          <!-- 6. Classic Light -->
+          <div class="theme-preview-card" data-theme="light">
+            <div class="theme-card-top">
+              <span class="theme-card-name">☀️ Cổ Điển Sáng</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Giao diện sáng tiêu chuẩn với nền xanh lơ nhạt, bề mặt trắng rõ ràng cho phòng họp và trình chiếu.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:#f0f4f8;" title="Nền #f0f4f8"></span>
+              <span class="theme-swatch-circle" style="background:#ffffff;" title="Bề mặt #ffffff"></span>
+              <span class="theme-swatch-circle" style="background:#3b82f6;" title="Xanh lam #3b82f6"></span>
+              <span class="theme-swatch-circle" style="background:#1e293b;" title="Chữ #1e293b"></span>
+            </div>
+          </div>
+
+          <!-- 7. System Auto -->
+          <div class="theme-preview-card" data-theme="system">
+            <div class="theme-card-top">
+              <span class="theme-card-name">💻 Theo Hệ Thống</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Tự động đồng bộ với chế độ Sáng/Tối của hệ điều hành Windows / macOS theo thời gian thực.</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:linear-gradient(135deg, #070c18 50%, #f5f7fa 50%);" title="Tự động đảo chiều"></span>
+              <span class="theme-swatch-circle" style="background:#3b82f6;" title="Màu nhấn thích ứng"></span>
+            </div>
+          </div>
+
+          <!-- 8. Custom Wallpaper -->
+          <div class="theme-preview-card" data-theme="custom">
+            <div class="theme-card-top">
+              <span class="theme-card-name">🖼️ Tùy Chỉnh Nền</span>
+              <span class="theme-active-indicator">Đang Dùng</span>
+            </div>
+            <div class="theme-card-desc">Sử dụng ảnh nền cá nhân từ máy tính, kết hợp bộ đo sáng tự động và hiệu ứng kính mờ (Glassmorphism).</div>
+            <div class="theme-swatches-strip">
+              <span class="theme-swatch-circle" style="background:linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);" title="Ảnh cá nhân"></span>
+              <span class="theme-swatch-circle" style="background:rgba(255,255,255,0.7);" title="Lớp phủ mờ"></span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3225,7 +3671,7 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
 
     <!-- Modal Footer Actions -->
     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-      <button class="btn btn-secondary modal-close-btn">Hủy</button>
+      <button class="btn btn-secondary modal-close-btn" onclick="App.closeSettingsModal()">Hủy</button>
       <button class="btn btn-primary" onclick="App.saveSettings()">💾 Lưu Cài Đặt</button>
     </div>
   </div>
@@ -3336,7 +3782,7 @@ function activateKeyFromPaymentModal() {
     </div>
 
     <div style="margin-bottom: 16px;">
-      <div style="font-size: 13px; font-style: italic; color: #e2e8f0; background: rgba(255,255,255,0.04); padding: 12px 16px; border-radius: 8px; border-left: 3px solid #8b5cf6;" id="modal-agent-vibe"></div>
+      <div style="font-size: 13px; font-style: italic; color: #e2e8f0; background: rgba(139, 92, 246, 0.08); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.25);" id="modal-agent-vibe"></div>
     </div>
 
     <div style="margin-bottom: 18px;">
@@ -3435,8 +3881,8 @@ function activateKeyFromPaymentModal() {
         <div id="pdf-ocr-stats-pills" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
         <div style="display:flex; gap:8px;">
           <button class="btn btn-secondary btn-sm" onclick="PdfOcrUI.copyMarkdown()">📋 Copy Markdown</button>
-          <button class="btn btn-success btn-sm" onclick="PdfOcrUI.exportDocx()" style="font-weight:700;">⬇️ Xuất Word (.docx)</button>
-          <button class="btn btn-primary btn-sm" onclick="PdfOcrUI.openIngestModal()" style="font-weight:700;">🧠 Nạp Vào Kho Tri Thức</button>
+          <button id="pdf-ocr-btn-export-docx" class="btn btn-success btn-sm" onclick="PdfOcrUI.exportDocx()" style="font-weight:700;">⬇️ Xuất Word (.docx)</button>
+          <button id="pdf-ocr-btn-ingest" class="btn btn-primary btn-sm" onclick="PdfOcrUI.openIngestModal()" style="font-weight:700;">🧠 Nạp Vào Kho Tri Thức</button>
         </div>
       </div>
 
@@ -3489,6 +3935,7 @@ function activateKeyFromPaymentModal() {
 <script src="/static/js/needle_admin.js?v=18.0"></script>
 <script src="/static/js/math-chem-pro.js?v=18.0"></script>
 <script src="/static/js/bigquery-ml.js?v=18.0"></script>
-  <script src="/static/js/onboarding.js?v=18.0"></script>
+<script src="/static/js/inspector.js?v=18.0"></script>
+<script src="/static/js/onboarding.js?v=18.0"></script>
 </body>
 </html>

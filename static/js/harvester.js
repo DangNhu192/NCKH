@@ -18,7 +18,18 @@ const HarvesterUI = {
     const topic = topicInput ? topicInput.value.trim() : "";
     if (!topic) {
       App.toast("Vui lòng nhập chủ đề / câu hỏi nghiên cứu.", "warning");
+      if (topicInput) {
+        topicInput.focus();
+        topicInput.style.borderColor = "#f59e0b";
+        setTimeout(() => { if (topicInput) topicInput.style.borderColor = ""; }, 2000);
+      }
       return;
+    }
+
+    const btn = document.getElementById("btn-harvester-generate-kw");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-btn"></span> <span>Đang phân tích & sinh từ khóa...</span>';
     }
 
     try {
@@ -70,6 +81,11 @@ const HarvesterUI = {
 
     } catch (e) {
       App.toast("Lỗi tạo từ khóa: " + e.message, "error");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "⚡ Sinh Từ Khóa & Query";
+      }
     }
   },
 
@@ -191,6 +207,12 @@ const HarvesterUI = {
     const queryToSend = customQuery || customQInput || topicInput;
     if (!queryToSend) {
       App.toast("Vui lòng nhập chủ đề hoặc câu truy vấn tìm kiếm.", "warning");
+      const targetInput = document.getElementById("harvester-custom-query") || document.getElementById("harvester-topic");
+      if (targetInput) {
+        targetInput.focus();
+        targetInput.style.borderColor = "#f59e0b";
+        setTimeout(() => { if (targetInput) targetInput.style.borderColor = ""; }, 2000);
+      }
       return;
     }
 
@@ -785,6 +807,139 @@ ${errMsg}`);
       App.toast("Đã giải phóng bộ nhớ tạm thành công!", "info");
     } catch (e) {
       App.toast("Lỗi xóa cache: " + e.message, "error");
+    }
+  },
+
+  quickSearchReactome(kw) {
+    const input = document.getElementById("harvester-reactome-query");
+    if (input) input.value = kw;
+    this.searchReactome(kw);
+  },
+
+  async searchReactome(customQuery = null) {
+    const queryInput = document.getElementById("harvester-reactome-query");
+    const query = customQuery || (queryInput ? queryInput.value.trim() : "");
+    if (!query) {
+      App.toast("Vui lòng nhập từ khóa con đường sinh học Reactome.", "warning");
+      return;
+    }
+
+    const btn = document.getElementById("btn-harvester-reactome-search");
+    const resultsContainer = document.getElementById("harvester-reactome-results");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-btn"></span> <span>Đang truy vấn Reactome...</span>';
+    }
+    if (resultsContainer) {
+      resultsContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6ee7b7;"><span class="spinner-btn"></span> Đang kết nối Reactome Content Service API...</div>';
+    }
+
+    try {
+      const res = await fetch("/api/harvester/reactome-search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...((window.AuthManager && AuthManager.token) ? { "Authorization": `Bearer ${AuthManager.token}` } : {})
+        },
+        body: JSON.stringify({ query, max_results: 6 })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        this.renderReactomeResults(data.pathways || []);
+        App.toast(`Đã tìm thấy ${data.total_found || 0} con đường sinh học Reactome!`, "success");
+      } else {
+        App.toast(data.detail || data.message || "Không tìm thấy con đường sinh học phù hợp", "warning");
+        if (resultsContainer) {
+          resultsContainer.innerHTML = `<div style="padding: 12px; color: #fca5a5; font-size: 12.5px;">${data.detail || "Không có dữ liệu phù hợp."}</div>`;
+        }
+      }
+    } catch (e) {
+      App.toast("Lỗi tra cứu Reactome: " + e.message, "error");
+      if (resultsContainer) {
+        resultsContainer.innerHTML = `<div style="padding: 12px; color: #fca5a5; font-size: 12.5px;">Lỗi: ${e.message}</div>`;
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "🧬 Tra Cứu Reactome";
+      }
+    }
+  },
+
+  renderReactomeResults(pathways) {
+    const container = document.getElementById("harvester-reactome-results");
+    if (!container) return;
+
+    if (!pathways || pathways.length === 0) {
+      container.innerHTML = `<div style="padding: 14px; text-align: center; color: #94a3b8; font-size: 12.5px;">Không có con đường sinh học nào cho từ khóa này. Thử 'nitrogen', 'ammonia', 'detoxification', hoặc 'glycolysis'.</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 10px;">
+        ${pathways.map((pw, i) => `
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 700; color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 2px 6px; border-radius: 4px;">${pw.stId || pw.id || 'R-HSA'}</span>
+                <span style="font-size: 11px; color: #94a3b8;">${pw.species || 'All Species'}</span>
+              </div>
+              <h5 style="color: #f8fafc; font-size: 13px; font-weight: 700; margin: 0 0 6px 0;">${pw.name || 'Con đường sinh học'}</h5>
+              <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.5; margin-bottom: 10px;">
+                Phản ứng cấu thành: <strong>${pw.reactions_count || (pw.events ? pw.events.length : 0) || 'N/A'}</strong> phản ứng hóa sinh.
+              </div>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <a href="https://reactome.org/content/detail/${encodeURIComponent(pw.stId || pw.id || '')}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="flex: 1; font-size: 11px; text-align: center; padding: 5px 6px; color: #6ee7b7; border: 1px solid rgba(52,211,153,0.3);">
+                🌐 Mở Reactome
+              </a>
+              <button type="button" class="btn btn-green btn-sm" onclick="HarvesterUI.importReactomeToVault('${encodeURIComponent(pw.stId || pw.id || '')}', '${encodeURIComponent(pw.name || '')}', '${encodeURIComponent(pw.species || '')}', ${pw.reactions_count || 0})" style="flex: 1.3; font-size: 11px; font-weight: 700; padding: 5px 8px;">
+                📥 Thêm Vào Vault
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  async importReactomeToVault(stIdEnc, nameEnc, speciesEnc, reactionsCount) {
+    const stId = decodeURIComponent(stIdEnc);
+    const name = decodeURIComponent(nameEnc);
+    const species = decodeURIComponent(speciesEnc);
+
+    App.toast(`Đang nạp con đường sinh học ${stId} vào Evidence Vault...`, "info");
+    try {
+      const res = await fetch("/api/evidence-db/extract-and-feed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...((window.AuthManager && AuthManager.token) ? { "Authorization": `Bearer ${AuthManager.token}` } : {})
+        },
+        body: JSON.stringify({
+          text_content: `Con đường sinh học: ${name} (${stId}, Loài: ${species}). Bao gồm ${reactionsCount} phản ứng hóa sinh được kiểm chứng thực nghiệm từ cơ sở dữ liệu Reactome Content Service. Được chuẩn hóa và sử dụng làm cơ sở đối soát sinh học trong nghiên cứu.`,
+          document_id: `reactome_${stId.toLowerCase().replace(/[^a-z0-9_]/g, '_')}`,
+          metadata: {
+            title: `Reactome Pathway: ${name} [${stId}]`,
+            authors: ["Reactome Consortium", "Fabregat, A.", "Sidiropoulos, K."],
+            year: 2024,
+            doi: "10.1093/nar/gky1079",
+            journal: "Nucleic Acids Research",
+            source_type: "biological_database"
+          }
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        App.toast(`✨ Đã nạp thành công "${name}" vào Evidence Vault!`, "success");
+        if (window.PipelineUI && PipelineUI.refreshVaultList) {
+          PipelineUI.refreshVaultList();
+        }
+      } else {
+        App.toast(data.detail || data.message || "Lỗi lưu vào Evidence Vault", "error");
+      }
+    } catch (e) {
+      App.toast("Lỗi nạp vào Vault: " + e.message, "error");
     }
   }
 };

@@ -48,4 +48,38 @@
     3. **Bước 5 (Loại bỏ File B & Tích hợp Xu hướng vào File A):** Bỏ hoàn toàn việc tạo File B (Ma trận 6 cột) nhằm tiết kiệm token tối đa; nội dung xu hướng công bố khoa học thực tế từ OpenAlex được tích hợp tự động vào luận cứ phân tích của File A (Bài báo IMRaD).
     4. **Bước 7 (Sửa lỗi mất nội dung sau khi Khử AI):** Khắc phục lỗi tìm file bản thảo (.md) do không khớp tiền tố (`File_A_*` thay vì `Bao_cao_*`), bổ sung cơ chế fallback quét đa tầng (`Tai_Lieu/`, `Ban_Thao/`) và kiểm tra tính toàn vẹn (integrity guard) trước và sau khi Humanize.
     5. Đạt **100% PASS** trên bộ kiểm thử tự động `test_4_fixes.py`.
+- **Yêu cầu 9 (2026-09-06 - Tích Hợp Động Cơ Bóc Tách Thực Chứng & Cơ Sở Dữ Liệu Thực Chứng Vào Bước 2 & Bước 5):**
+  - *Nhiệm vụ:* Tích hợp tính năng bóc tách chuyên sâu theo từng tài liệu cung cấp (chuẩn APA 7th, số trang, phân mục, trích đoạn nguyên văn, bản dịch, thống kê định lượng) vào dòng chảy quy trình 7 bước.
+  - *Kết quả xử lý:*
+    1. **Tích hợp Bước 2 (Evidence Vault to Empirical Database):** Bổ sung hàm `build_empirical_database_from_vault()` trong `PipelineEngine` (`modules/pipeline/pipeline_engine.py`), tự động bóc tách toàn bộ tài liệu đã lưu trong Vault để tạo Cơ sở dữ liệu Thực chứng hoàn chỉnh (`.json`, `.docx`, `.md`, `.ris`, `.bib`).
+    2. **Liên thông sang Bước 5:** Tự động chuyển giao `empirical_database` từ Bước 2 sang Bước 5 để đưa trực tiếp các luận cứ và chỉ số đo lường vào Báo cáo IMRaD (Tệp A) và Bảng Ma trận đối soát 6 Cột (Tệp B).
+    3. **Kiểm Thử:** Đạt 100% PASS trên toàn bộ 33/33 tests trong bộ kiểm thử `pytest tests`.
+- **Yêu cầu 10 (2026-09-14 - Tích Hợp Giao Thức Suy Luận Luồng Lặp Looped Flows Reasoning / arXiv:2609.11801 Vào Bước 1 & Bước 5):**
+  - *Nhiệm vụ:* Nâng cấp Quy trình 7 Bước ứng dụng giao thức suy luận lặp chính xác cao: khử nhiễu đa tầng ($t_0 \to t_k$), tự động kiểm toán tính bão hòa ACT $q(z) \ge 0,95$ và chống bẫy ngụy biện tự tin (Spurious Attractors).
+  - *Kết quả xử lý:*
+    1. **Bước 1 (Scope & PICO):** Tự động kích hoạt `looped_flows_engine.audit_text_with_looped_flows()` để rà soát tính nhất quán nội tại giữa câu hỏi nghiên cứu PICO, mệnh đề can thiệp và từ khóa Boolean, loại bỏ sớm các giả thuyết mâu thuẫn.
+    2. **Bước 5 (2-File Academic Drafting):** Nhận trực tiếp biên bản kiểm định Looped Flows từ Academic Writer (ACT Score, Residual $R_i$, Spurious Attractor Guard) và chuyển giao sang các bước xuất bản tiếp theo.
+    3. **Kiểm Thử:** Đạt 100% PASS trên bài kiểm tra `test_09_integration_with_pipeline_step1`.
+- **Yêu cầu 11 (2026-09-16 - Tích Hợp Data Autocleaning & Lọc Dị Biệt Số Liệu Vào Bước 2 Evidence Vault):**
+  - *Nhiệm vụ:* Tích hợp cơ chế tự động làm sạch số liệu (`ScientificDataCleaner`) trực tiếp trên giao diện và backend của Bước 2.
+  - *Kết quả xử lý:*
+    1. **Backend Router (`modules/pipeline/evidence_db_router.py`):** Mở endpoint `POST /api/evidence-db/autoclean` phân tích và làm sạch toàn bộ bản ghi thực chứng trong Vault.
+    2. **Xử lý số liệu:** Tự động phát hiện outliers (pH ngoài $[0, 14]$, phần trăm $>100\%$, giá trị âm bất thường), chuẩn hóa đơn vị đo lường theo hệ SI (`mg/g`, `mg/L`, `tấn CO₂e`), và định dạng số thập phân tiếng Việt (`1,5; 28,5%`).
+    3. **Giao diện Bước 2 (`static/index.html` & `static/js/pipeline.js`):** Bổ sung nút bấm `🧹 Làm Sạch Số Liệu` cạnh cụm nút Vault, hiển thị thông báo kết quả làm sạch thời gian thực.
+    4. **Kiểm thử:** Đạt 100% PASS trên bộ kiểm thử `test_data_autocleaning.py`.
+- **Yêu cầu 12 (2026-09-23 - Nâng Cấp Dual-Pane Evidence Inspector v4.2 & Cổng Kiểm Duyệt 4 Tầng Vào Bước 7):**
+  - *Nhiệm vụ:* Nâng cấp Bước 7 tự động kích hoạt Cổng Kiểm Duyệt 4 Tầng (Match Ratio $\ge 0,60$, Anti-Topic Fraud, DOCX sync, Zero-Hallucination Circuit Breaker) và tự động xuất bản Bảng Ma Trận A4 Landscape kèm trọn bộ gói đối soát độc lập.
+  - *Kết quả xử lý:*
+    1. **Pipeline Engine (`modules/pipeline/pipeline_engine.py`):** Bước 7 sau khi lưu bản thảo hoàn tất sẽ tự động gọi `evidence_inspector_engine.package_standalone_bundle()` và `run_4_layer_verification_gate()` trả về `inspector_verification`.
+    2. **Đầu ra đối soát chuẩn mực:** Tự động sinh `multi_evidence_catalog.json` (10 trường), `Bang_Truy_Xuat_Nguon_Goc_Tai_Lieu.docx` (Khổ ngang Landscape 7 cột), và `doi_soat.html`.
+    3. **Kiểm thử:** Đạt 100% PASS trên bộ kiểm thử `tests/test_evidence_inspector_gate.py`.
+- **Yêu cầu 13 (2026-11-08 - Đồng Bộ Hóa 8 Bước Pipeline & Tối Ưu Hệ Thống Kiểm Thử Tự Động):**
+  - *Nhiệm vụ:* Khắc phục lỗi kiểm thử do bổ sung Bước 8 (Dual-Pane Evidence Scanner), đảm bảo tính nhất quán giữa pipeline definition và test suite.
+  - *Kết quả xử lý:*
+    1. **Đồng bộ hóa kiểm thử (`tests/test_reform_r1_pipeline.py`):** Cập nhật assertion khớp chính xác với cấu trúc 8 bước hoàn chỉnh của hệ thống.
+    2. **Cấu hình môi trường pytest (`pytest.ini`):** Bổ sung `pythonpath = .` đảm bảo việc nhận diện các package nội bộ `modules/` đồng bộ trong mọi môi trường chạy tự động.
+    3. **Kiểm thử toàn diện:** Bộ test suite 13/13 tests của pipeline và 91/91 tests toàn hệ thống đều đạt **100% PASS**.
+
+
+
 

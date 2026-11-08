@@ -41,28 +41,53 @@ const App = {
         const searchInput = document.getElementById('sidebar-feature-search');
         if (searchInput) {
           const sidebar = document.querySelector('.app-sidebar');
-          if (sidebar && sidebar.classList.contains('sidebar-compact')) {
+          if (sidebar && (sidebar.classList.contains('sidebar-compact') || sidebar.classList.contains('sidebar-collapsed'))) {
             this.toggleSidebarCompact();
+          }
+          if (window.innerWidth <= 768) {
+            this.toggleMobileSidebar(true);
           }
           searchInput.focus();
           searchInput.select();
         }
       }
-      // Escape in search: Clear search
+      // Escape: Clear search or close mobile sidebar
       if (e.key === 'Escape') {
         const searchInput = document.getElementById('sidebar-feature-search');
         if (searchInput && document.activeElement === searchInput) {
           this.clearSidebarSearch();
           searchInput.blur();
         }
+        if (window.innerWidth <= 768) {
+          this.toggleMobileSidebar(false);
+        }
       }
     });
   },
 
+  toggleMobileSidebar(forceState) {
+    const sidebar = document.getElementById('app-sidebar') || document.querySelector('.app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar) return;
+
+    const isOpen = typeof forceState === 'boolean' ? forceState : !sidebar.classList.contains('mobile-open');
+    sidebar.classList.toggle('mobile-open', isOpen);
+    document.body.classList.toggle('mobile-sidebar-open', isOpen);
+    if (backdrop) {
+      backdrop.classList.toggle('active', isOpen);
+    }
+    const toggleBtn = document.getElementById('mobile-menu-toggle');
+    if (toggleBtn) {
+      toggleBtn.classList.toggle('active', isOpen);
+      toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+  },
+
   toggleSidebarCompact() {
-    const sidebar = document.querySelector('.app-sidebar');
+    const sidebar = document.getElementById('app-sidebar') || document.querySelector('.app-sidebar');
     if (!sidebar) return;
     const isNowCompact = sidebar.classList.toggle('sidebar-compact');
+    sidebar.classList.toggle('sidebar-collapsed', isNowCompact);
     localStorage.setItem('websuper_sidebar_compact', isNowCompact ? '1' : '0');
 
     const iconEl = document.getElementById('btn-toggle-sidebar-dock-icon');
@@ -74,8 +99,11 @@ const App = {
   restoreSidebarPreference() {
     const isCompact = localStorage.getItem('websuper_sidebar_compact') === '1';
     if (isCompact) {
-      const sidebar = document.querySelector('.app-sidebar');
-      if (sidebar) sidebar.classList.add('sidebar-compact');
+      const sidebar = document.getElementById('app-sidebar') || document.querySelector('.app-sidebar');
+      if (sidebar) {
+        sidebar.classList.add('sidebar-compact');
+        sidebar.classList.add('sidebar-collapsed');
+      }
       const iconEl = document.getElementById('btn-toggle-sidebar-dock-icon');
       if (iconEl) iconEl.textContent = '▶';
     }
@@ -83,19 +111,23 @@ const App = {
 
   toggleAllBranches() {
     const groups = document.querySelectorAll('.nav-branch-group');
-    const hasCollapsed = Array.from(groups).some(g => g.classList.contains('collapsed'));
+    const anyCollapsed = Array.from(groups).some(g => g.classList.contains('collapsed'));
     
     groups.forEach(g => {
-      if (hasCollapsed) {
+      if (anyCollapsed) {
         g.classList.remove('collapsed');
       } else {
-        g.classList.add('collapsed');
+        // Thu gọn tất cả, chỉ giữ lại nhóm đang active
+        const hasActiveItem = g.querySelector('.nav-branch-item.active');
+        if (!hasActiveItem) {
+          g.classList.add('collapsed');
+        }
       }
     });
 
     const iconEl = document.getElementById('btn-toggle-all-branches-icon');
     if (iconEl) {
-      iconEl.textContent = hasCollapsed ? '⇲' : '⇱';
+      iconEl.textContent = anyCollapsed ? '⇱' : '⇲';
     }
   },
 
@@ -111,49 +143,33 @@ const App = {
   },
 
   setupBranchAutoCollapse() {
-    // 1. Tự động thu gọn các nhánh không được chọn khi click ra ngoài thanh sidebar
-    document.addEventListener('click', (e) => {
-      const sidebar = document.querySelector('.app-sidebar');
-      if (sidebar && !sidebar.contains(e.target)) {
+    // Tự động thu gọn các nhánh không chọn khi người dùng bấm vào không gian làm việc chính (.app-main)
+    const appMain = document.querySelector('.app-main');
+    if (appMain) {
+      appMain.addEventListener('click', () => {
         this.collapseInactiveBranches();
-      }
-    });
-
-    // 2. Tự động khôi phục thu gọn khi rời chuột khỏi sidebar sau 1 khoảng trễ tự nhiên (1.2s)
-    const sidebarEl = document.querySelector('.app-sidebar');
-    if (sidebarEl) {
-      sidebarEl.addEventListener('mouseleave', () => {
-        if (this._sidebarLeaveTimer) clearTimeout(this._sidebarLeaveTimer);
-        this._sidebarLeaveTimer = setTimeout(() => {
-          this.collapseInactiveBranches();
-        }, 1200);
-      });
-      sidebarEl.addEventListener('mouseenter', () => {
-        if (this._sidebarLeaveTimer) clearTimeout(this._sidebarLeaveTimer);
       });
     }
   },
 
   toggleBranch(headerEl, e) {
     if (e && e.stopPropagation) e.stopPropagation();
-    if (!headerEl) return;
-    const group = headerEl.closest('.nav-branch-group');
+    const group = headerEl ? (headerEl.classList.contains('nav-branch-group') ? headerEl : headerEl.closest('.nav-branch-group')) : null;
     if (!group) return;
 
-    const isCollapsed = group.classList.contains('collapsed');
-
-    // Accordion Mode: Thu gọn các nhánh khác
-    document.querySelectorAll('.nav-branch-group').forEach(grp => {
-      if (grp !== group) {
-        grp.classList.add('collapsed');
-      }
-    });
-
-    // Bật/Tắt nhánh hiện tại
-    if (isCollapsed) {
+    const wasCollapsed = group.classList.contains('collapsed');
+    if (wasCollapsed) {
       group.classList.remove('collapsed');
     } else {
       group.classList.add('collapsed');
+    }
+
+    // Cập nhật trạng thái biểu tượng Mở/Thu gọn tất cả
+    const allGroups = document.querySelectorAll('.nav-branch-group');
+    const allOpen = Array.from(allGroups).every(g => !g.classList.contains('collapsed'));
+    const toggleAllIcon = document.getElementById('btn-toggle-all-branches-icon');
+    if (toggleAllIcon) {
+      toggleAllIcon.textContent = allOpen ? '⇱' : '⇲';
     }
   },
 
@@ -169,6 +185,11 @@ const App = {
         grp.classList.add('collapsed');
       }
     });
+
+    const toggleAllIcon = document.getElementById('btn-toggle-all-branches-icon');
+    if (toggleAllIcon) {
+      toggleAllIcon.textContent = '⇲';
+    }
   },
 
   collapseInactiveBranches() {
@@ -328,6 +349,28 @@ const App = {
 
     // Onboarding guide: hiển thị hướng dẫn lần đầu và kiểm tra trạng thái sẵn sàng
     if (window.OnboardingGuide) OnboardingGuide.checkAndShow(tabId);
+  },
+
+  launchTopicFromHome() {
+    const input = document.getElementById('home-direct-topic-input');
+    const topic = input ? input.value.trim() : '';
+    if (!topic) {
+      this.toast('⚠️ Vui lòng nhập tên đề tài nghiên cứu để bắt đầu!', 'warning');
+      if (input) input.focus();
+      return;
+    }
+    const pipeTopicInput = document.getElementById('pipeline-topic-input');
+    if (pipeTopicInput) {
+      pipeTopicInput.value = topic;
+    }
+    this.switchTab('pipeline-tab');
+    if (window.PipelineUI) {
+      PipelineUI.setStep(1);
+      this.toast(`🚀 Đã nạp đề tài nghiên cứu: "${topic.length > 50 ? topic.substring(0, 50) + '...' : topic}"`, 'success');
+      if (PipelineUI.updateProgress) {
+        PipelineUI.updateProgress(14, '📊 Bước 1: Sẵn sàng phân tích PICO & Xu hướng OpenAlex', `[1/4] Đã nạp đề tài: "${topic.substring(0, 35)}..."`, 'info');
+      }
+    }
   },
 
   async updateStatus() {
@@ -643,9 +686,14 @@ const App = {
     }
   },
 
+  closeSettingsModal() {
+    const modal = document.getElementById("modal-settings");
+    if (modal) modal.classList.remove("active");
+  },
+
   async openWindowsExplorer(relPath = "") {
     const clean = (typeof relPath === "string" ? relPath.trim() : "");
-    const customInput = document.getElementById("pipeline-storage-dir")?.value.trim() || document.getElementById("cfg-custom-storage-dir")?.value.trim() || "";
+    const customInput = document.getElementById("pipeline-storage-dir")?.value?.trim() || document.getElementById("cfg-custom-storage-dir")?.value?.trim() || "";
     const targetPath = clean || customInput || "Tai_Lieu";
     try {
       const res = await fetch(`/api/files/open-folder?custom_dir=${encodeURIComponent(targetPath)}&path=${encodeURIComponent(targetPath)}`);
@@ -693,6 +741,18 @@ const App = {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  },
+
+  setTheme(mode) {
+    if (window.ThemeManager && ThemeManager.setMode) {
+      ThemeManager.setMode(mode);
+    }
+  },
+
+  toggleThemeQuickMenu() {
+    if (window.ThemeManager && ThemeManager.toggleQuickMenu) {
+      ThemeManager.toggleQuickMenu();
+    }
   },
 
   toast(message, type = "info") {

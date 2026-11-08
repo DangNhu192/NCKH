@@ -31,6 +31,7 @@
 | **09** | [`09_QUAN_LY_TAI_KHOAN_VA_AUTH_VAULT.md`](./09_QUAN_LY_TAI_KHOAN_VA_AUTH_VAULT.md) | **Bảo Mật Auth Vault (AES-256/PBKDF2) & Phân Quyền Admin** | `modules/auth/`, `auth_vault/` |
 | **10** | [`10_WORKSPACE_VA_LICH_SU_HISTORY.md`](./10_WORKSPACE_VA_LICH_SU_HISTORY.md) | **Không Gian Workspace, Soạn Thảo In-Place DOM & Lịch Sử Phiên** | `modules/workspace/docx_editor_engine.py`, `modules/history/` |
 | **11** | [`11_PHAN_TICH_DU_LIEU_BIGQUERY_AI_ML.md`](./11_PHAN_TICH_DU_LIEU_BIGQUERY_AI_ML.md) | **Phân Tích Dữ Liệu Lớn BigQuery AI/ML & PDF Document AI OCR** | `modules/bigquery/bigquery_engine.py`, `modules/shared/pdf_ocr_engine.py` |
+| **12** | [`12_DOI_SOAT_SONG_SONG_DUAL_PANE_INSPECTOR.md`](./12_DOI_SOAT_SONG_SONG_DUAL_PANE_INSPECTOR.md) | **Đối Soát Song Song Dual-Pane v4.2 & Cổng Kiểm Duyệt 4 Tầng** | `modules/inspector/`, `static/js/inspector.js` |
 
 ---
 
@@ -49,4 +50,7 @@
    - `test_m2_docx_math_chem.py` (Word In-Place DOM & Math/Chem Engine - 5 tests PASS)
    - `test_adversarial_m2_stress.py` (Adversarial DOM & Decimal Extreme Stress Tests - 87 tests PASS)
    - `test_server_load.py` (Server Endpoints & Concurrent Load - 8 tests PASS)
-
+   - `tests/test_looped_flows_engine.py` (Looped Flows Reasoning & Verification - 10 tests PASS)
+   - `tests/test_data_autocleaning.py` (Data Autocleaning, Profiling & Outlier Sanitation - 6 tests PASS)
+   - `tests/test_reactome_service.py` (Reactome Database Bio-Pathways & Reaction Service - 5 tests PASS)
+   - `tests/test_evidence_inspector_gate.py` (Dual-Pane Evidence Inspector & 4-Layer Gate - 9 tests PASS)

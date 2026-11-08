@@ -193,7 +193,10 @@ const BigQueryMLUI = (() => {
     const topic = document.getElementById('bq-forecast-topic')?.value || 'Nghiên Cứu Khoa Học';
 
     const btn = document.getElementById('bq-btn-run-forecast');
-    if (btn) btn.innerHTML = "⏳ Đang mô hình hóa BigQuery AI.FORECAST (ARIMA_PLUS)...";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-btn"></span> <span>⏳ Đang mô hình hóa BigQuery AI.FORECAST (ARIMA_PLUS)...</span>`;
+    }
 
     try {
       const res = await fetch('/api/bigquery/forecast', {
@@ -224,7 +227,10 @@ const BigQueryMLUI = (() => {
     } catch (e) {
       if (window.App) App.toast("Lỗi kết nối: " + e.message, "error");
     } finally {
-      if (btn) btn.innerHTML = "📈 Chạy Mô Hình Dự Báo AI.FORECAST";
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "📈 Chạy Mô Hình Dự Báo AI.FORECAST";
+      }
     }
   }
 
@@ -330,7 +336,10 @@ const BigQueryMLUI = (() => {
     const topic = document.getElementById('bq-anomaly-topic')?.value || 'Kiểm Định Dữ Liệu';
 
     const btn = document.getElementById('bq-btn-run-anomaly');
-    if (btn) btn.innerHTML = "⏳ Đang chạy BigQuery AI.DETECT_ANOMALIES...";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-btn"></span> <span>⏳ Đang chạy BigQuery AI.DETECT_ANOMALIES...</span>`;
+    }
 
     try {
       const res = await fetch('/api/bigquery/detect-anomalies', {
@@ -360,7 +369,10 @@ const BigQueryMLUI = (() => {
     } catch (e) {
       if (window.App) App.toast("Lỗi kết nối: " + e.message, "error");
     } finally {
-      if (btn) btn.innerHTML = "🚨 Chạy Phát Hiện Dị Biệt AI.DETECT_ANOMALIES";
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "🚨 Chạy Phát Hiện Dị Biệt AI.DETECT_ANOMALIES";
+      }
     }
   }
 
@@ -454,7 +466,10 @@ const BigQueryMLUI = (() => {
     const topic = document.getElementById('bq-drivers-topic')?.value || 'Phân Tích Tương Quan Đa Biến';
 
     const btn = document.getElementById('bq-btn-run-drivers');
-    if (btn) btn.innerHTML = "⏳ Đang phân tích BigQuery AI.KEY_DRIVERS...";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-btn"></span> <span>⏳ Đang phân tích BigQuery AI.KEY_DRIVERS...</span>`;
+    }
 
     try {
       const res = await fetch('/api/bigquery/key-drivers', {
@@ -481,7 +496,10 @@ const BigQueryMLUI = (() => {
     } catch (e) {
       if (window.App) App.toast("Lỗi kết nối: " + e.message, "error");
     } finally {
-      if (btn) btn.innerHTML = "🔑 Chạy Phân Tích Động Lực AI.KEY_DRIVERS";
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "🔑 Chạy Phân Tích Động Lực AI.KEY_DRIVERS";
+      }
     }
   }
 
@@ -560,7 +578,10 @@ const BigQueryMLUI = (() => {
     }
 
     const btn = document.getElementById('bq-btn-gen-sql');
-    if (btn) btn.innerHTML = "⏳ Đang thiết kế câu lệnh BigQuery SQL AI...";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-btn"></span> <span>⏳ Đang thiết kế câu lệnh BigQuery SQL AI...</span>`;
+    }
 
     try {
       const res = await fetch('/api/bigquery/generate-sql', {
@@ -596,7 +617,10 @@ const BigQueryMLUI = (() => {
     } catch (e) {
       if (window.App) App.toast("Lỗi sinh SQL: " + e.message, "error");
     } finally {
-      if (btn) btn.innerHTML = "✨ Chuyển Đổi Thành BigQuery SQL";
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "✨ Chuyển Đổi Thành BigQuery SQL";
+      }
     }
   }
 
@@ -647,6 +671,7 @@ const BigQueryMLUI = (() => {
     runAnomalyDetection,
     runKeyDrivers,
     generateSQL,
+    generateSql: generateSQL,
     exportReportDocx
   };
 })();

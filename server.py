@@ -59,10 +59,13 @@ from modules.agency.agency_router import agency_router
 from modules.admin_needle.admin_router import admin_router
 from modules.math_chem_pro.math_chem_router import math_chem_router
 from modules.bigquery.bigquery_router import bigquery_router
+from modules.pipeline.evidence_db_router import evidence_db_router
+from modules.inspector.inspector_router import inspector_router
 
 # Mount all feature routers
 app.include_router(auth_router)
 app.include_router(pipeline_router)
+app.include_router(evidence_db_router)
 app.include_router(harvester_router)
 app.include_router(notebooklm_router)
 app.include_router(zotero_router)
@@ -75,6 +78,7 @@ app.include_router(agency_router)
 app.include_router(admin_router)
 app.include_router(math_chem_router)
 app.include_router(bigquery_router)
+app.include_router(inspector_router)
 
 # --- SYSTEM HEALTH & ROOT STATIC SPA ---
 

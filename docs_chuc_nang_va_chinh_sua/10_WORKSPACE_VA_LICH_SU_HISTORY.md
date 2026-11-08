@@ -55,4 +55,16 @@
     - Bổ sung alias route `@notebooklm_router.get("/api/open-notebook/list")` trong `modules/notebooklm/notebooklm_router.py` đảm bảo tương thích ngược 100%.
     - Nâng cấp công cụ `Xac_Nhan_Hoan_Hao/archive_manager.py` với danh mục `VERIFIED_MODULES_CATALOG` và đóng gói 6 module hoàn chỉnh (Harvester, Zotero Converter, Math-Chem Pro, BigQuery AI, PDF OCR Workspace, Open-Notebook RAG) vào `Xac_Nhan_Hoan_Hao/Modules_Source_Code/` có kèm file `manifest.json`.
     - Toàn bộ 170 nút bấm và 101 lời gọi API Frontend khớp nối chính xác 100% với Backend routes.
+- **Yêu cầu 8 (2026-09-07 - Tối ưu hóa điều khiển nút bấm & Tinh gọn tương tác toàn diện):**
+  - *Kết quả:*
+    - Khắc phục triệt để nguy cơ `TypeError` trong `App.openWindowsExplorer()` bằng chuỗi optional chaining `?.value?.trim()` tại `static/js/app.js`.
+    - Bổ sung hàm `App.closeSettingsModal()` và gắn trực tiếp `onclick="App.closeSettingsModal()"` vào các nút `✕` và `Hủy` trong `#modal-settings`.
+    - Thêm endpoint alias `@workspace_router.get("/api/files/download/{file_path:path}")` trong `modules/workspace/workspace_router.py` để tải tệp theo cả hai chuẩn path parameter và query string.
+    - Hoàn thiện thẻ Tệp B (Ma trận 6 cột) với đầy đủ bộ 3 nút bấm mở file Word, tải .docx, tải .md trong `static/js/academic-writer.js`.
+    - Trang bị cơ chế chống spam click (`disabled = true` + spinner phản hồi lập tức) cho tất cả các nút BigQuery AI/ML và Math-Chem Pro.
+- **Yêu cầu 9 (2026-09-07 - Khắc phục điểm nghẽn xóa bản ghi lịch sử & đồng bộ hóa ID tương tác):**
+  - *Kết quả:*
+    - Bổ sung endpoint RESTful `@history_router.delete("/api/history/{entry_id}")` trong `modules/history/history_router.py`, kết nối trực tiếp với `history_mgr.delete_entry(entry_id, user_email)` để người dùng xóa từng bản ghi hoạt động cá nhân nhanh chóng mà không gặp lỗi 404/405.
+    - Bổ sung định danh `id="pdf-ocr-btn-export-docx"` và `id="pdf-ocr-btn-ingest"` trong modal PDF Document AI OCR, trang bị cơ chế chống double-click (`btn.disabled = true` + spinner phản hồi lập tức) trong `static/js/pdf-ocr-reader.js`.
+
 

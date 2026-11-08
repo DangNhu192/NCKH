@@ -49,6 +49,9 @@ Hệ thống nghiên cứu khoa học chuẩn quốc tế ISI/Scopus/Scimago, T�
 | F10 | Perfect Snapshot Packaging | Packaging verified and tested modules into Xac_Nhan_Hoan_Hao/ | M4 | ORIGINAL_REQUEST R4 |
 | F11 | 15 Docs 4-Layer Synchronization | Update and validate all 15 documentation files in docs_chuc_nang_va_chinh_sua/ | M5 | System Rules |
 | F12 | Master E2E & Adversarial Hardening | Comprehensive automated test verification across Tiers 1-5 | M6 | Quality Gate |
+| F13 | Zotero Web API Bidirectional Sync | Direct cloud sync, Vietnamese single-field name fixer, thematic subcollection classification | M2 | Academic Advancement |
+| F14 | Zero-Risk Storage Optimization | Safe PDF storage cleanup with automatic ZIP backup, freeing 300MB Zotero Cloud quota | M2 | Storage Protocol |
+| F15 | Interactive Word Hyperlinks Engine | Full `<w:hyperlink>` OpenXML DOM conversion with Ctrl+Click navigation & strict page budget | M3 | Publishing Standard |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |

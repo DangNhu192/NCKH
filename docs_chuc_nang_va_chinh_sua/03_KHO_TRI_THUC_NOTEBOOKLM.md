@@ -48,4 +48,9 @@
     2. **TẦNG 3 (VALIDATION):** Xây dựng `validate_cross_document_evidence()` (phân tích agreement, partial agreement, disagreement với giải thích nguyên nhân), `detect_tradeoffs_and_contradictions()` (phát hiện trade-offs lợi ích vs chi phí, ngắn hạn vs dài hạn, tự động hóa vs bảo mật), `extract_trends_and_geographic_comparisons()`, và `evaluate_coverage_matrix()` (đánh giá tỷ lệ bao phủ theo 13 chiều A-M và quy tắc dừng stopping rule).
     3. Xây dựng `build_traceable_evidence_system()` liên kết 4 bộ dữ liệu: `DOCUMENTS` ➔ `EVIDENCE` ➔ `CLAIMS` ➔ `SYNTHESIS`.
     4. Đạt 100% PASS trên bộ kiểm thử `test_4tier_evidence_system.py`.
+- **Yêu cầu 9 (2026-09-06 - Khắc Phục Tương Tác Nút Bấm & Huy Hiệu Header Open-Notebook):**
+  - *Nhiệm vụ:* Sửa lỗi nút bấm chuyển thẻ không phản hồi (Grounded Chat, Hybrid Retrieval, Transformations Studio) và kích hoạt hiển thị số lượng nguồn, số đoạn trích trên thanh tiêu đề.
+  - *Kết quả xử lý:*
+    1. Đồng bộ định danh DOM giữa `static/js/notebooklm.js` và `static/index.html`: `switchViewTab()` nay hỗ trợ cả `open-nb-*-pane` và `open-nb-pane-*`, đảm bảo khi bấm chuyển tab thì nội dung phản hồi tức thì và nút tab được làm nổi bật với màu `#3b82f6`.
+    2. Bổ sung `id="open-notebook-active-title"` và loại bỏ điều kiện ngắt sớm trong `renderNotebookHeader()`, giúp các huy hiệu `open-notebook-active-meta` (số Nguồn, số Đoạn trích, thời gian cập nhật) luôn hiển thị chính xác.
 

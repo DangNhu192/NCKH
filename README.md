@@ -11,9 +11,12 @@
    - Thống kê tần suất và xu hướng công bố khoa học quốc tế qua OpenAlex & EuropePMC.
    - Khóa kho thực chứng **Evidence Vault (Zero Fabrication)** nạp tệp đa định dạng (.docx, .md, .pdf).
 
-2. **📝 Viết Học Thuật 2-File (Academic Writer Pro):**
+2. **📝 Viết Học Thuật 2-File & Đồng Bộ Zotero Hai Chiều (Academic Writer & Zotero Pro):**
    - Soạn thảo chuyên sâu chuẩn IMRaD (File A) và Ma Trận Đối Soát 6 Cột (File B).
-   - Nhúng mã trường Zotero CSL XML (`w:fldSimple` / `w:instrText`) chuẩn APA 7th, IEEE, Vancouver, Harvard.
+   - Nhúng mã trường Zotero CSL XML (`w:fldSimple` / `w:instrText` `ADDIN ZOTERO_ITEM`) chuẩn APA 7th, IEEE, Vancouver, Harvard.
+   - **Kích hoạt Interactive Word Hyperlinks (Hỗ trợ Ctrl + Click)**: Chuyển đổi 100% URL/DOI thành đối tượng `<w:hyperlink>` chuẩn Word (Times New Roman 11pt, màu `#0563C1`, gạch chân đơn), kèm kiểm soát trần số trang nghiêm ngặt ($\le 15$ trang theo mẫu tạp chí DTHU).
+   - **Đồng bộ Zotero Web API Hai Chiều**: Chuẩn hóa họ tên tác giả tiếng Việt thành Hai ô (Two-Field Mode: `lastName: Họ`, `firstName: Tên đệm & Tên`) theo chuẩn APA 7th ĐH Đồng Tháp (Thông báo 5343/TB-ĐHĐT), phân loại có hệ thống vào các Bộ sưu tập Chuyên đề (Subcollections).
+   - **Tối ưu hóa Dung lượng Zotero (Zero-Risk Storage Optimizer)**: Nén sao lưu zip tự động (`Backup_Zotero_PDFs_PreDelete.zip`) trước khi xóa tệp PDF đã có link trực tuyến để giải phóng quota 300MB Zotero Cloud, bảo vệ 100% tài liệu không có link.
    - Xuất kèm danh mục tài liệu tham khảo thực tế định dạng `.ris` và `.bib` có DOI thực 100%.
 
 3. **🤖 Khử Dấu Vết AI & Chống Đạo Văn (Humanizer & Turnitin Rephrase Pro):**

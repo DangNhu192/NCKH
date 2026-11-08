@@ -620,10 +620,17 @@ const ZoteroUI = {
     `;
   },
 
-  async syncToZotero() {
+  async syncToZotero(btnTrigger = null) {
     if (!this.lastNormItems || this.lastNormItems.length === 0) {
       if (window.App) App.toast("Chưa có danh sách tài liệu nào để nạp vào Zotero.", "warning");
       return;
+    }
+
+    const btn = btnTrigger || (typeof event !== 'undefined' && event?.target?.closest('button'));
+    const origHtml = btn ? btn.innerHTML : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-btn"></span> <span>Đang nạp...</span>`;
     }
 
     if (window.App) App.toast("Đang đồng bộ danh mục tham khảo vào Zotero...", "info");
@@ -647,6 +654,11 @@ const ZoteroUI = {
       }
     } catch (e) {
       if (window.App) App.toast("Lỗi nạp Zotero: " + e.message, "error");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml || "🔄 Nạp Vào Zotero";
+      }
     }
   }
 };

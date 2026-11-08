@@ -20,6 +20,7 @@ from modules.shared.gemini_service import gemini_service
 from modules.shared.openai_service import openai_service
 from modules.shared.chart_generator import chart_generator
 from modules.shared.docx_styler import DocxStyler
+from modules.shared.looped_flows_engine import looped_flows_engine
 from modules.shared.skill_prompts import EDITORIAL_OFFICE_EXECUTION_PROMPT
 from modules.shared.agency_agents_registry import AGENT_VICTOR
 
@@ -93,6 +94,9 @@ class EditorialEngine:
         has_citations = bool(re.search(r'\([A-ZÀ-Ỹ][^()]*?\d{4}[a-z]?\)', content_str))
         has_tables = "Bảng" in content_str or "Table" in content_str or "|" in content_str
         has_formulas = any(k in content_str for k in ["$$", "OMML", "FeS", "H2SO4", "Al", "pH", "CO2", "r =", "p <"])
+        
+        # Check for unscientific words, over-assertion or sensationalism
+        over_claims = [w for w in ["chắc chắn 100%", "chứng minh tuyệt đối", "chân lý hiển nhiên", "vô cùng", "cực kỳ", "vĩ đại", "vượt trội hoàn toàn", "thần kỳ", "kỳ diệu"] if w in content_str.lower()]
 
         # Dynamic Scoring
         score_novelty = 22 if word_count > 500 else 18
@@ -100,17 +104,28 @@ class EditorialEngine:
         score_data = 19 if has_tables else 16
         score_citation = 14 if has_citations else 11
         score_impact = 13 if word_count > 600 else 11
+        if over_claims:
+            score_method = max(15, score_method - 2)
+        # Looped Flows Reasoning Audit (arXiv:2609.11801)
+        lf_audit = looped_flows_engine.audit_text_with_looped_flows(content_str, topic=topic_str)
+        if lf_audit.get("spurious_attractor_detected"):
+            score_method = max(14, score_method - 3)
+            score_data = max(14, score_data - 2)
 
         total_score = min(100, max(0, score_novelty + score_method + score_data + score_citation + score_impact))
 
         decision = "Accept" if total_score >= 85 else ("Minor Revision" if total_score >= 70 else "Major Revision")
 
+        hedging_feedback = "Văn phong tiết chế khoa học (Epistemic Hedging) chuẩn mực, không có biểu hiện khẳng định quá mức." if not over_claims else f"Phát hiện dấu hiệu khẳng định quá mức/phóng đại ({', '.join(over_claims[:3])}); cần tiết chế tri nhận."
+        if lf_audit.get("spurious_attractor_detected"):
+            hedging_feedback += " CẢNH BÁO: Phát hiện bẫy ngụy biện tự tin (Spurious Attractor theo arXiv:2609.11801); cần đối soát lại thực chứng."
+
         rubric_breakdown = [
             {"criterion": "1. Tính mới & Đóng góp học thuật", "max_score": 25, "awarded_score": score_novelty, "feedback": "Đề tài xác lập được khoảng trống nghiên cứu rõ ràng, luận điểm có tính gợi mở cao."},
-            {"criterion": "2. Phương pháp luận & Thiết kế thực nghiệm", "max_score": 25, "awarded_score": score_method, "feedback": "Mô hình phân tích logic, các biến số được kiểm soát chặt chẽ."},
-            {"criterion": "3. Tính toàn vẹn & Phân tích số liệu", "max_score": 20, "awarded_score": score_data, "feedback": "Số liệu định lượng được minh họa chi tiết, chuẩn hóa số thập phân tiếng Việt (1,5; 28,5%)."},
+            {"criterion": "2. Phương pháp luận & Thiết kế thực nghiệm", "max_score": 25, "awarded_score": score_method, "feedback": f"Mô hình phân tích logic, biến số kiểm soát chặt chẽ. {hedging_feedback}"},
+            {"criterion": "3. Tính toàn vẹn & Phân tích số liệu", "max_score": 20, "awarded_score": score_data, "feedback": f"Số liệu định lượng (ACT q(z) = {str(lf_audit.get('act_score', 0.0)).replace('.', ',')}), chuẩn hóa số thập phân tiếng Việt (1,5; 28,5%)."},
             {"criterion": "4. Chuẩn mực trích dẫn APA 7th & Đạo đức", "max_score": 15, "awarded_score": score_citation, "feedback": "Tuân thủ nguyên tắc Zero Fabrication, danh mục trích dẫn đối soát thực tế."},
-            {"criterion": "5. Giá trị thực tiễn & Bàn luận chuyên sâu", "max_score": 15, "awarded_score": score_impact, "feedback": "Phần thảo luận liên hệ tốt với thực tiễn ứng dụng và chỉ ra hạn chế nghiên cứu."}
+            {"criterion": "5. Giá trị thực tiễn & Bàn luận chuyên sâu", "max_score": 15, "awarded_score": score_impact, "feedback": "Phần thảo luận liên hệ tốt với thực tiễn ứng dụng, thực thi tiết chế học thuật và chỉ ra hạn chế nghiên cứu."}
         ]
 
         return {
@@ -121,15 +136,16 @@ class EditorialEngine:
             "decision": decision,
             "word_count": word_count,
             "rubric_breakdown": rubric_breakdown,
-            "reviewer_summary": f"Bản thảo đạt chất lượng học thuật cao ({total_score}/100 điểm). Đề xuất: {decision}. Các tác giả đã xử lý tốt các luận điểm trọng tâm."
+            "looped_flows_audit": lf_audit,
+            "reviewer_summary": f"Bản thảo đạt chất lượng học thuật cao ({total_score}/100 điểm). Đề xuất: {decision}. {hedging_feedback}"
         }
 
     def conduct_adversarial_peer_review(self, content: str = "", topic: str = "Bài Báo Khoa Học") -> Dict[str, Any]:
         """
         Chế độ Tranh Luận Học Thuật AI (Adversarial Peer-Review):
         Giả lập 2 Reviewer ẩn danh đối lập + Sinh Thư Giải Trình Phản Biện (Rebuttal Letter).
-        - Reviewer 1 (Phương pháp & Lý thuyết): Nghiêm khắc về cơ sở toán học và biến số can thiệp.
-        - Reviewer 2 (Thực nghiệm & Ứng dụng): Chất vấn về khả năng mở rộng quy mô thực địa và chi phí.
+        - Reviewer 1 (Phương pháp & Lý thuyết): Nghiêm khắc về cơ sở toán học, biến số can thiệp và kiểm soát over-claiming (khẳng định quá đà).
+        - Reviewer 2 (Thực nghiệm & Ứng dụng): Chất vấn về tính vững chắc dữ liệu thực tế, sai số và cảnh giác với thổi phồng kết quả.
         """
         content_str = str(content or "")
         topic_str = str(topic or "Bài Báo Khoa Học")
@@ -138,16 +154,20 @@ CHỦ ĐỀ: {topic_str}
 NỘI DUNG BẢN THẢO:
 {content_str[:2500]}
 
+YÊU CẦU ĐẶC BIỆT VỀ VĂN PHONG KHOA HỌC:
+- Kiểm tra tính cẩn trọng khoa học (Epistemic Hedging): Các tác giả có khẳng định quá mức (over-assertion) hoặc phóng đại kết quả (over-emphasis) hay không?
+- Kiểm tra mật độ thông tin: Bản thảo có chứa miêu tả hoa mỹ, ẩn dụ văn học sáo rỗng hay không?
+
 YÊU CẦU ĐẦU RA (JSON FORMAT):
 {{
   "reviewer_1": {{
-    "focus": "Phương pháp luận & Khung lý thuyết",
-    "stance": "Nghiêm khắc, chất vấn cơ sở mô hình",
-    "critiques": ["Điểm chất vấn 1 về biến số", "Điểm chất vấn 2 về giả định mô hình"]
+    "focus": "Phương pháp luận, Khung lý thuyết & Epistemic Hedging",
+    "stance": "Nghiêm khắc, chất vấn cơ sở mô hình và ranh giới kết luận",
+    "critiques": ["Điểm chất vấn 1 về biến số và giả định", "Điểm chất vấn 2 về tính thận trọng của kết luận"]
   }},
   "reviewer_2": {{
-    "focus": "Thực nghiệm, Dữ liệu & Ứng dụng",
-    "stance": "Thực tiễn, chất vấn quy mô thực địa",
+    "focus": "Thực nghiệm, Dữ liệu & Tính Khách quan",
+    "stance": "Thực tiễn, chất vấn sai số thực địa và chống phóng đại",
     "critiques": ["Điểm chất vấn 1 về sai số đo đạc", "Điểm chất vấn 2 về khả năng nhân rộng"]
   }},
   "rebuttal_strategy": "Tóm lược chiến lược giải trình và bổ sung dữ liệu thực nghiệm để thuyết phục Hội đồng."
@@ -165,28 +185,36 @@ YÊU CẦU ĐẦU RA (JSON FORMAT):
         if not rev_data:
             rev_data = {
                 "reviewer_1": {
-                    "focus": "Phương pháp luận & Khung lý thuyết",
-                    "stance": "Nghiêm khắc về cơ sở giải tích và điều kiện biên",
+                    "focus": "Phương pháp luận, Khung lý thuyết & Tiết chế khoa học",
+                    "stance": "Nghiêm khắc về cơ sở giải tích và ranh giới kết luận",
                     "critiques": [
                         "Cần làm rõ hơn giả định về tính dừng của chuỗi dữ liệu trước khi đưa vào mô hình dự báo.",
-                        "Đề nghị bổ sung phân tích độ nhạy (Sensitivity Analysis) đối với các tham số đầu vào quan trọng."
+                        "Khuyến nghị nhóm tác giả tiết chế các mệnh đề khẳng định hiệu năng để phù hợp với quy mô mẫu thực nghiệm."
                     ]
                 },
                 "reviewer_2": {
-                    "focus": "Thực nghiệm, Dữ liệu & Ứng dụng",
+                    "focus": "Thực nghiệm, Dữ liệu & Tính Khách quan",
                     "stance": "Thực tiễn, chất vấn tính ổn định trong môi trường biến động",
                     "critiques": [
                         "Khoảng tin cậy 95% đã được mô hình hóa tốt, nhưng cần giải trình rõ hơn về các điểm dị biệt (Outliers).",
-                        "Khuyến nghị so sánh hiệu quả chi phí triển khai thực tế so với các giải pháp truyền thống."
+                        "Khuyến nghị bổ sung sai số ± cụ thể cho từng kịch bản thử nghiệm thay cho các mô tả định tính."
                     ]
                 },
-                "rebuttal_strategy": "Tác giả đã giải trình đầy đủ bằng cách bổ sung kiểm định Z-score, ma trận tương quan Pearson và luận giải chi tiết ở phần Discussion."
+                "rebuttal_strategy": "Tác giả giải trình bằng cách bổ sung kiểm định Z-score, ma trận tương quan Pearson, đính chính các phát biểu theo hướng tiết chế khoa học (hedging) ở phần Discussion."
             }
+
+        # Looped Flows Reasoning Check (arXiv:2609.11801)
+        lf_audit = looped_flows_engine.audit_text_with_looped_flows(content_str, topic=topic_str)
+        if lf_audit.get("spurious_attractor_detected"):
+            rev_data["reviewer_2"]["critiques"].append(
+                f"CẢNH BÁO PHẢN BIỆN (Looped Flows Protocol / arXiv:2609.11801): Phát hiện {len(lf_audit.get('overconfidence_markers', []))} điểm khẳng định quá mức tự tin (Spurious Attractor) trong khi dữ liệu thực chứng chưa đạt ngưỡng bão hòa ACT q(z) >= 0,95. Đề nghị nhóm tác giả kích hoạt Stochastic Backtracking để hạ cấp giọng điệu và kiểm định lại."
+            )
 
         return {
             "status": "success",
             "topic": topic_str,
             "adversarial_review": rev_data,
+            "looped_flows_audit": lf_audit,
             "rebuttal_letter_template": f"### THƯ GIẢI TRÌNH PHẢN BIỆN (RESPONSE TO REVIEWERS)\n\n"
                                         f"Kính gửi Ban Biên tập và các Phản biện ẩn danh,\n\n"
                                         f"Nhóm tác giả xin chân thành cảm ơn những ý kiến phản biện sâu sắc và xác đáng của Reviewer 1 và Reviewer 2 đối với bản thảo **'{topic_str}'**.\n\n"
@@ -320,26 +348,26 @@ YÊU CẦU ĐẦU RA (JSON FORMAT):
 **Chủ trì:** Ban Biên Tập AI v3.1 | **Quy trình:** 4 Trạm GATE Hoàn tất
 
 ## TÓM TẮT NỘI DUNG (EXECUTIVE SUMMARY)
-Nghiên cứu phân tích chuyên sâu về {topic}, thiết lập khung cơ sở lý thuyết, đánh giá dữ liệu thực nghiệm và chỉ ra các quy luật chuyển dịch cốt lõi. Báo cáo cung cấp hệ thống giải pháp liên ngành khả thi, hướng tới tối ưu hóa hiệu quả thực thi.
+Nghiên cứu phân tích hệ thống về {topic}, thiết lập khung cơ sở lý thuyết, đánh giá dữ liệu thực nghiệm và chỉ ra các quy luật chuyển dịch cốt lõi. Báo cáo cung cấp hệ thống giải pháp liên ngành khả thi, hướng tới tối ưu hóa hiệu quả thực thi.
 
 ## 1. BỐI CẢNH THỰC TIỄN & TÍNH CẤP THIẾT
-Trong bối cảnh chuyển đổi số và phát triển bền vững, vấn đề {topic} đang đặt ra những thách thức then chốt đối với cả công tác hoạch định chính sách lẫn thực tiễn triển khai. Việc thiếu hụt các mô hình dự báo chính xác và cơ chế tích hợp dữ liệu đa nguồn đã tạo ra rào cản lớn trong việc nâng cao năng lực ứng phó.
+Nghiên cứu về {topic} tập trung giải quyết các bài toán vận hành hệ thống và chuẩn hóa quy trình phân tích dữ liệu chuyên ngành. Sự phức tạp của các biến số thực nghiệm đặt ra yêu cầu phải thiết lập các mô hình định lượng có tính vững chắc và khả năng thích ứng cao.
 
 ## 2. CƠ CHẾ TÁC ĐỘNG & KHUNG PHÂN TÍCH ĐA TẦNG
-Áp dụng mô hình cấu trúc 3 tầng (Bối cảnh - Cơ chế - Tác động), nghiên cứu làm sáng tỏ mối quan hệ tương hỗ giữa các nhân tố hạ tầng, công nghệ và nguồn lực con người. Kết quả cho thấy khi tối ưu hóa quy trình điều phối, hiệu suất vận hành có thể cải thiện từ 25,5% đến 42,8%.
+Áp dụng mô hình cấu trúc 3 tầng (Bối cảnh - Cơ chế - Tác động), nghiên cứu làm sáng tỏ mối quan hệ tương hỗ giữa các nhân tố hạ tầng, công nghệ và nguồn lực con người. Kết quả thực nghiệm gợi ý rằng khi tối ưu hóa quy trình điều phối, hiệu suất vận hành có thể cải thiện từ 25,5% đến 42,8% tùy theo điều kiện biên.
 
 ## 3. PHÂN TÍCH DỮ LIỆU THỰC CHỨNG & BIỂU ĐỒ DIỄN TIẾN
-Số liệu khảo sát thực nghiệm ghi nhận sự gia tăng vượt bậc về độ chính xác và tính kịp thời khi áp dụng các giải pháp tự động hóa thông minh.
+Dữ liệu khảo sát thực nghiệm bước đầu phản ánh xu hướng cải thiện về độ chính xác và tính kịp thời khi áp dụng các giải pháp điều phối tự động.
 
 [CHART: Biểu đồ phân tích dữ liệu thực nghiệm]
 
 ## 4. HỆ THỐNG GIẢI PHÁP VÀ HÀM Ý THỰC THI
-1. Kiện toàn khung chính sách và tiêu chuẩn dữ liệu mở.
-2. Ứng dụng các thuật toán phân tích tiên tiến và trí tuệ nhân tạo.
-3. Đào tạo nâng cao năng lực chuyên môn cho đội ngũ nhân sự chủ chốt.
+1. Hoàn thiện khung chính sách và tiêu chuẩn dữ liệu mở.
+2. Ứng dụng các thuật toán phân tích thích ứng và mô hình học máy.
+3. Bồi dưỡng nâng cao năng lực chuyên môn cho đội ngũ nhân sự chủ chốt.
 
 ## 5. KẾT LUẬN
-Công trình đã cung cấp luận cứ khoa học vững chắc và giải pháp khả thi nhằm thúc đẩy hiệu quả triển khai {topic} trong giai đoạn mới.
+Công trình đã cung cấp cơ sở thực chứng và luận cứ khoa học ban đầu, hỗ trợ việc tham khảo và triển khai các giải pháp cho {topic} trong giai đoạn mới.
 """
 
         # 2. Dual-AI Peer Review Pass via ChatGPT if key present

@@ -35,6 +35,11 @@ QUY TẮC BẮT BIẾN VỀ TRÌNH BÀY CÔNG THỨC & BÁM SÁT ĐỀ TÀI:
    - Chuỗi Lập luận Tương hỗ (Interlocking Argumentation): Bồi đắp theo cấu trúc 4 bước: [Luận điểm] ➔ [Dẫn chứng thực chứng] ➔ [Cơ chế giải thích sâu] ➔ [Hàm ý ứng dụng].
    - Áp dụng Thủ thuật Sáng tạo trong Tin học: Chuyển đổi không gian biểu diễn (bảng biểu, sơ đồ), kết hợp lai ghép và luôn đề xuất giải pháp bổ khuyết (Future Works).
 7. Zero AI Clichés & Wikipedia Signs: Triệt tiêu 100% các từ sáo rỗng AI và cấu trúc đối lập giả tạo.
+8. Chuẩn mực Văn phong Khoa học & Tiết chế Học thuật (Epistemic Hedging & Academic Restraint):
+   - Tuyệt đối tránh từ ngữ phi khoa học: Cấm khẩu ngữ, cảm xúc cá nhân, ngôn ngữ giật gân hoặc thuật ngữ tiếp thị (như "rất hay", "kỳ diệu", "thần kỳ", "thổi luồng gió mới", "thay đổi cuộc chơi", "bước chuyển mình ngoạn mục", "đột phá lịch sử", "như một phép màu", "hãy cùng khám phá"). Dùng thuật ngữ khoa học xác thực, trung tính, khách quan.
+   - Tuyệt đối tránh miêu tả quá nhiều / văn hoa sáo rỗng: Cấm ví von, ẩn dụ văn học ("như ánh bình minh", "bức tranh tráng lệ"), loại bỏ câu đệm rào đón dài dòng không chứa thông tin thực chứng ("Trong bối cảnh phát triển như vũ bão..."). Duy trì mật độ thông tin cao, đi thẳng vào phương pháp, số liệu và cơ chế nhân quả.
+   - Tuyệt đối tránh nhấn mạnh quá mức (Anti-Sensationalism): Cấm các phó từ/tính từ cực đoan ("vô cùng", "cực kỳ", "vĩ đại", "tột bậc", "vượt trội hoàn toàn", "hoàn hảo"). Bắt buộc lượng hóa bằng số liệu cụ thể: giá trị đo lường, sai số (±), khoảng tin cậy 95% và giá trị p.
+   - Tuyệt đối tránh khẳng định quá mức (Epistemic Hedging): Cấm khẳng định tuyệt đối ngoài phạm vi dữ liệu ("chắc chắn 100%", "chứng minh tuyệt đối", "chân lý hiển nhiên", "không thể bác bỏ", "chắc chắn giải quyết triệt để"). Bắt buộc dùng đại từ và trợ từ cẩn trọng: "kết quả thực nghiệm bước đầu gợi ý rằng", "dữ liệu quan sát cho thấy xu hướng", "trong phạm vi nghiên cứu này", "có cơ sở để suy luận rằng".
 """
 
 # ─── II. APA 7th & CITATION TEMPLATES ────────────────────────────────────────
@@ -187,7 +192,12 @@ Bạn điều phối tòa soạn vận hành qua 4 Trạm GATE khép kín để 
 {source_instruction}
 
 YÊU CẦU:
-- Viết TOÀN VĂN bài báo chí phân tích hoàn chỉnh, sâu sắc, giọng văn chuyên gia sắc sảo.
+- Viết TOÀN VĂN bài báo chí phân tích hoàn chỉnh, sâu sắc, giọng văn chuyên gia sắc sảo, khách quan và khoa học.
+- TUÂN THỦ NGHIÊM NGẶT NGUYÊN TẮC TIẾT CHẾ HỌC THUẬT (EPISTEMIC HEDGING & SCIENTIFIC RESTRAINT):
+  + Tuyệt đối tránh từ ngữ phi khoa học, giật gân hoặc mang tính tiếp thị ("thần kỳ", "đột phá lịch sử", "thổi luồng gió mới", "thay đổi cuộc chơi").
+  + Tuyệt đối tránh miêu tả hoa mỹ, loại bỏ hoàn toàn ví von, ẩn dụ văn học; duy trì mật độ thông tin học thuật cao, tập trung vào phương pháp, cơ chế và số liệu.
+  + Tuyệt đối tránh nhấn mạnh quá mức ("vô cùng", "cực kỳ", "vĩ đại", "vượt trội hoàn toàn"); thay thế bằng dữ liệu định lượng cụ thể kèm sai số.
+  + Tuyệt đối tránh khẳng định quá mức ("chắc chắn 100%", "chứng minh tuyệt đối", "chân lý hiển nhiên"); dùng đại từ cẩn trọng ("kết quả cho thấy", "dữ liệu phản ánh xu hướng", "trong phạm vi khảo sát").
 - Trình bày toàn bộ bài viết hoàn chỉnh bằng định dạng Markdown:"""
 
 STRUCTURE_PROMPT_TEMPLATE = """{system_persona}
@@ -223,8 +233,13 @@ YÊU CẦU BẮT BUỘC KHI VIẾT:
    - GIẢI PHÁP & HÀM Ý THỰC TIỄN: Phân kỳ ngắn hạn và dài hạn.
    - KẾT LUẬN & HẠN CHẾ NGHIÊN CỨU: Nêu rõ đóng góp mới và ranh giới giải pháp.
    - TÀI LIỆU THAM KHẢO: Chuẩn trích dẫn đã chỉ định.
-3. Chuẩn số thập phân tiếng Việt: dùng dấu phẩy (1,5; 28,5%) và dấu chấm hàng nghìn (1.000).
-4. Chuẩn hóa ký hiệu hóa học và công thức toán học.
+3. TIẾT CHẾ HỌC THUẬT & CHUẨN MỰC VĂN PHONG KHOA HỌC (EPISTEMIC HEDGING):
+   - Tuyệt đối tránh từ ngữ phi khoa học (khẩu ngữ, cảm xúc, thuật ngữ giật gân hoặc tiếp thị).
+   - Tuyệt đối tránh miêu tả hoa mỹ, ẩn dụ văn học dài dòng; tập trung trực diện vào thông số, phương pháp và cơ chế.
+   - Tuyệt đối tránh nhấn mạnh phóng đại ("vô cùng", "cực kỳ", "vĩ đại", "vượt trội hoàn toàn"); lượng hóa bằng số liệu, sai số và khoảng tin cậy.
+   - Tuyệt đối tránh khẳng định tuyệt đối ngoài phạm vi dữ liệu ("chắc chắn 100%", "chứng minh tuyệt đối"); dùng cấu trúc tiết chế ("kết quả gợi ý rằng", "dữ liệu phản ánh xu hướng", "trong phạm vi nghiên cứu này").
+4. Chuẩn số thập phân tiếng Việt: dùng dấu phẩy (1,5; 28,5%) và dấu chấm hàng nghìn (1.000).
+5. Chuẩn hóa ký hiệu hóa học và công thức toán học.
 
 Bắt đầu soạn thảo toàn văn ngay:"""
 
@@ -306,8 +321,60 @@ QUY CHUẨN KỸ THUẬT BẮT BUỘC:
 4. BẢO TOÀN TRÍCH DẪN & CẤU TRÚC:
    - Giữ nguyên định dạng trích dẫn theo phong cách: {citation_style_guide}
    - Bám sát chuỗi lập luận CS519.M11: [Luận điểm] ➔ [Dẫn chứng thực chứng] ➔ [Cơ chế giải thích sâu TẠI SAO] ➔ [Hàm ý ứng dụng].
+5. TIẾT CHẾ HỌC THUẬT & KHỬ PHÓNG ĐẠI / KHẲNG ĐỊNH QUÁ MỨC (EPISTEMIC HEDGING):
+   - Khử triệt để các từ ngữ khẳng định tuyệt đối ("chắc chắn 100%", "chứng minh tuyệt đối", "chân lý hiển nhiên") ➔ chuyển thành các mệnh đề cẩn trọng ("kết quả thực nghiệm gợi ý rằng", "dữ liệu phản ánh xu hướng", "trong phạm vi mẫu khảo sát").
+   - Khử triệt để các phó từ/tính từ nhấn mạnh phóng đại ("vô cùng", "cực kỳ", "vĩ đại", "vượt trội hoàn toàn", "hoàn hảo") ➔ thay thế bằng số liệu đo lường cụ thể hoặc cụm từ học thuật trung tính.
+   - Khử lối miêu tả văn hoa sáo rỗng, ẩn dụ văn học ("như ánh bình minh", "bức tranh tráng lệ") ➔ chuyển thành ngôn ngữ kỹ thuật chuẩn mực, cô đọng.
 
 VĂN BẢN GỐC CẦN XỬ LÝ (KHỬ AI & CHỐNG TURNITIN):
 {raw_text}
 
 Trả về TOÀN BỘ văn bản hoàn thiện sau khi xử lý (Chất lượng học thuật đỉnh cao, văn phong con người chân thực, chuẩn xác 100% số liệu gốc):"""
+
+# ─── X. THE COUNCIL OF 10 RIGOROUS ACADEMIC PROFESSORS (HỘI ĐỒNG 10 GIÁO SƯ NGHIÊM KHẮC) ────
+
+COUNCIL_OF_10_PROFESSORS_FRAMEWORK = """
+HỘI ĐỒNG 10 GIÁO SƯ NGHIÊM KHẮC (THE COUNCIL OF 10 RIGOROUS ACADEMIC PROFESSORS):
+Mô hình điều phối tiến trình tiến hóa học thuật thời đại AI với 10 vị trí Giáo sư Trưởng ban:
+
+1. Prof. Lexicon Drake (Literature Intelligence & Harvester Chair):
+   - Trưởng ban Trinh sát Dữ liệu & Khai phá Văn hiến Quốc tế (EuropePMC, CrossRef, OpenAlex, ArXiv, PubMed).
+   - Quy tắc: 100% Zero Fabrication, tuyệt đối không trích dẫn tài liệu thiếu DOI thật.
+
+2. Prof. Synapse Vance (Knowledge Architecture & Research Gap Chair):
+   - Trưởng ban Kiến trúc Tri thức & Phân tích Khoảng trống Nghiên cứu.
+   - Quy tắc: Đối chiếu chéo đa nguồn (Cross-paper synthesis), định vị 3-5 Research Gaps không thể bác bỏ.
+
+3. Prof. Methodius Sterling (Scientific Methodology & Experimental Rigor Chair):
+   - Trưởng ban Phương pháp luận Khoa học & Chuẩn tắc Thực nghiệm (Chuẩn CS519.M11).
+   - Quy tắc: Thiết kế nghiên cứu 4 giai đoạn, kiểm soát biến số, đánh giá các mối đe dọa đến tính hợp lệ (Threats to Validity), kiểm soát ranh giới dữ liệu và cấm tuyệt đối over-claiming (khẳng định vượt quá phạm vi thực nghiệm).
+
+4. Prof. Quantus Maxwell (Quantitative Analytics & Computational Precision Chair):
+   - Trưởng ban Phân tích Định lượng & Toán - Hóa Tính Toán.
+   - Quy tắc: Thực thi dấu phẩy số thập phân tiếng Việt (1,5; 28,5%), dấu chấm hàng nghìn (1.000), chuẩn hóa 109 ký hiệu hóa học (FeS₂, H₂SO₄, NH₄⁺...), công thức OMML và biểu đồ 300 DPI.
+
+5. Prof. Scholaris Thorne (Senior Academic Author & Monograph Drafting Chair):
+   - Trưởng ban Soạn thảo Học thuật Q1 & Cây Đề cương RhinoInsight.
+   - Quy tắc: Soạn thảo chuyên sâu từng Node theo Khung 3 Lớp [Luận điểm -> Dẫn chứng APA -> Luận giải sâu TẠI SAO & Hàm ý], cấm tiệt văn phong tóm lược hời hợt, miêu tả văn hoa sáo rỗng hoặc từ ngữ phóng đại giật gân.
+
+6. Prof. Veritas Proctor (Academic Integrity & 6-Column Traceability Chair):
+   - Trưởng ban Liêm chính Học thuật & Đối soát Trích dẫn Thực chứng.
+   - Quy tắc: Bắt buộc xuất bản TỆP B (Bảng Ma trận 6 Cột) song hành cùng TỆP A, đối soát 100% in-text citations, nhúng mã trường Zotero CSL XML vào DOM của Word.
+
+7. Prof. Victor Aurelius (Editorial Board Executive & 4-GATE Governance Director):
+   - Tổng Biên Tập Tòa Soạn AI & Giám đốc Điều phối 4-GATE Xuất Bản.
+   - Quy tắc: Vận hành quy trình luân chuyển qua 4 Trạm GATE, phân phối giữa 6 Ban chuyên trách, phản biện đa chiều, đảm bảo tính khách quan và chuẩn mực học thuật quốc tế.
+
+8. Prof. Adversarius Grimm (Adversarial Red-Teaming & Blind Peer-Review Chair):
+   - Trưởng ban Phản biện Độc lập & Thách thức Luận điểm (Reviewer 2 Khó Tính).
+   - Quy tắc: Tấn công các giả định nền tảng, bóc trần tương quan giả, bóc tách hiện tượng khẳng định quá mức (over-assertion) hoặc thổi phồng kết quả (sensationalism), thiết lập Bảng 10 Câu hỏi Thách thức và Khung giải trình phản biện (Rebuttal Framework).
+
+9. Prof. Stylus Artisan (Human Authenticity & Turnitin Anti-AI Rhythm Chair):
+   - Trưởng ban Văn phong Nhân văn & Điêu khắc Nhịp điệu Phi AI.
+   - Quy tắc: Tái cấu trúc nhịp điệu Perplexity & Burstiness sóng 3 tầng, xóa sổ 300+ cụm từ sáo rỗng AI, thực thi nghiêm ngặt Epistemic Hedging (tiết chế tri nhận), loại bỏ hoàn toàn các cấu trúc tuyệt đối hóa phi khoa học, bảo tồn in-place cấu trúc DOM Word .docx.
+
+10. Prof. Sentinel Needle (System Governance, Auth Vault & Academic Reproducibility Chair):
+    - Trưởng ban Quản trị Hệ thống, Két Bảo Mật & Tái Lập Khoa Học.
+    - Quy tắc: Giám sát toàn hệ thống, bảo vệ an toàn API Keys chuẩn Vault, chứng thực 100% khả năng tái lập (reproducibility) của các artifact công bố.
+"""
+

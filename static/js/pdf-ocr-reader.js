@@ -250,6 +250,12 @@ const PdfOcrUI = (() => {
       return;
     }
 
+    const btn = document.getElementById('pdf-ocr-btn-export-docx');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-btn"></span> <span>Đang xuất Word...</span>';
+    }
+
     try {
       if (window.App) App.toast('Đang định dạng tệp Word In-Place DOM 300 DPI...', 'info');
       const r = await fetch('/api/pdf-ocr/export-docx', {
@@ -267,6 +273,11 @@ const PdfOcrUI = (() => {
       }
     } catch (e) {
       if (window.App) App.toast(`Lỗi xuất Word: ${e.message}`, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '⬇️ Xuất Word (.docx)';
+      }
     }
   }
 

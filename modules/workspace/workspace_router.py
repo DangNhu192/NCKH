@@ -119,6 +119,12 @@ def download_workspace_file(path: str = Query(..., description="Đường dẫn 
     )
 
 
+@workspace_router.get("/api/files/download/{file_path:path}")
+def download_workspace_file_by_path(file_path: str):
+    """Bí danh cho phép tải file qua URL path parameter (/api/files/download/...) thay vì query string."""
+    return download_workspace_file(path=file_path)
+
+
 @workspace_router.get("/api/files/open-folder")
 def open_workspace_folder(
     path: Optional[str] = Query(None, description="Đường dẫn tương đối của tệp hoặc thư mục"),

@@ -264,6 +264,13 @@ const AdminUI = {
     const max_activations = parseInt(document.getElementById("admin-new-key-activations")?.value || 1);
     const note = document.getElementById("admin-new-key-note")?.value.trim() || "";
 
+    const btn = document.getElementById("btn-admin-create-key");
+    const originalText = btn ? btn.innerHTML : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:6px; vertical-align:middle;"></span>Đang sinh mã...`;
+    }
+
     try {
       const headers = { "Content-Type": "application/json", ...this.getAuthHeader() };
       const res = await fetch("/api/admin/license-keys/create", {
@@ -281,6 +288,11 @@ const AdminUI = {
       }
     } catch (e) {
       App.toast("Lỗi tạo License Key: " + e.message, "error");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
     }
   },
 

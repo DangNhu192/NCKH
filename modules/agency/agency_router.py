@@ -11,12 +11,14 @@ agency_router = APIRouter(tags=["The Agency - AI Specialists Roster"])
 
 @agency_router.get("/api/agency/agents")
 def list_agency_agents():
-    """Trả về danh sách 7 Chuyên gia AI chuyên biệt trong hệ sinh thái Agency Agents"""
+    """Trả về danh sách Hội đồng 10 Giáo sư Nghiêm khắc trong hệ sinh thái Agency Agents WEB SUPER"""
+    agents = get_all_agents()
     return {
         "success": True,
-        "total_agents": 7,
+        "total_agents": len(agents),
         "pattern": "msitarzewski/agency-agents",
-        "agents": get_all_agents()
+        "council": "Council of 10 Rigorous Academic Professors",
+        "agents": agents
     }
 
 @agency_router.get("/api/agency/agents/{agent_id}")

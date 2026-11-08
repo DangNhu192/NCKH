@@ -42,35 +42,16 @@ wheels/
 # ==============================================================================
 # USER WORKSPACE & GENERATED ARTIFACTS (BẢO TOÀN DỮ LIỆU CÁ NHÂN NGHIÊN CỨU)
 # ==============================================================================
-workspace/Tai_Lieu/*
-!workspace/Tai_Lieu/.gitkeep
-workspace/Ban_Thao/*
-!workspace/Ban_Thao/.gitkeep
-workspace/Xuat_Ban/*
-!workspace/Xuat_Ban/.gitkeep
-workspace/Zotero_Converted/*
-!workspace/Zotero_Converted/.gitkeep
-workspace/documents/*
-!workspace/documents/.gitkeep
-workspace/figures/*
-!workspace/figures/.gitkeep
-workspace/charts/*
-!workspace/charts/.gitkeep
-workspace/history/*
-!workspace/history/.gitkeep
+workspace/*
+!workspace/**/.gitkeep
+!workspace/.gitkeep
 workspace/.history/
 workspace/Logs/
 workspace/Backups/
-workspace/notebooks/*
-!workspace/notebooks/.gitkeep
-workspace/*.json
-workspace/*.docx
-workspace/*.pdf
-workspace/*.png
-workspace/*.jpg
-workspace/*.md
-workspace/*.ris
-workspace/*.bib
+
+# Agent State & Runtime Cache
+.darwin_state.json
+.project_genome.json
 
 # Legacy/temp artifact directories in modules/workspace
 modules/workspace/Backups/
@@ -101,6 +82,10 @@ Xac_Nhan_Hoan_Hao/Modules_Source_Code/*
 *.sublime-workspace
 .DS_Store
 Thumbs.db
+[Dd]esktop.ini
+desktop.ini
+*/desktop.ini
+**/desktop.ini
 *.tmp
 *.log
 tmp/

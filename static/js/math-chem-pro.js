@@ -252,9 +252,12 @@ const MathChemProUI = (() => {
     }
   }
 
-  function copyOMML() {
+  async function copyOMML() {
     if (!_lastOmmlXml) {
-      if (window.App) App.toast("Chưa có mã OMML XML sẵn sàng.", "warning");
+      await convertEquation();
+    }
+    if (!_lastOmmlXml) {
+      if (window.App) App.toast("Chưa có mã OMML XML. Vui lòng nhập công thức LaTeX hợp lệ.", "warning");
       return;
     }
     navigator.clipboard.writeText(_lastOmmlXml).then(() => {
@@ -275,7 +278,10 @@ const MathChemProUI = (() => {
     }
 
     const btn = document.getElementById('mathchem-btn-interpret');
-    if (btn) btn.innerHTML = "⏳ Đang sinh diễn giải 4 yếu tố...";
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-btn"></span> <span>⏳ Đang sinh diễn giải 4 yếu tố...</span>`;
+    }
 
     try {
       const res = await fetch('/api/math-chem/generate-interpretation', {
@@ -295,7 +301,10 @@ const MathChemProUI = (() => {
     } catch (e) {
       if (window.App) App.toast("Lỗi tạo lời diễn giải: " + e.message, "error");
     } finally {
-      if (btn) btn.innerHTML = "🤖 AI Sinh Diễn Giải 4 Yếu Tố";
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "🤖 AI Sinh Diễn Giải 4 Yếu Tố";
+      }
     }
   }
 
@@ -768,6 +777,156 @@ const MathChemProUI = (() => {
     } else if (window.App && typeof window.App.switchTab === 'function') {
       window.App.switchTab('workspace-tab');
     }
+  let _lastPubChemData = null;
+
+  function quickSearchPubChem(term) {
+    const input = document.getElementById('mathchem-pubchem-input');
+    if (input) input.value = term;
+    searchPubChem(term);
+  }
+
+  async function searchPubChem(customTerm = null) {
+    const input = document.getElementById('mathchem-pubchem-input');
+    const term = customTerm || (input ? input.value.trim() : '');
+    if (!term) {
+      App.toast("Vui lòng nhập tên hợp chất hoặc công thức hóa học.", "warning");
+      return;
+    }
+
+    const btn = document.getElementById('btn-mathchem-pubchem-search');
+    const resultBox = document.getElementById('mathchem-pubchem-result-box');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-btn"></span> <span>Đang tra cứu...</span>';
+    }
+    if (resultBox) {
+      resultBox.innerHTML = '<div style="text-align:center; padding:30px 10px; color:#60a5fa;"><span class="spinner-btn"></span> Đang kết nối PubChem REST API &amp; phân giải cấu trúc...</div>';
+    }
+
+    try {
+      const res = await fetch("/api/math-chem/pubchem-resolve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...((window.AuthManager && AuthManager.token) ? { "Authorization": `Bearer ${AuthManager.token}` } : {})
+        },
+        body: JSON.stringify({ chemical_query: term })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === "success" && data.resolved) {
+        _lastPubChemData = data;
+        renderPubChemResult(data);
+        App.toast(`Đã tìm thấy thông tin PubChem cho "${term}"!`, "success");
+      } else {
+        App.toast(data.detail || data.message || "Không tìm thấy hợp chất trên PubChem", "warning");
+        if (resultBox) {
+          resultBox.innerHTML = `
+            <div style="padding:16px; color:#fca5a5; font-size:12.5px; text-align:center;">
+              ❌ Không tìm thấy hợp chất với từ khóa: <strong>"${term}"</strong>.<br>
+              <span style="font-size:11.5px; color:#94a3b8; margin-top:6px; display:block;">Gợi ý: Thử tra cứu bằng công thức phân tử như 'FeS2', 'H2SO4', hoặc tên thông dụng tiếng Anh như 'Glyphosate', 'Chitosan', 'Urea'.</span>
+            </div>
+          `;
+        }
+      }
+    } catch (e) {
+      App.toast("Lỗi kết nối PubChem: " + e.message, "error");
+      if (resultBox) {
+        resultBox.innerHTML = `<div style="padding:14px; color:#fca5a5; font-size:12.5px;">Lỗi: ${e.message}</div>`;
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "🔍 Tra Cứu";
+      }
+    }
+  }
+
+  function renderPubChemResult(data) {
+    const resultBox = document.getElementById('mathchem-pubchem-result-box');
+    if (!resultBox) return;
+
+    const cid = data.cid || 'N/A';
+    const formula = data.molecular_formula || 'N/A';
+    const mw = data.molecular_weight !== undefined ? `${data.molecular_weight} g/mol` : 'N/A';
+    const iupac = data.iupac_name || data.name || 'N/A';
+    const smiles = data.canonical_smiles || 'N/A';
+    const inchiKey = data.inchikey || 'N/A';
+    const imgUrl = `/api/math-chem/pubchem-image/${encodeURIComponent(cid)}`;
+
+    resultBox.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+          <div style="width:120px; height:120px; background:#fff; border-radius:6px; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+            <img src="${imgUrl}" alt="${formula}" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'color:#64748b; font-size:11px; text-align:center; padding:4px;\\'>Cấu trúc 2D (${formula})</span>';">
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+              <span style="font-size:16px; font-weight:800; color:#60a5fa;">${formula}</span>
+              <span style="font-size:11px; color:#34d399; background:rgba(52,211,153,0.15); padding:2px 6px; border-radius:4px; font-weight:700;">PubChem CID: ${cid}</span>
+            </div>
+            <div style="font-size:12.5px; color:#f8fafc; font-weight:600; margin-bottom:4px;">${iupac}</div>
+            <div style="font-size:11.5px; color:#cbd5e1;">Khối lượng phân tử: <strong style="color:#fbbf24;">${mw}</strong></div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11.5px;">
+          <div style="background:rgba(0,0,0,0.3); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+            <div style="color:#94a3b8; font-size:10.5px;">Canonical SMILES:</div>
+            <div style="color:#e2e8f0; font-family:var(--font-mono); word-break:break-all;">${smiles}</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+            <div style="color:#94a3b8; font-size:10.5px;">InChIKey:</div>
+            <div style="color:#e2e8f0; font-family:var(--font-mono); word-break:break-all;">${inchiKey}</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="MathChemProUI.sendPubChemToEquation('${encodeURIComponent(formula)}', '${encodeURIComponent(iupac)}')" style="flex:1; font-size:12px; font-weight:700;">
+            📐 Đưa Vào Công Thức OMML
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="MathChemProUI.copyPubChemCitation()" style="flex:1; font-size:12px; font-weight:700;">
+            📋 Sao Chép Trích Dẫn PubChem
+          </button>
+          <a href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="font-size:12px; color:#60a5fa; border:1px solid rgba(96,165,250,0.3);">
+            🌐 Mở PubChem NIH
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  function sendPubChemToEquation(formulaEnc, iupacEnc) {
+    const formula = decodeURIComponent(formulaEnc);
+    const iupac = decodeURIComponent(iupacEnc);
+
+    switchSubtab('equation');
+    const latexInput = document.getElementById('mathchem-latex-input');
+    const nameInput = document.getElementById('mathchem-name-input');
+    const domainInput = document.getElementById('mathchem-domain-input');
+
+    if (latexInput) latexInput.value = `\\text{${formula}}`;
+    if (nameInput) nameInput.value = `Cấu trúc hợp chất: ${formula} (${iupac})`;
+    if (domainInput) domainInput.value = "Hóa Sinh & Năng Lượng";
+
+    convertEquation();
+    App.toast(`Đã nạp hợp chất ${formula} vào bộ chuyển đổi OMML!`, "success");
+  }
+
+  function copyPubChemCitation() {
+    if (!_lastPubChemData) return;
+    const cid = _lastPubChemData.cid || 'N/A';
+    const formula = _lastPubChemData.molecular_formula || 'N/A';
+    const mw = _lastPubChemData.molecular_weight || 'N/A';
+    const iupac = _lastPubChemData.iupac_name || _lastPubChemData.name || 'N/A';
+    const smiles = _lastPubChemData.canonical_smiles || 'N/A';
+    const citation = `National Center for Biotechnology Information (2024). PubChem Compound Summary for CID ${cid}, ${iupac}. Retrieved from https://pubchem.ncbi.nlm.nih.gov/compound/${cid} (Formula: ${formula}, MW: ${mw} g/mol, SMILES: ${smiles}).`;
+
+    navigator.clipboard.writeText(citation).then(() => {
+      App.toast("📋 Đã sao chép trích dẫn PubChem chuẩn quốc tế vào Clipboard!", "success");
+    }).catch(() => {
+      App.toast("Không thể tự động sao chép, vui lòng sao chép thủ công.", "warning");
+    });
   }
 
   return {
@@ -801,7 +960,11 @@ const MathChemProUI = (() => {
     setupDropZone,
     handleFileSelected,
     enhanceDocx,
-    openInDocxEditor
+    openInDocxEditor,
+    quickSearchPubChem,
+    searchPubChem,
+    sendPubChemToEquation,
+    copyPubChemCitation
   };
 })();
 

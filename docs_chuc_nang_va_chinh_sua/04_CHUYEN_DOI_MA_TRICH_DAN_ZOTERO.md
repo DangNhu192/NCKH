@@ -76,3 +76,23 @@
     2. **Bộ Nhớ Đệm Hai Lớp (Dual-Layer Cache):** Cache kết quả thu thập theo cặp `Tác giả_Năm` và `DOI`, giúp quá trình quét và nhúng mã CSL vào từng đoạn văn bản trong file Word diễn ra tức thì (0 ms).
     3. **Cơ Chế Kiểm Tra Nhanh Zotero Desktop:** Tích hợp bộ đệm thời gian 4 giây và timeout 0.3s cho cổng Connector 23119, loại bỏ hoàn toàn độ trễ khi Zotero Desktop chưa mở.
     4. **Kiểm Thử Toàn Diện:** Kiểm tra End-to-End thành công trên toàn bộ các Endpoint của Tab 4 (`/api/zotero/convert?mode=B` và `/api/zotero/normalize-references`), phản hồi HTTP 200 nhanh chóng và chính xác 100%.
+- **Yêu cầu 9 (2026-09-06 - Hoàn Thiện OXML CSL Field XML & Router Export RIS/BibTeX):**
+  - *Nhiệm vụ & Kết quả xử lý:*
+    1. **Đăng Ký Phần Tử OXML Chuẩn Hóa:**
+       - Đăng ký phần tử OXML `CT_FldSimple` kế thừa `BaseOxmlElement` thông qua `register_element_cls('w:fldSimple', ...)` trong `modules/zotero/zotero_converter_engine.py`, giúp thuộc tính `.xml` hoạt động native trên các đối tượng `w:fldSimple` của python-docx.
+    2. **Bổ Sung REST API Router:**
+       - Hiện thực hóa 2 endpoints còn thiếu: `POST /api/zotero/export-ris` và `POST /api/zotero/export-bibtex` trong `modules/zotero/zotero_router.py`.
+    3. **Kiểm Thử Tự Động:**
+       - Vượt qua 100% test case `test_zotero_csl_field_xml_structure` và `test_api_zotero_export_ris_endpoint` trong `tests/test_reform_r2_writer_zotero.py`.
+- **Yêu cầu 10 (2026-09-07 - Tối Ưu Hóa Nút Nạp Đồng Bộ Zotero & Chống Spam Yêu Cầu):**
+  - *Kết quả xử lý:*
+    1. Trang bị trạng thái xử lý bất đồng bộ chống trùng lặp (`disabled = true`, hiển thị spinner tải và khôi phục nhãn ban đầu) cho hàm `ZoteroUI.syncToZotero(btn)` trong `static/js/zotero-converter.js`.
+    2. Ngăn ngừa triệt để lỗi người dùng click liên tiếp nhiều lần dẫn đến việc gửi trùng lặp hàng loạt tài liệu vào cơ sở dữ liệu Zotero.
+- **Yêu cầu 11 (2026-09-08 - Tuyệt Đối Bảo Mật Thư Viện: Chuyển Sang Chế Độ Zotero Read-Only API):**
+  - *Yêu cầu:* Loại bỏ toàn bộ hành vi tự động ghi/đẩy dữ liệu vào thư viện cá nhân Zotero (`saveItems` port 23119, `create_items` Zotero Cloud API). Vẫn cho phép đọc dữ liệu từ thư viện Zotero qua Zotero API và SQLite để đối soát và sinh mã trường trích dẫn Word CSL.
+  - *Kết quả xử lý:*
+    1. **Vô hiệu hóa toàn bộ cơ chế ghi:** Chuyển các hàm `save_item_to_zotero_desktop`, `add_item_to_zotero_library`, `sync_items_to_zotero` sang chế độ Read-Only, không thực thi `zot.create_items()` hay gửi POST tới port 23119.
+    2. **Xuất file `.ris` / `.bib` cục bộ:** Mọi tài liệu mới được xuất thành file RIS/BibTeX độc lập trong thư mục workspace để người dùng chủ động kiểm tra và import thủ công nếu có nhu cầu.
+    3. **Bảo toàn 100% việc đọc qua API/SQLite & nhúng mã Word:** Cơ chế đọc thư viện Zotero (local SQLite & Zotero Web API) và tạo mã trường động XML `w:fldSimple` / `w:instrText` cho file Word hoạt động hoàn hảo mà không can thiệp vào cơ sở dữ liệu cá nhân của người dùng.
+
+

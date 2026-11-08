@@ -123,8 +123,8 @@ const AcademicWriterUI = {
           <button type="button" class="btn btn-secondary btn-sm" onclick="AcademicWriterUI.addDimension()" style="font-size: 11px; padding: 3px 8px;" ${isLocked ? 'disabled' : ''}>
             ➕ Thêm Chiều Phân Tích
           </button>
-          <button type="button" class="btn ${isLocked ? 'btn-green' : 'btn-primary'} btn-sm" onclick="AcademicWriterUI.lockOutline()" style="font-size: 11px; padding: 3px 10px; font-weight: 700;">
-            ${isLocked ? '✅ Đã Khóa Đề Cương' : '🔒 Khóa & Duyệt Đề Cương (Approval Gate)'}
+          <button type="button" class="btn ${isLocked ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="AcademicWriterUI.lockOutline()" style="font-size: 11px; padding: 3px 10px; font-weight: 700;" title="${isLocked ? 'Nhấp để mở khóa và hiệu chỉnh nhánh/chiều' : 'Phê duyệt đề cương để chuyển sang Giai đoạn 2'}">
+            ${isLocked ? '🔓 Mở Khóa Đề Cương' : '🔒 Khóa & Duyệt Đề Cương (Approval Gate)'}
           </button>
         </div>
       </div>
@@ -151,6 +151,8 @@ const AcademicWriterUI = {
     const topic = document.getElementById("writer-topic") ? document.getElementById("writer-topic").value.trim() : "";
     const promptInput = window.prompt("Nhập nội dung nhánh luận điểm mới hoặc để trống để AI tự động mở rộng theo phương pháp luận RhinoInsight:", "");
     if (promptInput === null) return;
+
+    if (window.App && App.toast) App.toast("⏳ Đang phân nhánh và cập nhật cấu trúc đề cương...", "info");
 
     try {
       const res = await fetch("/api/writer/outline/expand-branch", {
@@ -193,6 +195,8 @@ const AcademicWriterUI = {
     const dimName = window.prompt("Nhập tên Chiều Phân Tích / Tiêu Chí Đối Soát mới (ví dụ: 'Rủi ro an ninh mạng', 'Chi phí LCOE', 'Khả năng tái sinh thái'):", "");
     if (!dimName || !dimName.trim()) return;
 
+    if (window.App && App.toast) App.toast("⏳ Đang thiết lập chiều phân tích mới...", "info");
+
     try {
       const res = await fetch("/api/writer/outline/add-dimension", {
         method: "POST",
@@ -224,6 +228,13 @@ const AcademicWriterUI = {
   },
 
   async lockOutline() {
+    if (this.isOutlineLocked) {
+      this.isOutlineLocked = false;
+      this.renderOutlineTree(this.currentOutlineTree);
+      if (window.App && App.toast) App.toast("🔓 Đã mở khóa đề cương để tiếp tục hiệu chỉnh nhánh và chiều!", "info");
+      return;
+    }
+
     const topic = document.getElementById("writer-topic") ? document.getElementById("writer-topic").value.trim() : "";
 
     try {
@@ -362,7 +373,7 @@ const AcademicWriterUI = {
 
         <div style="margin-bottom: 16px;">
           <!-- File A Card -->
-          <div class="card" style="background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.3);">
+          <div class="card" style="background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.3); margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
               <h5 style="color: #a78bfa; font-size: 14px; margin: 0;">📄 TỆP A: Báo Cáo Chuyên Đề / Bài Báo Học Thuật (APA 7th)</h5>
               <span class="badge badge-green" style="font-size: 11px;">Tích hợp Xu hướng OpenAlex</span>
@@ -372,6 +383,20 @@ const AcademicWriterUI = {
               <button class="btn btn-primary btn-sm" onclick="App.openFileInSystem('${pathA}')">📝 Mở Word (.docx)</button>
               <button class="btn btn-secondary btn-sm" onclick="App.downloadFile('${pathA}')">📥 Tải về (.docx)</button>
               <button class="btn btn-secondary btn-sm" onclick="App.downloadFile('${pathA.replace(/\.docx$/i, '.md')}')">📥 Tải về (.md)</button>
+            </div>
+          </div>
+
+          <!-- File B Card -->
+          <div class="card" style="background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+              <h5 style="color: #60a5fa; font-size: 14px; margin: 0;">📊 TỆP B: Ma Trận Truy Xuất Y Văn 6 Cột & Đối Soát Bằng Chứng</h5>
+              <span class="badge badge-blue" style="font-size: 11px;">Đối Soát 1-1 Bằng Chứng Thực</span>
+            </div>
+            <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 12px;">Bảng ma trận truy xuất nguồn gốc học thuật (ID, Tác giả & Năm, Luận điểm, Bằng chứng định lượng nguyên bản, Lỗ hổng & Đóng góp lý thuyết).</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              ${pathB ? `<button class="btn btn-primary btn-sm" onclick="App.openFileInSystem('${pathB}')">📝 Mở Word (.docx)</button>` : ''}
+              ${pathB ? `<button class="btn btn-secondary btn-sm" onclick="App.downloadFile('${pathB}')">📥 Tải về (.docx)</button>` : ''}
+              ${pathB ? `<button class="btn btn-secondary btn-sm" onclick="App.downloadFile('${pathB.replace(/\.docx$/i, '.md')}')">📥 Tải về (.md)</button>` : ''}
             </div>
           </div>
         </div>
@@ -389,6 +414,32 @@ const AcademicWriterUI = {
         ${uncertainCount > 0 ? `
           <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; color: #fbbf24; font-size: 12.5px;">
             ⚠️ <strong>Cảnh báo Tính Không Chắc Chắn:</strong> Phát hiện ${uncertainCount} điểm nghi vấn/chưa có bằng chứng đầy đủ đã được gắn cờ <code>[uncertain]</code> để chuyên gia kiểm chứng độc lập.
+          </div>
+        ` : ''}
+
+        ${data.looped_flows_audit ? `
+          <div class="card" style="background: rgba(99, 102, 241, 0.09); border-color: rgba(99, 102, 241, 0.35); margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <h5 style="color: #a5b4fc; font-size: 13.5px; margin: 0;">🧠 KIỂM ĐỊNH SUY LUẬN LUỒNG LẶP (LOOPED FLOWS / arXiv:2609.11801)</h5>
+              <span class="badge ${data.looped_flows_audit.spurious_attractor_detected ? 'badge-orange' : 'badge-green'}" style="font-size: 11px;">
+                ${data.looped_flows_audit.spurious_attractor_detected ? '⚠️ Cảnh báo Ngụy biện tự tin' : '🛡️ Hội tụ an toàn'}
+              </span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 8px 0; font-size: 12px;">
+              <div style="background: rgba(15, 23, 42, 0.5); padding: 6px 10px; border-radius: 6px;">
+                <span style="color: #94a3b8;">Chỉ số Bão hòa ACT q(z):</span>
+                <strong style="color: #60a5fa; margin-left: 4px;">${data.looped_flows_audit.act_score || 0.0}</strong>
+              </div>
+              <div style="background: rgba(15, 23, 42, 0.5); padding: 6px 10px; border-radius: 6px;">
+                <span style="color: #94a3b8;">Hội tụ Sai số R_i:</span>
+                <strong style="color: #34d399; margin-left: 4px;">${data.looped_flows_audit.final_residual || 0.03}</strong>
+              </div>
+              <div style="background: rgba(15, 23, 42, 0.5); padding: 6px 10px; border-radius: 6px;">
+                <span style="color: #94a3b8;">Số liệu Đo lường:</span>
+                <strong style="color: #fbbf24; margin-left: 4px;">${data.looped_flows_audit.metric_count || 0}</strong>
+              </div>
+            </div>
+            <p style="font-size: 11.5px; color: #cbd5e1; margin: 4px 0 0 0;">${data.looped_flows_audit.recommendation || ''}</p>
           </div>
         ` : ''}
 

@@ -39,6 +39,7 @@ from modules.shared.scientific_chart_builder import (
     download_and_optimize_image, ACADEMIC_COLORS
 )
 from modules.shared.gemini_service import gemini_service
+from modules.shared.pubchem_service import pubchem_service
 
 math_chem_router = APIRouter(prefix="/api/math-chem", tags=["Math-Chem-Chart Pro"])
 
@@ -453,3 +454,33 @@ async def enhance_docx(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi nâng cấp file Word: {str(e)}")
+
+
+# --- PUBCHEM CHEMICAL RESOLVER & PROPERTIES ---
+
+@math_chem_router.post("/pubchem-resolve")
+def resolve_chemical_substance(payload: dict):
+    """
+    Tra cứu và phân giải danh pháp, cấu trúc và thuộc tính hóa học từ NCBI PubChem REST API:
+    - CID, SMILES, InChIKey, IUPAC Name, Khối lượng phân tử.
+    - Cung cấp dữ liệu chuẩn hóa cho nghiên cứu thổ nhưỡng, hóa chất BVTV, nông nghiệp, môi trường.
+    """
+    name = payload.get("name", "")
+    if not name or not name.strip():
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp tên hoặc công thức hóa học cần tra cứu.")
+
+    res = pubchem_service.resolve_compound(name.strip())
+    return res
+
+
+@math_chem_router.get("/pubchem-image/{cid}")
+def get_chemical_structure_image(cid: int):
+    """Lấy URL hình ảnh cấu trúc phân tử 2D độ nét cao từ PubChem."""
+    if not cid:
+        raise HTTPException(status_code=400, detail="CID không hợp lệ.")
+    image_url = pubchem_service.get_structure_image_url(cid)
+    return {
+        "status": "success",
+        "cid": cid,
+        "image_url": image_url
+    }

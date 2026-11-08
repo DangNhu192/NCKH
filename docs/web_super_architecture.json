@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "WEB SUPER v3.2 Unified System Architecture",
+    "output": "web_super_architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "full-pipeline",
+        "label": "Autonomous Research Pipeline",
+        "focus": ["users", "web_ui", "api_gateway", "pipeline", "docx_zotero", "knowledge_vault"],
+        "note": "Follow the end-to-end flow from topic input to published APA 7th Word monographs."
+      },
+      {
+        "id": "editorial-and-reasoning",
+        "label": "GATE Peer Review & Looped Flows",
+        "focus": ["editorial_board", "looped_flows", "docx_zotero"],
+        "note": "Inspect the 6 GATE editorial board and Looped Flows ACT reasoning convergence."
+      },
+      {
+        "id": "data-cleansing-and-harvesting",
+        "label": "Evidence Harvesting & Cleansing",
+        "focus": ["harvest_hub", "data_cleaner", "knowledge_vault"],
+        "note": "View multi-source harvesting with Reactome bio-pathways and automatic data cleaning."
+      }
+    ]
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "Academic Researcher", "sublabel": "Postgraduate Scholar", "pos": [40, 280], "size": [130, 60] },
+    { "id": "auth_vault", "type": "security", "label": "Auth Vault", "sublabel": "JWT + RBAC + API Keys", "pos": [40, 140], "size": [130, 60], "tag": "AES-256" },
+    { "id": "web_ui", "type": "frontend", "label": "Web Super SPA", "sublabel": "10 Specialized Tabs", "pos": [240, 280], "size": [140, 60] },
+    { "id": "api_gateway", "type": "backend", "label": "FastAPI Gateway", "sublabel": "Async REST Routers", "pos": [440, 280], "size": [140, 60] },
+    { "id": "pipeline", "type": "backend", "label": "7-Step Pipeline", "sublabel": "Autonomous Orchestration", "pos": [650, 140], "size": [150, 60] },
+    { "id": "editorial_board", "type": "backend", "label": "Science Editorial", "sublabel": "6 GATEs + GS. Grimm", "pos": [650, 280], "size": [150, 60] },
+    { "id": "harvest_hub", "type": "backend", "label": "Academic Harvester", "sublabel": "Triangle + Reactome", "pos": [650, 420], "size": [150, 60] },
+    { "id": "looped_flows", "type": "backend", "label": "Looped Flows Core", "sublabel": "arXiv:2609.11801 (ACT)", "pos": [870, 140], "size": [150, 60], "tag": "ACT q>=0.95" },
+    { "id": "docx_zotero", "type": "backend", "label": "Docx & Zotero 2-Layer", "sublabel": "CSL XML + File A/B", "pos": [870, 280], "size": [150, 60] },
+    { "id": "data_cleaner", "type": "database", "label": "Data Autocleaner", "sublabel": "Profiling & SI Units", "pos": [870, 420], "size": [150, 60] },
+    { "id": "knowledge_vault", "type": "database", "label": "Knowledge Vault", "sublabel": "Evidence DB & Storage", "pos": [1090, 280], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "WEB SUPER Core Services", "wraps": ["api_gateway", "pipeline", "editorial_board", "harvest_hub", "looped_flows", "docx_zotero", "data_cleaner", "knowledge_vault"] },
+    { "kind": "security-group", "label": "Editorial & Quality Gateways", "wraps": ["editorial_board", "looped_flows", "docx_zotero"] }
+  ],
+  "connections": [
+    { "id": "user-to-ui", "from": "users", "to": "web_ui", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "auth-verify", "from": "auth_vault", "to": "api_gateway", "label": "authorize", "variant": "security", "fromSide": "right", "toSide": "top" },
+    { "id": "ui-to-api", "from": "web_ui", "to": "api_gateway" },
+    { "id": "api-to-pipeline", "from": "api_gateway", "to": "pipeline", "label": "dispatch", "fromSide": "top", "toSide": "left" },
+    { "id": "api-to-editorial", "from": "api_gateway", "to": "editorial_board" },
+    { "id": "api-to-harvest", "from": "api_gateway", "to": "harvest_hub", "label": "harvest", "fromSide": "bottom", "toSide": "left" },
+    { "id": "pipeline-to-reasoning", "from": "pipeline", "to": "looped_flows", "label": "audit ACT" },
+    { "id": "editorial-to-reasoning", "from": "editorial_board", "to": "looped_flows", "fromSide": "top", "toSide": "bottom" },
+    { "id": "editorial-to-docx", "from": "editorial_board", "to": "docx_zotero" },
+    { "id": "harvest-to-cleaner", "from": "harvest_hub", "to": "data_cleaner", "label": "sanitize" },
+    { "id": "cleaner-to-docx", "from": "data_cleaner", "to": "docx_zotero", "label": "matrix 6-col", "fromSide": "top", "toSide": "bottom" },
+    { "id": "docx-to-vault", "from": "docx_zotero", "to": "knowledge_vault", "label": "persist" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Presentation & Access", "items": ["Responsive 10-Tab Single Page Application", "Role-based access with encrypted API key vault", "Interactive Zotero and Word document previews"] },
+    { "dot": "emerald", "title": "Autonomous Scientific Pipeline", "items": ["7-step automated research execution", "Multi-agent editorial board with GS. Grimm adversarial review", "Dual-file publication model (File A Report + File B Matrix)"] },
+    { "dot": "rose", "title": "Scientific Rigor & Reasoning", "items": ["Thinking with Looped Flows (arXiv:2609.11801) ACT convergence", "Automated data profiling, outlier detection and unit normalization", "Reactome bio-pathways and academic triangle retrieval"] }
+  ]
+}

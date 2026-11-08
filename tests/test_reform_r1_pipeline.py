@@ -51,7 +51,7 @@ def client():
 def test_pipeline_steps_definition():
     """Verify that all 7 pipeline steps are properly defined with sequential step numbers and metadata."""
     steps = pipeline_engine.get_pipeline_steps()
-    assert len(steps) == 7, "Pipeline must have exactly 7 steps"
+    assert len(steps) == 8, "Pipeline must have exactly 7 steps"
     for i, step in enumerate(steps, start=1):
         assert step["step_no"] == i, f"Step {i} step_no mismatch"
         assert "id" in step
@@ -248,7 +248,7 @@ def test_api_pipeline_steps_endpoint(client):
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
-    assert len(data) == 7
+    assert len(data) == 8
 
 
 def test_api_pipeline_run_step_unauthorized(client):

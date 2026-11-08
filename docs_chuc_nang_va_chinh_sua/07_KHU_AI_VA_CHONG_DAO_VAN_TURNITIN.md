@@ -43,3 +43,11 @@
     3. Kiểm tra độ dài văn bản sau khi Humanize: nếu kết quả trả về quá ngắn (< 20% bản gốc) do lỗi mạng/API, tự động bảo toàn bản gốc để không bao giờ làm mất nội dung người dùng.
     4. Xuất bản đồng bộ `.docx` và `.md` hoàn thiện vào `Xuat_Ban/` và hiển thị đầy đủ trên giao diện.
     5. Đạt 100% PASS trên bộ kiểm thử tự động `test_4_fixes.py`.
+- **Yêu cầu 8 (2026-09-07 - Tích Hợp Kiểm Toán Văn Phong Khoa Học & Triệt Tiêu Sáo Ngữ Khẳng Định Quá Mức / Miêu Tả Hoa Mỹ):**
+  - *Nhiệm vụ:* Mở rộng từ điển sáo ngữ và bổ sung bộ kiểm toán chuyên sâu về tiết chế học thuật (Scientific Hedging Audit) nhằm phát hiện, tính điểm và tự động thay thế các cụm từ khẳng định quá mức, phóng đại giật gân, miêu tả hoa mỹ và từ ngữ phi khoa học.
+  - *Kết quả xử lý:*
+    1. **Mở Rộng Từ Điển Thay Thế Tự Động (`CONTENTBETA_VIETNAMESE_CLICHES` & `LOCAL_REPLACEMENT_MAP`):** Bổ sung hơn 20 cặp từ ngữ thay thế các biểu đạt sáo rỗng ("bước đột phá lịch sử" ➔ "tiến bộ kỹ thuật ghi nhận được", "thay đổi cuộc chơi" ➔ "tạo ra phương thức tiếp cận mới", "khẳng định chắc chắn" ➔ "kết quả bước đầu cho thấy", "vô cùng hoàn hảo" ➔ "đáp ứng tốt tiêu chuẩn thiết kế", "bức tranh tráng lệ" ➔ "tổng quan tình hình").
+    2. **Thiết Lập Bộ Quy Tắc Nhận Diện Vi Phạm (`SCIENTIFIC_HEDGING_VIOLATIONS`):** Phân loại 4 nhóm vi phạm: `over_assertion` (khẳng định quá mức), `over_emphasis` (nhấn mạnh quá đà), `purple_prose` (miêu tả hoa mỹ), `non_academic` (từ ngữ phi khoa học).
+    3. **Hàm Kiểm Toán Dè Dặt Học Thuật (`audit_scientific_hedging`):** Tính điểm chuẩn mực học thuật từ 0 đến 100, liệt kê chi tiết các vi phạm theo từng phân nhóm và trả về gợi ý cải thiện văn phong. Tích hợp trực tiếp vào quy trình phân tích văn bản `analyze()`.
+    4. **Kiểm Thử:** Đạt 100% PASS trên `tests/test_scientific_hedging_and_tone.py` và toàn bộ test suite dự án.
+

@@ -93,14 +93,18 @@ const NotebookLMUI = {
   renderNotebookHeader() {
     const titleEl = document.getElementById("open-notebook-active-title");
     const metaEl = document.getElementById("open-notebook-active-meta");
-    if (!this.currentNotebook || !titleEl) return;
+    if (!this.currentNotebook) return;
 
-    const nb = this.currentNotebook.notebook;
-    titleEl.textContent = nb.name || "Kho Tri Thức";
+    const nb = this.currentNotebook.notebook || {};
+    if (titleEl) {
+      titleEl.textContent = nb.name || "Kho Tri Thức Học Thuật";
+    }
     if (metaEl) {
+      const srcCount = (this.currentNotebook.sources || []).length;
+      const chkCount = this.currentNotebook.chunks_count || 0;
       metaEl.innerHTML = `
-        <span class="badge badge-blue">📚 ${this.currentNotebook.sources.length} Nguồn</span>
-        <span class="badge badge-purple" style="margin-left: 6px;">🧩 ${this.currentNotebook.chunks_count} Đoạn Trích</span>
+        <span class="badge badge-blue">📚 ${srcCount} Nguồn</span>
+        <span class="badge badge-purple" style="margin-left: 6px;">🧩 ${chkCount} Đoạn Trích</span>
         <span style="font-size: 11.5px; color: #94a3b8; margin-left: 10px;">Cập nhật: ${nb.updated_at || "Vừa xong"}</span>
       `;
     }
@@ -719,13 +723,20 @@ const NotebookLMUI = {
   switchViewTab(tabName) {
     this.activeTab = tabName;
     document.querySelectorAll(".open-nb-tab-btn").forEach(b => {
-      if (b.getAttribute("data-tab") === tabName) b.classList.add("active");
-      else b.classList.remove("active");
+      if (b.getAttribute("data-tab") === tabName) {
+        b.classList.add("active");
+        b.style.background = "#3b82f6";
+        b.style.color = "#ffffff";
+      } else {
+        b.classList.remove("active");
+        b.style.background = "transparent";
+        b.style.color = "#94a3b8";
+      }
     });
 
-    const chatPane = document.getElementById("open-nb-pane-chat");
-    const searchPane = document.getElementById("open-nb-pane-search");
-    const transformPane = document.getElementById("open-nb-pane-transform");
+    const chatPane = document.getElementById("open-nb-chat-pane") || document.getElementById("open-nb-pane-chat");
+    const searchPane = document.getElementById("open-nb-search-pane") || document.getElementById("open-nb-pane-search");
+    const transformPane = document.getElementById("open-nb-transform-pane") || document.getElementById("open-nb-pane-transform");
 
     if (chatPane) chatPane.style.display = tabName === "chat" ? "flex" : "none";
     if (searchPane) searchPane.style.display = tabName === "search" ? "flex" : "none";

@@ -5,16 +5,39 @@ const PipelineUI = {
   stepOutputs: {},
 
   stepPercentages: {
-    1: 14,
-    2: 28,
-    3: 42,
-    4: 57,
-    5: 71,
-    6: 85,
-    7: 100
+    1: 12,
+    2: 25,
+    3: 37,
+    4: 50,
+    5: 62,
+    6: 75,
+    7: 88,
+    8: 100
   },
 
-  updateProgress(percent, statusText) {
+  setMicroStatus(text, type = "info") {
+    const microEl = document.getElementById("pipeline-micro-text");
+    const indicatorEl = document.querySelector(".micro-status-indicator");
+    const timeEl = document.getElementById("pipeline-micro-time");
+    if (microEl && text) microEl.innerText = text;
+    if (timeEl) {
+      const now = new Date();
+      timeEl.innerText = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+    }
+    if (indicatorEl) {
+      if (type === "running") {
+        indicatorEl.style.background = "#f59e0b";
+      } else if (type === "success") {
+        indicatorEl.style.background = "#10b981";
+      } else if (type === "error") {
+        indicatorEl.style.background = "#ef4444";
+      } else {
+        indicatorEl.style.background = "#38bdf8";
+      }
+    }
+  },
+
+  updateProgress(percent, statusText, microText = null, microType = "info") {
     const fillEl = document.getElementById("pipeline-progress-fill");
     const percentEl = document.getElementById("pipeline-progress-percent");
     const statusEl = document.getElementById("pipeline-progress-status");
@@ -22,6 +45,7 @@ const PipelineUI = {
     if (fillEl) fillEl.style.width = `${percent}%`;
     if (percentEl) percentEl.innerText = `${percent}%`;
     if (statusEl && statusText) statusEl.innerText = statusText;
+    if (microText) this.setMicroStatus(microText, microType);
   },
 
   init() {
@@ -118,7 +142,7 @@ const PipelineUI = {
     }
 
     if (targetStep === 5) {
-      const outlineEl = document.getElementById("pipeline-custom-outline");
+      const outlineEl = document.getElementById("pipeline-custom-outline-input") || document.getElementById("pipeline-custom-outline");
       const hasOutline = (outlineEl && outlineEl.value.trim()) || this.customOutline || (this.stepOutputs[4] && this.stepOutputs[4].outline) || (this.stepOutputs[3] && this.stepOutputs[3].outline);
       if (!hasOutline) {
         return {
@@ -251,7 +275,7 @@ const PipelineUI = {
     // Update progress bar to intermediate running state
     const prevPercent = stepNo > 1 ? this.stepPercentages[stepNo - 1] : 0;
     const runningPercent = Math.round(prevPercent + (this.stepPercentages[stepNo] - prevPercent) / 2);
-    this.updateProgress(runningPercent, `⏳ Đang thực thi Bước ${stepNo}: ${this.getStepTitle(stepNo)} (${est.label})...`);
+    this.updateProgress(runningPercent, `⏳ Đang thực thi Bước ${stepNo}: ${this.getStepTitle(stepNo)} (${est.label})...`, `[Bước ${stepNo}/7] Đang xử lý: ${est.desc}`, "running");
 
     const outContainer = document.getElementById(`pipeline-step-${stepNo}-output`);
     let elapsedSec = 0;
@@ -375,7 +399,7 @@ const PipelineUI = {
       if (data.status === "success") {
         this.stepOutputs[stepNo] = data;
         const targetPercent = this.stepPercentages[stepNo];
-        this.updateProgress(targetPercent, `✅ Bước ${stepNo} Hoàn Tất (${elapsedSec}s): ${this.getStepTitle(stepNo)} (${targetPercent}%)`);
+        this.updateProgress(targetPercent, `✅ Bước ${stepNo} Hoàn Tất (${elapsedSec}s): ${this.getStepTitle(stepNo)} (${targetPercent}%)`, `[Bước ${stepNo}/7] Hoàn tất mỹ mãn (${elapsedSec}s) · Dữ liệu đã lưu an toàn`, "success");
 
         if (window.App && App.toast) App.toast(data.message || `Bước ${stepNo} đã hoàn thành trong ${elapsedSec}s!`, "success");
         this.renderStepResult(stepNo, data);
@@ -395,6 +419,7 @@ const PipelineUI = {
           }
         }
       } else {
+        this.setMicroStatus(`[Bước ${stepNo}/7] Thao tác thất bại: ${data.detail || "Không thể thực thi"}`, "error");
         if (window.App && App.toast) App.toast(data.detail || `Lỗi thực thi bước ${stepNo}`, "error");
         if (outContainer) {
           outContainer.innerHTML = `<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); padding: 12px; border-radius: 8px; color: #fca5a5; font-size: 13px;">❌ Lỗi: ${data.detail || "Không thể thực thi bước này."}</div>`;
@@ -403,6 +428,7 @@ const PipelineUI = {
     } catch (e) {
       if (timerInterval) clearInterval(timerInterval);
       console.error(`[PipelineUI] Error at Step ${stepNo}:`, e);
+      this.setMicroStatus(`[Bước ${stepNo}/7] Lỗi kết nối: ${e.message}`, "error");
       if (window.App && App.toast) App.toast("Lỗi kết nối: " + e.message, "error");
       if (outContainer) {
         outContainer.innerHTML = `<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); padding: 12px; border-radius: 8px; color: #fca5a5; font-size: 13px;">❌ Lỗi kết nối: ${e.message}</div>`;
@@ -987,6 +1013,75 @@ const PipelineUI = {
           </div>
         </div>
       `;
+      const nextBtn7 = document.getElementById("btn-next-step-7");
+      if (nextBtn7) nextBtn7.style.display = "inline-block";
+    } else if (stepNo === 8) {
+      const rep = data.scorecard || {};
+      const passed = data.gate_passed;
+      const l1 = rep.layer1 || {};
+      const l2 = rep.layer2 || {};
+      const l3 = rep.layer3 || {};
+      const l4 = rep.layer4 || {};
+      const l5 = rep.layer5 || {};
+
+      html = `
+        <div class="gate-checkpoint-box" style="background: ${passed ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'}; border-color: ${passed ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'};">
+          <div style="width: 100%;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <div class="gate-badge unlocked" style="background: ${passed ? '#10b981' : '#ef4444'}; color: #fff;">
+                ${passed ? '🎉' : '⚠️'} ${data.gate || '⛔ GATE 8: 5-Layer Integrity Verified'}
+              </div>
+              <span style="font-size: 13px; font-weight: 800; color: ${passed ? '#34d399' : '#f87171'}; background: ${passed ? 'rgba(52, 211, 153, 0.15)' : 'rgba(248, 113, 113, 0.15)'}; padding: 4px 12px; border-radius: 20px; border: 1px solid ${passed ? 'rgba(52, 211, 153, 0.3)' : 'rgba(248, 113, 113, 0.3)'};">
+                ${passed ? '🛡️ ZERO-HALLUCINATION VERIFIED (100%)' : `CẦN KHẮC PHỤC (${data.total_errors} LỖI)`}
+              </span>
+            </div>
+
+            <h4 style="color: #fff; margin-top: 12px; font-size: 16px;">Kết Quả Kiểm Toán Liêm Chính 5 Lớp &amp; Trình Đối Soát Song Song (Dual-Pane)</h4>
+            
+            <div class="grid-3" style="margin: 14px 0;">
+              <div class="score-gauge-card">
+                <div class="gauge-lbl">Lớp 1: Khớp Y Văn PDF Thô</div>
+                <div class="gauge-val ${l1.passed ? 'score-high' : 'score-low'}">${l1.passed ? '✓ ĐẠT' : '✗ LỖI'}</div>
+              </div>
+              <div class="score-gauge-card">
+                <div class="gauge-lbl">Lớp 2: Kiểm Toán Nút &amp; Chủ Đề</div>
+                <div class="gauge-val ${l2.passed ? 'score-high' : 'score-low'}">${l2.passed ? '✓ ĐẠT' : '✗ LỖI'}</div>
+              </div>
+              <div class="score-gauge-card">
+                <div class="gauge-lbl">Lớp 3: Khóa Số Liệu Word DOCX</div>
+                <div class="gauge-val ${l3.passed ? 'score-high' : 'score-low'}">${l3.locked_metrics_count || 0} Chỉ số</div>
+              </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 14px;">
+              <div class="score-gauge-card">
+                <div class="gauge-lbl">Lớp 4: Triệt Tiêu Tài Liệu Ảo</div>
+                <div class="gauge-val ${l4.passed ? 'score-high' : 'score-low'}">${l4.passed ? '✓ SẠCH 100%' : '✗ PHÁT HIỆN'}</div>
+              </div>
+              <div class="score-gauge-card">
+                <div class="gauge-lbl">Lớp 5: Phân Tách Trang In &amp; PDF</div>
+                <div class="gauge-val ${l5.passed ? 'score-high' : 'score-low'}">${l5.passed ? '✓ CHUẨN XÁC' : '✗ LỆCH TRANG'}</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px;">
+              <h5 style="color: #f8fafc; font-size: 13px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <span>🔬</span> Gói Đối Soát Thực Chứng Song Song &amp; Bảng Ma Trận:
+              </h5>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="${data.doi_soat_url || '/doi_soat.html'}" target="_blank" class="btn btn-primary btn-lg" style="text-decoration: none; font-weight: 700; background: linear-gradient(135deg, #0284c7, #4f46e5); border: none;">
+                  👁️ Mở Trình Đối Soát Song Song (Dual-Pane)
+                </a>
+                ${data.matrix_docx ? `
+                  <button onclick="App.openFileInSystem('${data.matrix_docx}')" class="btn btn-success btn-lg" style="font-weight: 700;">
+                    📊 Mở Bảng Ma Trận Nguồn Gốc (.docx)
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     outContainer.innerHTML = html;
@@ -1088,6 +1183,31 @@ const PipelineUI = {
     }
   },
 
+  async autocleanEvidenceDatabase() {
+    App.toast("🧹 Đang phân tích dị biệt, chuẩn hóa đơn vị SI và dấu phẩy tiếng Việt...", "info");
+    try {
+      const res = await fetch("/api/evidence-db/autoclean", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...((window.AuthManager && AuthManager.token) ? { "Authorization": `Bearer ${AuthManager.token}` } : {})
+        },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        const p = data.profile || {};
+        const msg = `✨ Làm sạch hoàn tất! Đã xử lý ${data.records_cleaned || 0} bản ghi (Dị biệt: ${p.outliers_detected || 0}, Đơn vị SI: ${p.units_normalized || 0}).`;
+        App.toast(msg, "success");
+        this.refreshVaultList();
+      } else {
+        App.toast(data.detail || data.message || "Không thể làm sạch cơ sở dữ liệu thực chứng", "error");
+      }
+    } catch (e) {
+      App.toast("Lỗi làm sạch dữ liệu: " + e.message, "error");
+    }
+  },
+
   onVolumePresetChange(val) {
     const customInput = document.getElementById("pipeline-custom-words-wrapper");
     if (val === "custom") {
@@ -1182,23 +1302,25 @@ const PipelineUI = {
 
   saveCustomOutline() {
     const outlineEl = document.getElementById("pipeline-custom-outline-input") || document.getElementById("pipeline-custom-outline");
-    if (outlineEl) {
+    if (outlineEl && outlineEl.value.trim()) {
       this.customOutline = outlineEl.value.trim();
       App.toast("✅ Đã lưu cấu trúc tùy chỉnh thành công! Dàn ý này sẽ được áp dụng cho Bước 5.", "success");
       const nextBtn = document.getElementById("btn-next-step-4");
       if (nextBtn) nextBtn.style.display = "inline-flex";
+    } else {
+      App.toast("Vui lòng nhập cấu trúc đề cương trước khi bấm Lưu!", "warning");
     }
   },
 
   resetDefaultOutline() {
     const defaultOutline = (this.stepOutputs && this.stepOutputs[4] && this.stepOutputs[4].outline) || (this.stepOutputs && this.stepOutputs[3] && this.stepOutputs[3].outline);
-    if (defaultOutline) {
-      const outlineEl = document.getElementById("pipeline-custom-outline-input") || document.getElementById("pipeline-custom-outline");
-      if (outlineEl) {
-        outlineEl.value = defaultOutline;
-        this.customOutline = defaultOutline;
-        App.toast("Đã khôi phục dàn ý mặc định ban đầu.", "info");
-      }
+    const outlineEl = document.getElementById("pipeline-custom-outline-input") || document.getElementById("pipeline-custom-outline");
+    if (defaultOutline && outlineEl) {
+      outlineEl.value = defaultOutline;
+      this.customOutline = defaultOutline;
+      App.toast("Đã khôi phục dàn ý mặc định ban đầu.", "info");
+    } else {
+      App.toast("Chưa có dàn ý mặc định từ AI để khôi phục. Hãy chạy Bước 4 trước.", "info");
     }
   },
 
@@ -1221,7 +1343,7 @@ const PipelineUI = {
     this.updateProgress(10, "⚡ Đang khởi động chuỗi 7 bước tự động...");
     App.toast("Khởi động quy trình xâu chuỗi liên kết toàn diện (1-Click)...", "info");
 
-    const outlineEl = document.getElementById("pipeline-custom-outline");
+    const outlineEl = document.getElementById("pipeline-custom-outline-input") || document.getElementById("pipeline-custom-outline");
     const customOutline = outlineEl ? outlineEl.value.trim() : (this.customOutline || "");
 
     const params = {
@@ -1273,7 +1395,7 @@ const PipelineUI = {
   },
 
   openTargetStorageFolder() {
-    const inputVal = document.getElementById("pipeline-storage-dir")?.value?.trim();
+    const inputVal = document.getElementById("pipeline-storage-dir")?.value?.trim() || document.getElementById("cfg-custom-storage-dir")?.value?.trim();
     const folderToOpen = inputVal || "Tai_Lieu";
     if (window.App && App.openWindowsExplorer) {
       App.openWindowsExplorer(folderToOpen);
@@ -1328,7 +1450,7 @@ const PipelineUI = {
     preview.textContent = queryStr;
 
     // Update query input box in Step 1
-    const queryInput = document.getElementById("pipeline-search-query-input");
+    const queryInput = document.getElementById("pipeline-search-query-input") || document.getElementById("pipeline-step1-custom-keywords") || document.getElementById("harvester-custom-query");
     if (queryInput && queryStr !== '—') {
       queryInput.value = queryStr;
     }
@@ -1368,18 +1490,26 @@ const PipelineUI = {
 
   useQueryForSearch(lang) {
     const preview = document.getElementById(`step1-query-preview-${lang}`);
-    const queryInput = document.getElementById("pipeline-search-query-input");
-    const langSelect = document.getElementById("pipeline-search-lang");
+    const queryInput = document.getElementById("pipeline-step1-custom-keywords") || document.getElementById("harvester-custom-query") || document.getElementById("pipeline-topic-input");
+    const langSelect = document.getElementById("pipeline-step1-lang") || document.getElementById("harvester-lang-select");
 
     if (preview && queryInput) {
       const q = preview.textContent.trim();
       if (q && q !== '—') {
         queryInput.value = q;
         if (langSelect) langSelect.value = lang;
-        queryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (queryInput.scrollIntoView) {
+          queryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         queryInput.style.borderColor = '#10b981';
         setTimeout(() => { queryInput.style.borderColor = ''; }, 2000);
         App.toast(`Đã nạp chuỗi truy vấn (${lang.toUpperCase()}) vào ô tìm kiếm!`, 'info');
+      }
+    } else if (preview) {
+      const q = preview.textContent.trim();
+      if (q && q !== '—' && navigator.clipboard) {
+        navigator.clipboard.writeText(q);
+        App.toast(`Đã sao chép chuỗi truy vấn (${lang.toUpperCase()}) vào bộ nhớ tạm!`, 'success');
       }
     }
   },
@@ -1425,7 +1555,7 @@ const PipelineUI = {
   },
 
   onStep1LanguageChange(lang) {
-    const searchLangEl = document.getElementById("pipeline-search-lang");
+    const searchLangEl = document.getElementById("pipeline-search-lang") || document.getElementById("pipeline-step1-lang") || document.getElementById("harvester-lang-select");
     if (searchLangEl) {
       searchLangEl.value = lang;
     }
@@ -1443,7 +1573,7 @@ const PipelineUI = {
   async searchStep1Candidates() {
     const topicInput = document.getElementById("pipeline-topic-input");
     const baseTopic = (topicInput ? topicInput.value.trim() : "") || this.topic;
-    const customQ = document.getElementById("pipeline-search-query-input")?.value?.trim() || "";
+    const customQ = document.getElementById("pipeline-search-query-input")?.value?.trim() || document.getElementById("pipeline-step1-custom-keywords")?.value?.trim() || "";
     const searchTopic = customQ || baseTopic;
 
     if (!searchTopic) {
@@ -1452,15 +1582,15 @@ const PipelineUI = {
       return;
     }
 
-    const btn = document.getElementById("btn-search-step1");
+    const btn = document.getElementById("btn-search-step1") || document.getElementById("btn-run-step-1");
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = `<span class="spinner-btn"></span> <span>Đang tìm kiếm...</span>`;
     }
 
-    const lang = document.getElementById("pipeline-search-lang")?.value || "all";
-    const source = document.getElementById("pipeline-search-source")?.value || "all";
-    const maxPapers = parseInt(document.getElementById("pipeline-search-max-papers")?.value || "10", 10);
+    const lang = document.getElementById("pipeline-search-lang")?.value || document.getElementById("pipeline-step1-lang")?.value || document.getElementById("harvester-lang-select")?.value || "all";
+    const source = document.getElementById("pipeline-search-source")?.value || document.getElementById("harvester-source-select")?.value || "all";
+    const maxPapers = parseInt(document.getElementById("pipeline-search-max-papers")?.value || document.getElementById("harvester-max-papers")?.value || "10", 10);
 
     App.toast(`Đang tìm kiếm tối đa ${maxPapers} bài báo (${lang.toUpperCase()})...`, "info");
 
@@ -1540,7 +1670,7 @@ const PipelineUI = {
   },
 
   renderStep1CandidateList() {
-    const outContainer = document.getElementById("step1-candidate-list-container");
+    const outContainer = document.getElementById("step1-candidate-list-container") || document.getElementById("pipeline-step-1-output");
     if (!outContainer) return;
 
     if (!this.step1Candidates || this.step1Candidates.length === 0) {
@@ -1806,7 +1936,7 @@ const PipelineUI = {
     const streamCounter = document.getElementById("step1-stream-counter");
     if (progressBox) progressBox.style.display = "block";
 
-    const customStorage = document.getElementById("pipeline-storage-dir")?.value?.trim() || "";
+    const customStorage = document.getElementById("pipeline-storage-dir")?.value?.trim() || document.getElementById("cfg-custom-storage-dir")?.value?.trim() || "";
     let completedCount = 0;
     const savedFiles = [];
 
@@ -1938,7 +2068,7 @@ const PipelineUI = {
     if (!inputEl.files || inputEl.files.length === 0) return;
     const file = inputEl.files[0];
     const paper = this.step1Candidates.find(p => p.id === paperId) || { id: paperId, title: file.name };
-    const customStorage = document.getElementById("pipeline-storage-dir")?.value?.trim() || "";
+    const customStorage = document.getElementById("pipeline-storage-dir")?.value?.trim() || document.getElementById("cfg-custom-storage-dir")?.value?.trim() || "";
 
     const btnContainer = document.getElementById(`step1-manual-actions-${paperId}`);
     const originalHtml = btnContainer ? btnContainer.innerHTML : '';

@@ -248,7 +248,11 @@ def test_zotero_csl_field_xml_structure():
     )
     
     assert xml_elem is not None
-    xml_str = xml_elem.xml
+    try:
+        import lxml.etree as etree
+        xml_str = getattr(xml_elem, "xml", None) or etree.tostring(xml_elem, encoding="unicode")
+    except Exception:
+        xml_str = getattr(xml_elem, "xml", "")
     
     # Must contain Zotero CSL Citation instruction field
     assert "ZOTERO_ITEM" in xml_str or "w:fldSimple" in xml_str

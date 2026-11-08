@@ -254,6 +254,19 @@ const OnboardingGuide = (() => {
     if (el) el.classList.remove('active');
   }
 
+  function activateKeyFromPaymentModal() {
+    const key = document.getElementById('payment-key-input')?.value.trim();
+    if (!key) {
+      if (window.App) App.toast('Vui lòng nhập mã key kích hoạt.', 'warning');
+      return;
+    }
+    if (window.AuthManager && AuthManager.activateUserKey) {
+      AuthManager.activateUserKey(key);
+      closePaymentModal();
+      clearReadyCache();
+    }
+  }
+
   function resetAllGuides() {
     Object.keys(GUIDES).forEach(k => localStorage.removeItem(STORAGE_PREFIX + k));
     clearReadyCache();
@@ -270,7 +283,7 @@ const OnboardingGuide = (() => {
     }
   }
 
-  return { checkAndShow, showFeatureGuide, openPaymentModal, closePaymentModal, resetAllGuides, checkReadyOnLogin, clearReadyCache };
+  return { checkAndShow, showFeatureGuide, openPaymentModal, closePaymentModal, activateKeyFromPaymentModal, resetAllGuides, checkReadyOnLogin, clearReadyCache };
 })();
 
 // Global Window Export

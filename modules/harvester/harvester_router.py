@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Body, Depends
 from modules.auth.auth_service import require_operational_user
 from modules.auth.user_config_manager import load_user_config
 from modules.harvester.data_harvesting_engine import data_harvester
+from modules.shared.reactome_service import reactome_service
 from modules.history.history_manager import history_mgr
 
 harvester_router = APIRouter(tags=["Data Harvester"])
@@ -49,6 +50,29 @@ def get_research_trends(payload: dict = Body(...), user: dict = Depends(require_
     if not topic and not query:
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp chủ đề hoặc câu truy vấn.")
     return data_harvester.fetch_research_trends(topic, query=query)
+
+
+@harvester_router.post("/api/harvest/keyword-trends")
+@harvester_router.post("/api/harvester/keyword-trends")
+def get_keyword_trends(payload: dict = Body(...), user: dict = Depends(require_operational_user)):
+    """
+    Truy vấn xu hướng công bố khoa học theo từ khóa từ các cơ sở dữ liệu mở:
+    OpenAlex, Europe PMC, arXiv, Crossref, hoặc Đa nguồn Hợp nhất.
+    """
+    topic = payload.get("topic", "").strip()
+    keywords = payload.get("keywords") or payload.get("trend_keywords")
+    source = payload.get("source") or payload.get("trend_source") or "openalex"
+    years = payload.get("years") or payload.get("years_range")
+
+    if not topic and not keywords:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp chủ đề hoặc danh sách từ khóa.")
+
+    return data_harvester.fetch_multi_source_keyword_trends(
+        topic=topic,
+        keywords=keywords,
+        source=source,
+        years_range=years
+    )
 
 
 # ─── 2. SEARCH / HARVEST PAPERS ───────────────────────────────────────────────
@@ -266,4 +290,38 @@ def get_readable_content_for_ai(payload: dict = Body(...), user: dict = Depends(
             summary=f"Bóc tách {res.get('word_count', 0)} từ, chất lượng {res.get('extraction_quality', 'N/A')}"
         )
     return res
+
+
+# ─── 10. TRA CỨU REACTOME DATABASE (PATHWAYS & BIO-REACTIONS) ─────────────────
+
+@harvester_router.post("/api/harvester/reactome-search")
+@harvester_router.post("/api/harvest/reactome-search")
+def search_reactome_pathways(payload: dict = Body(...), user: dict = Depends(require_operational_user)):
+    """
+    Tra cứu đường dẫn sinh học và phản ứng sinh hóa từ Reactome Database
+    phục vụ các đề tài nông nghiệp, môi trường, y sinh và sinh thái học.
+    """
+    query = payload.get("query", "")
+    max_results = int(payload.get("max_results", 5))
+    if not query:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp từ khóa sinh hóa / đường dẫn cần tìm.")
+
+    results = reactome_service.search_pathways(query=query, max_results=max_results)
+    return {
+        "status": "success",
+        "query": query,
+        "count": len(results),
+        "results": results
+    }
+
+
+@harvester_router.get("/api/harvester/reactome-pathway/{pathway_id}")
+def get_reactome_pathway_detail(pathway_id: str, user: dict = Depends(require_operational_user)):
+    """Lấy chi tiết một pathway / reaction từ Reactome theo mã định danh (Stable ID)."""
+    details = reactome_service.get_pathway_details(pathway_id=pathway_id)
+    return {
+        "status": "success",
+        "pathway_id": pathway_id,
+        "details": details
+    }
 

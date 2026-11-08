@@ -126,7 +126,10 @@ test("ZoteroConverterEngine bảo toàn Run in đậm (bold=True)", bold_found)
 test("ZoteroConverterEngine bảo toàn Run in nghiêng (italic=True)", italic_found)
 
 # Test 3b: Test 02_THU_THAP_PDF_VA_ZOTERO/Zotero_Citation_Converter/scripts/docx_converter.py
-sys.path.insert(0, str(Path(r"H:\My Drive\Ho so ca nhan\b. ThS KHMT\Skill\02_THU_THAP_PDF_VA_ZOTERO\Zotero_Citation_Converter\scripts").resolve()))
+script_dir = Path(__file__).resolve().parent.parent / "02_THU_THAP_PDF_VA_ZOTERO" / "Zotero_Citation_Converter" / "scripts"
+if not script_dir.exists():
+    script_dir = Path(r"G:\My Drive\Ho so ca nhan\b. ThS KHMT\Skill\02_THU_THAP_PDF_VA_ZOTERO\Zotero_Citation_Converter\scripts")
+sys.path.insert(0, str(script_dir.resolve()))
 from docx_converter import DocxZoteroConverter
 from zotero_api import ZoteroManager
 
@@ -150,7 +153,9 @@ test("DocxZoteroConverter bảo toàn Run in nghiêng", any(r.italic is True for
 
 # ── TEST 4: SKILL.md 6-Column Matrix Definition ───────────────────────────────
 print("\n--- 4. Kiểm thử Đặc tả SKILL.md 6-Column Evidence Audit Matrix ---")
-skill_01_path = Path(r"H:\My Drive\Ho so ca nhan\b. ThS KHMT\Skill\01_BO_NAO_AI_RESEARCHER\SKILL.md")
+skill_01_path = Path(__file__).resolve().parent.parent / "01_BO_NAO_AI_RESEARCHER" / "SKILL.md"
+if not skill_01_path.exists():
+    skill_01_path = Path(r"G:\My Drive\Ho so ca nhan\b. ThS KHMT\Skill\01_BO_NAO_AI_RESEARCHER\SKILL.md")
 test("SKILL.md tồn tại", skill_01_path.exists())
 
 with open(skill_01_path, "r", encoding="utf-8") as f_sk:

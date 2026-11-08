@@ -137,6 +137,41 @@ def import_source_from_workspace(notebook_id: str, payload: dict = Body(...), us
     return open_notebook_engine.add_source_from_file(notebook_id, fpath)
 
 
+@notebooklm_router.post("/api/notebooklm/notebooks/{notebook_id}/sources/url")
+def add_source_from_url(notebook_id: str, payload: dict = Body(...), user: dict = Depends(require_operational_user)):
+    """Thu thập và nạp trực tiếp tài liệu từ URL web hoặc PDF vào Notebook (hỗ trợ Obscura stealth)."""
+    url = payload.get("url", "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp URL bài báo hoặc trang web.")
+    try:
+        res = open_notebook_engine.add_source_from_url(notebook_id, url=url, metadata=payload)
+        history_mgr.add_entry(
+            module="notebooklm",
+            action_title=f"Nạp nguồn từ URL: {url[:50]}",
+            inputs={"notebook_id": notebook_id, "url": url},
+            result_data=res,
+            summary="Đã nạp thành công tài liệu từ URL vào Notebook"
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi thu thập dữ liệu từ URL: {str(e)}")
+
+
+@notebooklm_router.get("/api/notebooklm/notebooks/{notebook_id}/export/ris")
+def export_notebook_to_ris(notebook_id: str, user: dict = Depends(require_operational_user)):
+    """Xuất toàn bộ danh mục tài liệu trong Notebook ra tệp RIS tương thích Zotero/Mendeley."""
+    try:
+        ris_path = open_notebook_engine.export_notebook_to_ris(notebook_id)
+        return {
+            "status": "success",
+            "ris_path": str(ris_path),
+            "file_name": ris_path.name,
+            "message": "Đã xuất tệp RIS thành công, sẵn sàng nhập vào Zotero."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi xuất tệp RIS: {str(e)}")
+
+
 @notebooklm_router.delete("/api/notebooklm/notebooks/{notebook_id}/sources/{source_id}")
 def delete_source(notebook_id: str, source_id: str, user: dict = Depends(require_operational_user)):
     """Xóa một tài liệu nguồn khỏi Notebook."""
