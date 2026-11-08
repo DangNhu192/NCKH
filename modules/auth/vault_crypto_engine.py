@@ -21,7 +21,12 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
 
-VAULT_DIR = Path(__file__).resolve().parent.parent.parent / "auth_vault"
+import tempfile
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+if IS_VERCEL:
+    VAULT_DIR = Path(tempfile.gettempdir()) / "auth_vault"
+else:
+    VAULT_DIR = Path(__file__).resolve().parent.parent.parent / "auth_vault"
 VAULT_METADATA_FILE = VAULT_DIR / "_master_vault_metadata.json"
 VAULT_PROFILES_DIR = VAULT_DIR / "profiles"
 
@@ -30,8 +35,14 @@ DEFAULT_ALGORITHM = "AES-256-CBC"
 
 class VaultCryptoEngine:
     def __init__(self):
-        VAULT_DIR.mkdir(parents=True, exist_ok=True)
-        VAULT_PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            VAULT_DIR.mkdir(parents=True, exist_ok=True)
+        except (OSError, FileNotFoundError):
+            pass
+        try:
+            VAULT_PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+        except (OSError, FileNotFoundError):
+            pass
         self.master_secret, self.master_salt = self._init_or_load_master_metadata()
 
     def _init_or_load_master_metadata(self) -> Tuple[str, str]:

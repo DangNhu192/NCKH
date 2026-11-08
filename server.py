@@ -25,7 +25,10 @@ load_dotenv()
 # Setup base paths
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
-STATIC_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -86,10 +89,15 @@ app.include_router(inspector_router)
 def health_check():
     return {"status": "healthy", "service": "WEB SUPER v2.0", "architecture": "Modular Feature-Driven"}
 
-WORKSPACE_PATH = BASE_DIR / "workspace"
-WORKSPACE_PATH.mkdir(parents=True, exist_ok=True)
-app.mount("/workspace", StaticFiles(directory=str(WORKSPACE_PATH)), name="workspace")
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+WORKSPACE_PATH = Path("/tmp/workspace") if bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME")) else (BASE_DIR / "workspace")
+try:
+    WORKSPACE_PATH.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
+if WORKSPACE_PATH.exists():
+    app.mount("/workspace", StaticFiles(directory=str(WORKSPACE_PATH)), name="workspace")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/")
 def serve_index():

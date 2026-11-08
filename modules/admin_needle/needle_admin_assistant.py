@@ -28,7 +28,10 @@ from modules.shared.agency_agents_registry import AGENT_NEEDLE
 CONFIG_FILE = Path(__file__).resolve().parent.parent.parent / "config.json"
 WORKSPACE_DIR = file_mgr.workspace
 BACKUPS_DIR = WORKSPACE_DIR / "Backups"
-BACKUPS_DIR.mkdir(exist_ok=True)
+try:
+    BACKUPS_DIR.mkdir(exist_ok=True)
+except OSError:
+    pass
 
 
 class NeedleAdminAssistant:

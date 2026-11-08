@@ -8,7 +8,10 @@ from typing import List, Dict, Any, Optional
 from modules.shared.file_manager import WORKSPACE_DIR
 
 HISTORY_DIR = WORKSPACE_DIR / ".history"
-HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 def _sanitize_email_for_filename(email: Optional[str]) -> str:
     if not email or not email.strip():

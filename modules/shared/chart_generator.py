@@ -18,7 +18,10 @@ import matplotlib.ticker as ticker
 from modules.shared.file_manager import file_mgr
 
 CHARTS_DIR = Path(__file__).resolve().parent.parent.parent / "workspace" / "charts"
-CHARTS_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    CHARTS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 # Color Palette: Royal Academic
 COLOR_PRIMARY = "#1E3A8A"    # Navy Blue

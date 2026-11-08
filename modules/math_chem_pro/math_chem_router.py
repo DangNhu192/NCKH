@@ -46,8 +46,14 @@ math_chem_router = APIRouter(prefix="/api/math-chem", tags=["Math-Chem-Chart Pro
 WORKSPACE_DIR = file_mgr.workspace
 FIGURES_DIR = WORKSPACE_DIR / "figures"
 DOCS_DIR = file_mgr.drafts_dir
-FIGURES_DIR.mkdir(parents=True, exist_ok=True)
-DOCS_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
+try:
+    DOCS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 
 # --- REQUEST SCHEMAS ---

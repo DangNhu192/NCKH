@@ -324,7 +324,10 @@ class OpenNotebookEngine:
     def __init__(self):
         self.workspace = file_mgr.workspace
         self.notebooks_dir = self.workspace / "notebooks"
-        self.notebooks_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.notebooks_dir.mkdir(parents=True, exist_ok=True)
+        except (OSError, FileNotFoundError):
+            pass
         self._ensure_default_notebook()
 
     def _get_index_path(self) -> Path:

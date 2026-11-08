@@ -1,3 +1,4 @@
+import os
 import json
 import re
 import time
@@ -10,10 +11,21 @@ from typing import Dict, Any, Optional, List
 from modules.auth.vault_crypto_engine import vault_crypto
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-VAULT_DIR = BASE_DIR / "auth_vault"
+import tempfile
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+if IS_VERCEL:
+    VAULT_DIR = Path(tempfile.gettempdir()) / "auth_vault"
+else:
+    VAULT_DIR = BASE_DIR / "auth_vault"
 VAULT_PROFILES_DIR = VAULT_DIR / "profiles"
-VAULT_DIR.mkdir(parents=True, exist_ok=True)
-VAULT_PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    VAULT_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
+try:
+    VAULT_PROFILES_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 USERS_INDEX_FILE = VAULT_DIR / "users_registry.vault.json"
 LICENSE_KEYS_FILE = VAULT_DIR / "license_keys.vault.json"

@@ -41,7 +41,10 @@ class DocumentEvidenceExtractor:
 
     def __init__(self):
         self.evidence_db_dir = file_mgr.workspace / "Evidence_Database"
-        self.evidence_db_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.evidence_db_dir.mkdir(parents=True, exist_ok=True)
+        except (OSError, FileNotFoundError):
+            pass
 
     # ── 1. TRÍCH XUẤT VĂN BẢN VÀ CẤU TRÚC THEO TRANG / MỤC ───────────────────
     def parse_document_pages_and_sections(self, filename: str, content_bytes: bytes) -> List[Dict[str, Any]]:

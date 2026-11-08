@@ -15,23 +15,37 @@ from docx.oxml.ns import nsdecls, qn
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 WEB_SUPER_DIR = Path(__file__).resolve().parent.parent.parent
-WORKSPACE_DIR = WEB_SUPER_DIR / "workspace"
-WORKSPACE_DIR.mkdir(exist_ok=True)
+
+import tempfile
+
+def safe_mkdir(p: Path):
+    try:
+        p.mkdir(parents=True, exist_ok=True)
+    except (OSError, FileNotFoundError):
+        pass
+
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+if IS_VERCEL:
+    WORKSPACE_DIR = Path(tempfile.gettempdir()) / "workspace"
+else:
+    WORKSPACE_DIR = WEB_SUPER_DIR / "workspace"
+
+safe_mkdir(WORKSPACE_DIR)
 
 DOCS_DIR = WORKSPACE_DIR / "Tai_Lieu"
-DOCS_DIR.mkdir(exist_ok=True)
+safe_mkdir(DOCS_DIR)
 
 DRAFTS_DIR = WORKSPACE_DIR / "Ban_Thao"
-DRAFTS_DIR.mkdir(exist_ok=True)
+safe_mkdir(DRAFTS_DIR)
 
 PUBLISH_DIR = WORKSPACE_DIR / "Xuat_Ban"
-PUBLISH_DIR.mkdir(exist_ok=True)
+safe_mkdir(PUBLISH_DIR)
 
 LOGS_DIR = WORKSPACE_DIR / "Logs"
-LOGS_DIR.mkdir(exist_ok=True)
+safe_mkdir(LOGS_DIR)
 
 ZOTERO_DIR = WORKSPACE_DIR / "Zotero_Converted"
-ZOTERO_DIR.mkdir(exist_ok=True)
+safe_mkdir(ZOTERO_DIR)
 
 # Regex to detect chemical formula indices: e.g. CO2 -> CO + sub(2), H2SO4 -> H + sub(2) + SO + sub(4)
 CHEM_SUBSCRIPTS = ["CO2", "CH4", "N2O", "FeS2", "H2SO4", "SO4", "Al3+", "Fe2+", "NH4+", "NO3-", "NO2-", "BOD5", "COD", "DO", "NaCl"]
