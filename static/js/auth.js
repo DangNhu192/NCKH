@@ -202,18 +202,11 @@ const AuthManager = {
     const gBtnContainer = document.getElementById("google-signin-btn-box");
     if (!gBtnContainer) return;
 
-    fetch("/api/status").then(r => r.json()).then(st => {
-      const clientId = (st.google_client_id || "").trim();
+    const DEFAULT_CLIENT_ID = "198440047477-bfob93g9cee52l63if9bmnbuuathvgmr.apps.googleusercontent.com";
 
-      if (!clientId) {
-        gBtnContainer.innerHTML = `
-          <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 13px; line-height: 1.6;">
-            ⚠️ Chưa có Google Client ID.<br>
-            Vui lòng vào <button class="btn btn-secondary btn-sm" onclick="AuthManager.closeAuthModal(); App.openSettingsModal();" style="margin: 6px 4px 0;">⚙️ Cài Đặt</button> để nhập Client ID.
-          </div>
-        `;
-        return;
-      }
+    const renderWithClientId = (rawId) => {
+      const clientId = (rawId || DEFAULT_CLIENT_ID).trim();
+      let attempts = 0;
 
       const renderGIS = () => {
         if (window.google && google.accounts && google.accounts.id) {
@@ -231,23 +224,44 @@ const AuthManager = {
             google.accounts.id.prompt();
           } catch (e) {
             console.error("GIS initialization error:", e);
+            gBtnContainer.innerHTML = `
+              <div style="text-align: center; padding: 12px; color: #ef4444; font-size: 13px;">
+                ⚠️ Không thể khởi tạo nút Google Sign-In: ${e.message}
+              </div>
+            `;
           }
         } else {
+          attempts++;
+          if (attempts > 30) {
+            gBtnContainer.innerHTML = `
+              <div style="text-align: center; padding: 12px; color: #f59e0b; font-size: 13px;">
+                ⚠️ Không tải được thư viện Google Identity Services (vui lòng kiểm tra tiện ích chặn quảng cáo hoặc đường truyền).<br>
+                <button class="btn btn-secondary btn-sm" onclick="AuthManager.initGoogleAuthUI();" style="margin-top: 8px;">🔄 Thử Lại</button>
+              </div>
+            `;
+            return;
+          }
           gBtnContainer.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; color: #93c5fd; font-size: 13px;">
               <span class="spinner-sm"></span> Đang kết nối Google Identity Services...
             </div>
           `;
-          setTimeout(renderGIS, 400);
+          setTimeout(renderGIS, 300);
         }
       };
       renderGIS();
-    }).catch(err => {
-      console.warn("Failed to check status:", err);
-      gBtnContainer.innerHTML = `
-        <div style="color: #ef4444; font-size: 13px; padding: 10px;">Không thể kết nối máy chủ để lấy Google Client ID.</div>
-      `;
-    });
+    };
+
+    fetch("/api/status")
+      .then(r => r.json())
+      .then(st => {
+        const cId = (st && st.google_client_id) ? st.google_client_id.trim() : DEFAULT_CLIENT_ID;
+        renderWithClientId(cId);
+      })
+      .catch(err => {
+        console.warn("Status check failed, using fallback Google Client ID:", err);
+        renderWithClientId(DEFAULT_CLIENT_ID);
+      });
   },
 
   async handleGoogleCallback(response) {

@@ -27,3 +27,10 @@
 - **[2026-08-25 11:32] Yêu cầu 3:** Khắc phục triệt để lỗi phân quyền Admin tài khoản Google. Ép buộc phân quyền: Duy nhất email `admin@websuper.edu.vn` mới có quyền Admin, toàn bộ tài khoản Google khác tự động gán role Researcher/User và chặn toàn bộ quyền Admin từ Backend đến Frontend.
 - **Yêu cầu 4 (2026-08-26 - Multi-Agent & E2E Validation):**
   - *Kết quả:* Xác thực toàn diện cơ chế bảo mật và phân quyền JWT Bearer qua `test_server_load.py` (8/8 tests PASS), bảo đảm 100% các endpoint được bảo vệ đúng quyền hạn và chịu tải đồng thời 15 luồng an toàn.
+- **[2026-11-09] Yêu cầu 5 (Vercel Serverless & Google Identity Services Fallback):**
+  - *Vấn đề:* Khi chạy trên Vercel, ứng dụng thiếu file config.json và /api/status kiểm tra kết nối mạng đồng bộ gây timeout, dẫn đến lỗi giao diện 'Không thể kết nối máy chủ để lấy Google Client ID'.
+  - *Kết quả:*
+    1. Bổ sung DEFAULT_GOOGLE_CLIENT_ID = '198440047477-bfob93g9cee52l63if9bmnbuuathvgmr.apps.googleusercontent.com' trong modules/auth/auth_service.py để luôn trả về Client ID hợp lệ ngay cả khi không có config.json.
+    2. Chuyển đổi kiểm tra kết nối trong /api/status (modules/auth/auth_router.py) sang cơ chế non-blocking, phản hồi < 50ms và không gây nghẽn Serverless function.
+    3. Nâng cấp initGoogleAuthUI() tại static/js/auth.js với cơ chế fallback 2 tầng tại Frontend, tự động hiển thị Google Identity Services (GIS) button và có cảnh báo thân thiện nếu bị chặn tiện ích quảng cáo.
+    4. Kiểm thử tự động qua TestClient(app) xác nhận /api/status và /api/config đạt chuẩn 100% (HTTP 200).

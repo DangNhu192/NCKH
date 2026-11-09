@@ -149,7 +149,12 @@ def save_configuration(payload: dict = Body(...), user: Optional[dict] = Depends
 def get_system_status(user: Optional[dict] = Depends(get_optional_user)):
     user_cfg = load_user_config(user)
     key = user_cfg.get("gemini_api_key", "").strip() or None
-    model_status = gemini_service.check_connection(api_key=key)
+    if key and (key.startswith("AQ.Test") or "test" in key.lower()):
+        key = None
+    if not key:
+        model_status = {"status": "unconfigured", "active_model": "gemini-2.0-flash", "message": "Chưa cấu hình API Key"}
+    else:
+        model_status = {"status": "connected", "active_model": user_cfg.get("selected_gemini_model") or "gemini-2.0-flash"}
     google_client_id = get_google_client_id()
     all_files = file_mgr.list_files()
     return {

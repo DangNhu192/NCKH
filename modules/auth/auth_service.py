@@ -24,6 +24,8 @@ def get_google_client_id():
                 client_id = cfg.get("google_client_id", "")
         except Exception:
             pass
+    if not client_id:
+        client_id = "198440047477-bfob93g9cee52l63if9bmnbuuathvgmr.apps.googleusercontent.com"
     return client_id
 
 def create_jwt_token(user_data: dict) -> str:
