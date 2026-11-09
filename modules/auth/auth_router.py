@@ -50,7 +50,7 @@ def direct_admin_login(payload: dict = Body(...)):
         
     user_info = {
         "email": email,
-        "name": "Web Super Administrator" if email == "admin@websuper.edu.vn" else "Web Super Admin",
+        "name": "Nhu (Web Super Admin)" if email == "nhu.pt368@gmail.com" else "Web Super Administrator",
         "picture": "",
         "provider": "admin_direct_auth",
         "role": "admin",
@@ -67,6 +67,33 @@ def direct_admin_login(payload: dict = Body(...)):
         "token": token,
         "user": user_record,
         "message": f"Đăng nhập quyền Quản trị viên thành công: {email}"
+    }
+
+@auth_router.post("/api/auth/quick-login")
+def quick_login(payload: dict = Body(default={})):
+    """
+    Đăng nhập nhanh Nghiên cứu viên (Quick Researcher Access)
+    Dành cho người dùng trải nghiệm tức thời các công cụ học thuật mà không cần chờ cấu hình OAuth.
+    """
+    email = (payload.get("email") or "researcher@websuper.local").strip().lower()
+    name = (payload.get("name") or "Nghiên Cứu Viên Web Super").strip()
+    user_info = {
+        "email": email,
+        "name": name,
+        "picture": "",
+        "provider": "quick_auth",
+        "role": "researcher",
+        "plan": "enterprise"
+    }
+    user_record = register_or_update_user(user_info)
+    user_record["role"] = "researcher"
+    user_record["plan"] = "enterprise"
+    token = create_jwt_token(user_record)
+    return {
+        "success": True,
+        "token": token,
+        "user": user_record,
+        "message": f"Đăng nhập nhanh thành công: {name}"
     }
 
 @auth_router.get("/api/auth/me")

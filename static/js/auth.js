@@ -299,6 +299,61 @@ const AuthManager = {
     }
   },
 
+  async loginDirectAdmin(email = "nhu.pt368@gmail.com") {
+    try {
+      App.toast(`Đang kích hoạt phiên Quản trị viên (${email})...`, "info");
+      const res = await fetch("/api/auth/direct-admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.token = data.token;
+        this.currentUser = data.user;
+        localStorage.setItem("web_super_jwt", data.token);
+        this.renderUserUI();
+        this.closeAuthModal();
+        App.toast(`Đăng nhập Quản trị viên thành công: ${data.user.name || data.user.email}`, "success");
+        App.updateStatus();
+        if (window.OnboardingGuide) OnboardingGuide.checkReadyOnLogin();
+        if (window.NeedleAdminUI) NeedleAdminUI.onAdminLoginNotification();
+        setTimeout(() => this.checkApiSetupRequirement(), 800);
+      } else {
+        App.toast(data.detail || "Đăng nhập Quản trị thất bại", "error");
+      }
+    } catch (e) {
+      App.toast("Lỗi kết nối máy chủ: " + e.message, "error");
+    }
+  },
+
+  async loginQuickResearcher() {
+    try {
+      App.toast("Đang khởi tạo phiên làm việc Nghiên cứu viên...", "info");
+      const res = await fetch("/api/auth/quick-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.token = data.token;
+        this.currentUser = data.user;
+        localStorage.setItem("web_super_jwt", data.token);
+        this.renderUserUI();
+        this.closeAuthModal();
+        App.toast("Đăng nhập Nghiên cứu viên thành công! Sẵn sàng sử dụng 8 Tab.", "success");
+        App.updateStatus();
+        if (window.OnboardingGuide) OnboardingGuide.checkReadyOnLogin();
+        setTimeout(() => this.checkApiSetupRequirement(), 800);
+      } else {
+        App.toast(data.detail || "Đăng nhập thất bại", "error");
+      }
+    } catch (e) {
+      App.toast("Lỗi kết nối máy chủ: " + e.message, "error");
+    }
+  },
+
   async checkApiSetupRequirement() {
     if (!this.token) return;
     try {

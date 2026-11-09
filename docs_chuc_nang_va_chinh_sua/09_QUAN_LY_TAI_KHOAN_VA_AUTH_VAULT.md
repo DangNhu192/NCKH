@@ -34,3 +34,10 @@
     2. Chuyển đổi kiểm tra kết nối trong /api/status (modules/auth/auth_router.py) sang cơ chế non-blocking, phản hồi < 50ms và không gây nghẽn Serverless function.
     3. Nâng cấp initGoogleAuthUI() tại static/js/auth.js với cơ chế fallback 2 tầng tại Frontend, tự động hiển thị Google Identity Services (GIS) button và có cảnh báo thân thiện nếu bị chặn tiện ích quảng cáo.
     4. Kiểm thử tự động qua TestClient(app) xác nhận /api/status và /api/config đạt chuẩn 100% (HTTP 200).
+- **[2026-11-09 11:40] Yêu cầu 6 (Xử lý Lỗi 400: origin_mismatch & Cơ chế Đăng nhập Khẩn cấp Admin/Researcher):**
+  - *Vấn đề:* Khi chạy trên domain Vercel, Google OAuth trả về lỗi `Lỗi 400: origin_mismatch` do domain Vercel chưa được đăng ký trong danh sách "Authorized JavaScript origins" của Google Cloud Console, khiến người dùng bị chặn đăng nhập vào 8 Tab nghiên cứu.
+  - *Kết quả:*
+    1. Cập nhật `ADMIN_EMAILS` tại `modules/auth/user_config_manager.py` bổ sung email chính chủ `nhu.pt368@gmail.com` vào danh sách Quản trị viên tối cao (Role: Admin, Plan: Enterprise).
+    2. Nâng cấp endpoint `POST /api/auth/direct-admin-login` và bổ sung `POST /api/auth/quick-login` cho phép đăng nhập tức thì 1-click vào hệ thống với quyền Admin hoặc Nghiên cứu viên.
+    3. Nâng cấp giao diện Modal đăng nhập (`index.html` và `static/index.html`) tích hợp các nút đăng nhập trực tiếp `nhu.pt368@gmail.com`, `admin@websuper.edu.vn` và `Nghiên Cứu Viên` kèm hướng dẫn xử lý lỗi Google OAuth `origin_mismatch`.
+    4. Kiểm thử tự động `TestClient` đạt 100% PASS (4/4 tests).

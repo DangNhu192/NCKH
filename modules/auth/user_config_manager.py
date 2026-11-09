@@ -97,7 +97,7 @@ ROLE_CONFIGS = {
     "researcher": "🎓 Nhà Nghiên Cứu (User)"
 }
 
-ADMIN_EMAILS = {"admin@websuper.edu.vn"}
+ADMIN_EMAILS = {"admin@websuper.edu.vn", "nhu.pt368@gmail.com"}
 
 def get_plan_quota(plan: str) -> dict:
     return PLAN_CONFIGS.get(plan, PLAN_CONFIGS["free"])
