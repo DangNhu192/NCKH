@@ -85,6 +85,10 @@ app.include_router(inspector_router)
 
 # --- SYSTEM HEALTH & ROOT STATIC SPA ---
 
+@app.get("/api")
+def api_root():
+    return {"status": "online", "service": "WEB SUPER v2.0", "architecture": "Modular Feature-Driven"}
+
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "service": "WEB SUPER v2.0", "architecture": "Modular Feature-Driven"}
@@ -100,8 +104,11 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/")
+@app.get("/api/index")
 def serve_index():
     index_path = STATIC_DIR / "index.html"
+    if not index_path.exists():
+        index_path = BASE_DIR / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
     return HTMLResponse("<h1>Web Super server running. static/index.html loading...</h1>")

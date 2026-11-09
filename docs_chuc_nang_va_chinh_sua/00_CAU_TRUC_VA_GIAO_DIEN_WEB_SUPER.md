@@ -485,3 +485,23 @@ Qua đợt rà soát toàn diện trên 199 nút bấm tĩnh, 149 nút dựng đ
 
 8. **Bảo toàn tính tương thích chéo cho phân hệ Hội đồng Chuyên gia AI (`agency-agents.js`):**
    - Khai báo bí danh toàn cục `window.AgencyUI = AgencyRosterUI;`, bảo đảm mọi mã gọi từ các thành phần bên ngoài (như App, Pipeline, Onboarding) đều truy cập thông suốt đến dữ liệu 7 đặc vụ chuyên gia.
+
+---
+
+## ☁️ PHẦN XII: KHẮC PHỤC TRIỂN KHAI VERCEL SERVERLESS & TỰ ĐỘNG HÓA ĐẨY GITHUB (VERCEL ZERO-CONFIG ROUTING & GITHUB PUSH SUITE v3.3)
+
+### 1. Nguyên nhân gốc rễ lỗi Vercel tự động tải về file .py:
+- Trong cấu hình `vercel.json` cũ, rewrite được định tuyến tới `"destination": "/api/index.py"`.
+- Do đích đến chứa phần mở rộng `.py`, hệ thống phân giải tĩnh của Vercel nhận diện đây là một tài nguyên tệp tĩnh (Static File Asset) thay vì ánh xạ tới hàm Serverless Function (`@vercel/python`). Trình duyệt khi truy cập URL nhận về phản hồi MIME `text/x-python` và tự động kích hoạt tải xuống tệp `index.py`.
+
+### 2. Các giải pháp kỹ thuật đã triển khai hoàn thiện:
+1. **Chuẩn hóa cấu hình `vercel.json`:**
+   - Đổi `destination` từ `"/api/index.py"` thành `"/api/index"` để Vercel điều phối luồng HTTP request vào Python ASGI Handler `api/index.py`.
+   - Bổ sung cấu hình `functions`: thiết lập `maxDuration: 60s` và `includeFiles: "{static/**,modules/**,auth_vault/**,config.json}"` bảo đảm trọn bộ tài nguyên giao diện, module nghiệp vụ và cấu hình được đóng gói đầy đủ vào Lambda container.
+2. **Tối ưu kiến trúc Static SPA & Hybrid Fallback (`index.html` & `server.py`):**
+   - Bản sao `index.html` được đặt ngay tại thư mục gốc của dự án, cho phép Edge Network CDN của Vercel phân phối giao diện tức thì với độ trễ 0ms (Zero Cold-Start) cho mọi lượt truy cập ban đầu.
+   - Bổ sung các route dự phòng trong `server.py`: `@app.get("/api")`, `@app.get("/api/health")` và `@app.get("/api/index")` đảm bảo phản hồi 200 OK ngay cả khi các công cụ kiểm thử hoặc proxy gửi truy vấn trực tiếp vào hàm API.
+3. **Bộ script tự động hóa đồng bộ GitHub thông minh (`PUSH_TO_GITHUB.ps1` & `PUSH_TO_GITHUB.bat`):**
+   - Tự động nhận diện đường dẫn thực thi `git.exe` đa điểm (PATH hệ thống, GitHub Copilot Git, Program Files, AppData).
+   - Tự động phát hiện và dọn sạch các tệp `desktop.ini` do Google Drive tự động sinh ra trong thư mục `.git/refs/` (nguyên nhân gây lỗi `fatal: bad object refs/desktop.ini`).
+   - Tự động kiểm tra trạng thái thay đổi (`git status -s`), đưa vào Stage (`git add .`), tạo Commit và đẩy trực tiếp lên `origin main` với thông báo trực quan.
