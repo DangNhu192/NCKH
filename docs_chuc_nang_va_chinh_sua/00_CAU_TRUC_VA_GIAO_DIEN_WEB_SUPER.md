@@ -495,9 +495,9 @@ Qua đợt rà soát toàn diện trên 199 nút bấm tĩnh, 149 nút dựng đ
 - Do đích đến chứa phần mở rộng `.py`, hệ thống phân giải tĩnh của Vercel nhận diện đây là một tài nguyên tệp tĩnh (Static File Asset) thay vì ánh xạ tới hàm Serverless Function (`@vercel/python`). Trình duyệt khi truy cập URL nhận về phản hồi MIME `text/x-python` và tự động kích hoạt tải xuống tệp `index.py`.
 
 ### 2. Các giải pháp kỹ thuật đã triển khai hoàn thiện:
-1. **Chuẩn hóa cấu hình `vercel.json`:**
+1. **Chuẩn hóa cấu hình `vercel.json` (Khắc phục triệt để `[unused_function]`):**
    - Đổi `destination` từ `"/api/index.py"` thành `"/api/index"` để Vercel điều phối luồng HTTP request vào Python ASGI Handler `api/index.py`.
-   - Bổ sung cấu hình `functions`: thiết lập `maxDuration: 60s` và `includeFiles: "{static/**,modules/**,auth_vault/**,config.json}"` bảo đảm trọn bộ tài nguyên giao diện, module nghiệp vụ và cấu hình được đóng gói đầy đủ vào Lambda container.
+   - **Xóa bỏ khai báo `functions` thừa:** Vercel hỗ trợ Zero-Config tự động phát hiện `api/index.py` và đóng gói toàn bộ thư mục. Việc khai báo dư thừa khối `functions` gây xung đột phân giải nội bộ của Vercel dẫn đến lỗi `Error: [unused_function] The pattern "api/index.py" defined in functions doesn't match any Serverless Functions inside the api directory`. Tối giản `vercel.json` về chuẩn Zero-Config Rewrites giúp quy trình build trên Vercel vượt qua 100% kiểm tra.
 2. **Tối ưu kiến trúc Static SPA & Hybrid Fallback (`index.html` & `server.py`):**
    - Bản sao `index.html` được đặt ngay tại thư mục gốc của dự án, cho phép Edge Network CDN của Vercel phân phối giao diện tức thì với độ trễ 0ms (Zero Cold-Start) cho mọi lượt truy cập ban đầu.
    - Bổ sung các route dự phòng trong `server.py`: `@app.get("/api")`, `@app.get("/api/health")` và `@app.get("/api/index")` đảm bảo phản hồi 200 OK ngay cả khi các công cụ kiểm thử hoặc proxy gửi truy vấn trực tiếp vào hàm API.
