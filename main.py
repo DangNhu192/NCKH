@@ -12,4 +12,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from server import app
+try:
+    from server import app
+except Exception as e:
+    import traceback
+    err_tb = traceback.format_exc()
+    from fastapi import FastAPI
+    from fastapi.responses import HTMLResponse, JSONResponse
+    app = FastAPI(title="Web Super Startup Error")
+
+    @app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
+    def error_handler(path_name: str = ""):
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Web Super Startup Error", "traceback": err_tb}
+        )
