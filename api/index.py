@@ -3,9 +3,6 @@ import sys
 import tempfile
 import traceback
 from pathlib import Path
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 TEMP_BASE = tempfile.gettempdir()
 os.environ["MPLCONFIGDIR"] = os.path.join(TEMP_BASE, "matplotlib")
@@ -18,39 +15,58 @@ if str(PROJECT_ROOT) not in sys.path:
 
 init_error = None
 try:
-    from server import app as real_app
-    app = real_app
-except Exception as e:
-    init_error = "".join(traceback.format_exception(type(e), e, e.__traceback__))
-    app = FastAPI(title="Web Super Startup Debug")
+    from fastapi import FastAPI
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse
+except Exception as e_fastapi:
+    init_error = f"FastAPI import failed: {e_fastapi}"
+    FastAPI = None
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+if FastAPI:
+    try:
+        from server import app as real_app
+        app = real_app
+    except Exception as e:
+        init_error = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+        app = FastAPI(title="Web Super Startup Debug")
 
-    @app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
-    def error_route(path_name: str = ""):
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": "Startup Exception in api/index.py",
-                "path": path_name,
-                "traceback": init_error
-            }
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
         )
 
-# Add debug startup endpoint
-@app.get("/api/debug-startup")
-def debug_startup():
-    return {
-        "status": "ok" if init_error is None else "error",
-        "service": "WEB SUPER v2.0 Vercel Serverless",
-        "has_init_error": init_error is not None,
-        "error_details": init_error
-    }
+        @app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"])
+        def error_route(path_name: str = ""):
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "Startup Exception in api/index.py",
+                    "path": path_name,
+                    "traceback": init_error
+                }
+            )
 
-handler = app
+    @app.get("/api/debug-startup")
+    def debug_startup():
+        return {
+            "status": "ok" if init_error is None else "error",
+            "service": "WEB SUPER v2.0 Vercel Serverless",
+            "has_init_error": init_error is not None,
+            "error_details": init_error
+        }
+
+    handler = app
+else:
+    from http.server import BaseHTTPRequestHandler
+    import json
+    class handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            err_dict = {"error": "FastAPI is not installed on Vercel", "details": init_error}
+            self.wfile.write(json.dumps(err_dict).encode('utf-8'))
+    app = None
