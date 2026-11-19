@@ -1,4 +1,19 @@
 // Main Application Coordinator for WEB SUPER v2.0
+// Smart Backend URL Interceptor for Vercel Cloud & Local Hybrid Mode
+(function() {
+  const originalFetch = window.fetch;
+  window.fetch = function(resource, init) {
+    if (typeof resource === 'string' && resource.startsWith('/api')) {
+      const customBase = localStorage.getItem('websuper_api_backend_url');
+      if (customBase && customBase.trim()) {
+        const base = customBase.trim().replace(/\/+$/, '');
+        resource = `${base}${resource}`;
+      }
+    }
+    return originalFetch.call(this, resource, init);
+  };
+})();
+
 const App = {
   currentTab: "pipeline-tab",
 
@@ -523,6 +538,9 @@ const App = {
       const storageDirEl = document.getElementById("cfg-custom-storage-dir");
       if (storageDirEl) storageDirEl.value = cfg.custom_storage_dir || "";
       
+      const apiUrlEl = document.getElementById("cfg-api-backend-url");
+      if (apiUrlEl) apiUrlEl.value = localStorage.getItem("websuper_api_backend_url") || "";
+
       this.loadGeminiModelsInSettings();
       if (window.ThemeManager && ThemeManager.openSync) {
         ThemeManager.openSync();
@@ -533,6 +551,8 @@ const App = {
       document.getElementById("modal-settings")?.classList.add("active");
     }).catch(err => {
       console.warn("Failed to load settings:", err);
+      const apiUrlEl = document.getElementById("cfg-api-backend-url");
+      if (apiUrlEl) apiUrlEl.value = localStorage.getItem("websuper_api_backend_url") || "";
       if (window.SettingsUI && SettingsUI.switchTab) {
         SettingsUI.switchTab('ai');
       }
@@ -661,6 +681,16 @@ const App = {
     const gIdEl = document.getElementById("cfg-google-id");
     if (gIdEl && gIdEl.value.trim()) {
       payload.google_client_id = gIdEl.value.trim();
+    }
+
+    const apiUrlEl = document.getElementById("cfg-api-backend-url");
+    if (apiUrlEl) {
+      const customUrl = apiUrlEl.value.trim();
+      if (customUrl) {
+        localStorage.setItem("websuper_api_backend_url", customUrl);
+      } else {
+        localStorage.removeItem("websuper_api_backend_url");
+      }
     }
 
     try {

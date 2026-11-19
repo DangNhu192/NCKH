@@ -505,3 +505,15 @@ Qua đợt rà soát toàn diện trên 199 nút bấm tĩnh, 149 nút dựng đ
    - Tự động nhận diện đường dẫn thực thi `git.exe` đa điểm (PATH hệ thống, GitHub Copilot Git, Program Files, AppData).
    - Tự động phát hiện và dọn sạch các tệp `desktop.ini` do Google Drive tự động sinh ra trong thư mục `.git/refs/` (nguyên nhân gây lỗi `fatal: bad object refs/desktop.ini`).
    - Tự động kiểm tra trạng thái thay đổi (`git status -s`), đưa vào Stage (`git add .`), tạo Commit và đẩy trực tiếp lên `origin main` với thông báo trực quan.
+
+---
+
+## ☁️ 14. KIẾN TRÚC TRIỂN KHAI VERCEL CLOUD & HYBRID CLOUD MODE (19/11/2026)
+1. **Chuẩn Hóa Entrypoint FastAPI Zero-Config:**
+   - Khai báo chính thức `[tool.vercel] entrypoint = "main:app"` trong `pyproject.toml`.
+   - Vercel biên dịch toàn bộ backend FastAPI (16 module routers, auth vault, zotero engine) thành Serverless Function duy nhất.
+   - Loại bỏ các file trùng lặp và rewrite tĩnh gây tải file mã nguồn `.py` (`application/octet-stream`).
+2. **Cơ Chế Kết Nối Linh Hoạt (Hybrid Cloud Architecture):**
+   - **Chế độ 1 (Pure Vercel Cloud):** Mặc định chạy 100% trên đám mây Vercel (`https://nckh-seven-sooty.vercel.app/`), không cần bật máy tính cá nhân.
+   - **Chế độ 2 (Hybrid Cloud Backend Link):** Cho phép người dùng mở Web Super trên điện thoại, máy tính bảng hoặc bất cứ đâu qua Vercel, nhưng cấu hình kết nối về máy tính cá nhân (`http://127.0.0.1:8080` hoặc Cloud Tunnel) trong mục **Cài đặt ➔ Hệ thống** để đồng bộ trực tiếp với Zotero Desktop và chạy tác vụ nặng không giới hạn thời gian.
+
