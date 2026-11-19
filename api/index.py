@@ -52,3 +52,5 @@ def debug_startup():
         "has_init_error": init_error is not None,
         "error_details": init_error
     }
+
+handler = app
