@@ -1,4 +1,4 @@
-# PUSH_TO_GITHUB.ps1
+﻿# PUSH_TO_GITHUB.ps1
 # Script tự động cập nhật và đẩy mã nguồn WEB SUPER lên GitHub (DangNhu192/NCKH)
 
 param(
@@ -75,8 +75,14 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # 6. Day code len GitHub
-Write-Host "`n[*] Dang day du lieu len GitHub (origin main)..." -ForegroundColor Cyan
+Write-Host "`n[*] Dang day du lieu len GitHub (origin: DangNhu192/NCKH)..." -ForegroundColor Cyan
 & $gitCmd push origin main
+
+$hasResearcher = & $gitCmd remote | Select-String "researcher_vn"
+if ($hasResearcher) {
+    Write-Host "`n[*] Dang day du lieu len GitHub (researcher_vn: DangNhu192/Researcher_VN)..." -ForegroundColor Cyan
+    & $gitCmd push researcher_vn main
+}
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`n==========================================================" -ForegroundColor Green
