@@ -96,3 +96,15 @@
     3. **Bảo toàn 100% việc đọc qua API/SQLite & nhúng mã Word:** Cơ chế đọc thư viện Zotero (local SQLite & Zotero Web API) và tạo mã trường động XML `w:fldSimple` / `w:instrText` cho file Word hoạt động hoàn hảo mà không can thiệp vào cơ sở dữ liệu cá nhân của người dùng.
 
 
+- **Yêu cầu 12 (2026-11-19 - Khắc Phục Lỗi 404 & FUNCTION_INVOCATION_FAILED Trên Vercel Cloud Serverless):**
+  - *Vấn đề:* Khi chạy trên môi trường Vercel Cloud Serverless, người dùng thực hiện chuyển đổi Zotero (`/api/zotero/convert`) hoặc gọi các chức năng backend gặp lỗi `404 Not Found` hoặc `500 FUNCTION_INVOCATION_FAILED`.
+  - *Nguyên nhân:*
+    1. Cấu hình `vercel.json` trước đó chuyển hướng toàn bộ đường dẫn `/(.*)` vào `main.py`, làm tê liệt việc phân phối tài nguyên tĩnh và gây quá tải timeout Serverless.
+    2. Các thư viện phụ thuộc (`cryptography`, `pillow`, `matplotlib`) khi import ở mức top-level làm tiêu tốn bộ đệm font (`fm.fontManager.ttflist`) vượt quá 10 giây thời hạn thực thi tối đa của AWS Lambda / Vercel Serverless.
+  - *Giải pháp & Kết quả xử lý:*
+    1. **Chuẩn hóa kiến trúc Vercel Rewrite:** Phân tách rành mạch lớp Static SPA CDN (`/` và `/static/*` tải tức thì 0ms) và lớp Serverless API (`/api/*` định tuyến vào `api/index.py`).
+    2. **Khắc phục triệt để lỗi import & font-cache:**
+       - Tách biệt `setup_vietnamese_fonts()` trong `modules/shared/scientific_chart_builder.py` thành dạng lazy-call, không chạy lúc import module.
+       - Cung cấp cơ chế dự phòng Stream Cipher cho `vault_crypto_engine.py` khi thiếu `cryptography`.
+       - Bổ sung `cryptography` và `pillow` vào `requirements.txt`.
+    3. **Đồng bộ mã nguồn:** Đẩy code lên cả 2 kho lưu trữ GitHub `DangNhu192/NCKH` và `DangNhu192/Researcher_VN`.

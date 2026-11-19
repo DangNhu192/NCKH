@@ -27,30 +27,36 @@ except Exception:
     fm = None
     np = None
 
-# Configure Vietnamese Font
-def setup_vietnamese_fonts(font_family: str = "Times New Roman"):
-    available_fonts = [f.name for f in fm.fontManager.ttflist]
-    preferred_fonts = [font_family, "Times New Roman", "Arial", "Calibri", "Segoe UI", "DejaVu Sans"]
-    chosen_font = "DejaVu Sans"
-    for f in preferred_fonts:
-        if f in available_fonts:
-            chosen_font = f
-            break
-            
-    matplotlib.rcParams['font.family'] = chosen_font
-    matplotlib.rcParams['font.sans-serif'] = [chosen_font, 'Arial', 'DejaVu Sans']
-    matplotlib.rcParams['font.serif'] = [chosen_font, 'Times New Roman', 'DejaVu Serif']
-    matplotlib.rcParams['axes.unicode_minus'] = False
-    matplotlib.rcParams['figure.dpi'] = 300
-    matplotlib.rcParams['savefig.dpi'] = 300
-    matplotlib.rcParams['font.size'] = 11
-    matplotlib.rcParams['axes.labelsize'] = 12
-    matplotlib.rcParams['axes.titlesize'] = 13
-    matplotlib.rcParams['xtick.labelsize'] = 10
-    matplotlib.rcParams['ytick.labelsize'] = 10
-    matplotlib.rcParams['legend.fontsize'] = 10
+_fonts_configured = False
 
-setup_vietnamese_fonts()
+def setup_vietnamese_fonts(font_family: str = "Times New Roman"):
+    global _fonts_configured
+    if _fonts_configured or not HAS_SCIENTIFIC_PLOT or fm is None or matplotlib is None:
+        return
+    try:
+        available_fonts = [f.name for f in fm.fontManager.ttflist]
+        preferred_fonts = [font_family, "Times New Roman", "Arial", "Calibri", "Segoe UI", "DejaVu Sans"]
+        chosen_font = "DejaVu Sans"
+        for f in preferred_fonts:
+            if f in available_fonts:
+                chosen_font = f
+                break
+                
+        matplotlib.rcParams['font.family'] = chosen_font
+        matplotlib.rcParams['font.sans-serif'] = [chosen_font, 'Arial', 'DejaVu Sans']
+        matplotlib.rcParams['font.serif'] = [chosen_font, 'Times New Roman', 'DejaVu Serif']
+        matplotlib.rcParams['axes.unicode_minus'] = False
+        matplotlib.rcParams['figure.dpi'] = 300
+        matplotlib.rcParams['savefig.dpi'] = 300
+        matplotlib.rcParams['font.size'] = 11
+        matplotlib.rcParams['axes.labelsize'] = 12
+        matplotlib.rcParams['axes.titlesize'] = 13
+        matplotlib.rcParams['xtick.labelsize'] = 10
+        matplotlib.rcParams['ytick.labelsize'] = 10
+        matplotlib.rcParams['legend.fontsize'] = 10
+        _fonts_configured = True
+    except Exception:
+        pass
 
 ACADEMIC_COLORS = [
     "#1f77b4", "#d62728", "#2ca02c", "#ff7f0e", "#9467bd",

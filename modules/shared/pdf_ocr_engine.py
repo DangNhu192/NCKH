@@ -29,7 +29,12 @@ from typing import List, Dict, Any, Optional, Tuple, Union
 from datetime import datetime
 
 import requests
-from PIL import Image
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+    Image = None
 import pypdf
 from docx import Document
 

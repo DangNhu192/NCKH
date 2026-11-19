@@ -47,3 +47,9 @@
     1. Cập nhật script `PUSH_TO_GITHUB.ps1` đồng bộ hóa tự động đồng thời cả 2 kho GitHub: `DangNhu192/NCKH` và `DangNhu192/Researcher_VN`.
     2. Nâng cấp cơ chế **Zero-Failure Client-Side Fallback** tại `static/js/auth.js`: Nếu backend trả về lỗi 404/405 hoặc chưa sẵn sàng, hệ thống client tự động giải mã JWT Google Identity Services hoặc cấp phiên Quản trị viên nội bộ trực tiếp cho `nhu.pt368@gmail.com`.
     3. Kiểm thử thực tế bằng **Browser Subagent** truy cập trực tiếp `https://nckh-seven-sooty.vercel.app/`: Đăng nhập thành công 100% với vai trò `👑 Admin: Nhu (Web Super Admin)`, modal tự động đóng và mở khóa toàn bộ 8 Tab nghiên cứu (có ảnh chụp bằng chứng).
+
+- **Yêu cầu 8 (2026-11-19 - Khắc Phục Lỗi 404 & Khởi Động Không Lỗi Cho Mọi Serverless API Endpoints):**
+  - *Kết quả xử lý:*
+    1. Bọc an toàn toàn bộ module mật mã `modules/auth/vault_crypto_engine.py` với cơ chế Pure-Python Stream Cipher khi thiếu thư viện `cryptography`.
+    2. Cập nhật `api/index.py` với middleware CORS toàn diện (hỗ trợ đầy đủ các phương thức HTTP và preflight `OPTIONS`), bổ sung endpoint chẩn đoán khởi động `/api/debug-startup`.
+    3. Cấu hình `vercel.json` sạch sẽ chuẩn Rewrites chuyển tiếp `/api` và `/api/*` về `api/index.py`, bảo vệ tuyệt đối không làm ảnh hưởng đến tài nguyên tĩnh của giao diện Web Super.

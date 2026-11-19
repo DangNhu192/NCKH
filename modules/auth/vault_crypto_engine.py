@@ -17,9 +17,13 @@ import secrets
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Tuple, Optional
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
-from cryptography.hazmat.backends import default_backend
+try:
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    from cryptography.hazmat.primitives import padding
+    from cryptography.hazmat.backends import default_backend
+    HAS_CRYPTOGRAPHY = True
+except ImportError:
+    HAS_CRYPTOGRAPHY = False
 
 import tempfile
 IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
@@ -121,27 +125,41 @@ class VaultCryptoEngine:
             return False
 
     def encrypt_secret(self, plaintext: str) -> str:
-        """Mã hóa chuỗi nhạy cảm (API Keys, Zotero Tokens) bằng AES-256-CBC PKCS7"""
+        """Mã hóa chuỗi nhạy cảm (API Keys, Zotero Tokens) bằng AES-256-CBC PKCS7 hoặc stream fallback"""
         if not plaintext:
             return ""
         salt_hex = secrets.token_hex(16)
-        iv = secrets.token_bytes(16)
         key = self._derive_key(salt_hex)
+        
+        if HAS_CRYPTOGRAPHY:
+            iv = secrets.token_bytes(16)
+            padder = padding.PKCS7(128).padder()
+            padded_data = padder.update(plaintext.encode('utf-8')) + padder.finalize()
 
-        padder = padding.PKCS7(128).padder()
-        padded_data = padder.update(plaintext.encode('utf-8')) + padder.finalize()
+            cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+            encryptor = cipher.encryptor()
+            ciphertext = encryptor.update(padded_data) + encryptor.finalize()
 
-        cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-        encryptor = cipher.encryptor()
-        ciphertext = encryptor.update(padded_data) + encryptor.finalize()
-
-        payload = {
-            "enc_v": "2.0",
-            "alg": DEFAULT_ALGORITHM,
-            "salt": salt_hex,
-            "iv": iv.hex(),
-            "ct": base64.b64encode(ciphertext).decode('utf-8')
-        }
+            payload = {
+                "enc_v": "2.0",
+                "alg": DEFAULT_ALGORITHM,
+                "salt": salt_hex,
+                "iv": iv.hex(),
+                "ct": base64.b64encode(ciphertext).decode('utf-8')
+            }
+        else:
+            plain_bytes = plaintext.encode('utf-8')
+            stream = hashlib.sha256(key + salt_hex.encode()).digest()
+            while len(stream) < len(plain_bytes):
+                stream += hashlib.sha256(stream).digest()
+            ct = bytes([b ^ s for b, s in zip(plain_bytes, stream[:len(plain_bytes)])])
+            payload = {
+                "enc_v": "2.0-fallback",
+                "alg": "XOR-SHA256",
+                "salt": salt_hex,
+                "iv": "",
+                "ct": base64.b64encode(ct).decode('utf-8')
+            }
         return "ENC:" + base64.b64encode(json.dumps(payload).encode('utf-8')).decode('utf-8')
 
     def decrypt_secret(self, encrypted_str: str) -> str:
