@@ -1,30 +1,30 @@
 import os
 import sys
 import tempfile
+import traceback
 from pathlib import Path
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
-# Cấu hình môi trường ghi tạm cho các thư viện Python trên serverless
 TEMP_BASE = tempfile.gettempdir()
 os.environ["MPLCONFIGDIR"] = os.path.join(TEMP_BASE, "matplotlib")
 os.environ["HOME"] = TEMP_BASE
 
-# Thêm project root directory vào sys.path để server và các modules có thể import chính xác
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+init_error = None
 try:
-    from server import app
+    from server import app as real_app
+    app = real_app
 except Exception as e:
-    import traceback
-    err_tb = traceback.format_exc()
-    from fastapi import FastAPI
-    from fastapi.responses import HTMLResponse
-    app = FastAPI(title="Web Super Startup Error")
+    init_error = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+    app = FastAPI(title="Web Super Startup Debug")
 
     @app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
-    def error_handler(path_name: str = ""):
-        return HTMLResponse(
-            f"<h2>Khởi động Web Super trên Vercel gặp lỗi:</h2><pre>{err_tb}</pre>",
-            status_code=500
+    def error_route(path_name: str = ""):
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Startup Exception in api/index.py", "traceback": init_error}
         )
