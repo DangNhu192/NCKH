@@ -13,11 +13,19 @@ import urllib.request
 import json
 from typing import List, Tuple, Dict, Optional, Any
 from pathlib import Path
-from PIL import Image
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-import numpy as np
+try:
+    from PIL import Image
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import matplotlib.font_manager as fm
+    import numpy as np
+    HAS_SCIENTIFIC_PLOT = True
+except Exception:
+    HAS_SCIENTIFIC_PLOT = False
+    Image = None
+    plt = None
+    fm = None
+    np = None
 
 # Configure Vietnamese Font
 def setup_vietnamese_fonts(font_family: str = "Times New Roman"):

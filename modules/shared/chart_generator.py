@@ -10,10 +10,16 @@ import io
 import re
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as ticker
+    HAS_MATPLOTLIB = True
+except Exception:
+    HAS_MATPLOTLIB = False
+    plt = None
+    ticker = None
 
 from modules.shared.file_manager import file_mgr
 
