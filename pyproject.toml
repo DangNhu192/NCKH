@@ -1,0 +1,8 @@
+[project]
+name = "web-super"
+version = "3.2.0"
+description = "Hệ thống nghiên cứu khoa học & xuất bản học thuật tích hợp AI toàn diện"
+requires-python = ">=3.10"
+
+[tool.vercel]
+entrypoint = "server:app"
