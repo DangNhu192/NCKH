@@ -5,4 +5,4 @@ description = "Hệ thống nghiên cứu khoa học & xuất bản học thuậ
 requires-python = ">=3.10"
 
 [tool.vercel]
-entrypoint = "server:app"
+entrypoint = "api.index:app"
