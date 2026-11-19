@@ -34,7 +34,8 @@ except OSError:
 app = FastAPI(
     title="WEB SUPER v2.0",
     description="Hệ thống nghiên cứu khoa học & xuất bản học thuật tích hợp AI toàn diện",
-    version="2.0.0"
+    version="2.0.0",
+    redirect_slashes=False
 )
 
 # CORS configuration
