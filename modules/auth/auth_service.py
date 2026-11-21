@@ -10,7 +10,63 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 CONFIG_FILE = Path(__file__).resolve().parent.parent.parent / "config.json"
 USERS_INDEX_FILE = Path(__file__).resolve().parent.parent.parent / "auth_vault" / "users_registry.vault.json"
-JWT_SECRET = os.getenv("JWT_SECRET", "web_super_secret_jwt_key_2026_super_secure")
+IS_SERVERLESS = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+_LEGACY_DEFAULT_SECRETS = {"", "web_super_secret_jwt_key_2026_super_secure", "web_super_secret_jwt_key_2026_change_in_production"}
+JWT_SECRET_WARNING = None
+
+
+def derive_deployment_secret(purpose: str) -> str:
+    """Khóa dự phòng khi chưa đặt biến môi trường bí mật trên Vercel.
+    Dẫn xuất từ các mã định danh nội bộ của lần deploy (không công khai trên Internet),
+    giống nhau trên mọi máy chủ của cùng một deploy. Chỉ là giải pháp tạm: hãy đặt JWT_SECRET."""
+    import hashlib as _hashlib
+    parts = [os.getenv(k, "") for k in ("VERCEL_DEPLOYMENT_ID", "VERCEL_PROJECT_ID", "VERCEL_GIT_COMMIT_SHA",
+                                         "GOOGLE_CLIENT_SECRET", "ZOTERO_OAUTH_CLIENT_SECRET")]
+    if not (parts[0] or parts[1]):
+        return ""
+    return _hashlib.sha256(("websuper|" + purpose + "|" + "|".join(parts)).encode()).hexdigest()
+
+
+def _load_jwt_secret() -> str:
+    """Khóa ký JWT: bắt buộc lấy từ biến môi trường JWT_SECRET trên máy chủ thật.
+    Không bao giờ dùng giá trị mặc định công khai (ai biết nó đều giả mạo được token Admin)."""
+    global JWT_SECRET_WARNING
+    env_secret = os.getenv("JWT_SECRET", "").strip()
+    if env_secret and env_secret not in _LEGACY_DEFAULT_SECRETS and len(env_secret) >= 32:
+        return env_secret
+    if env_secret and env_secret not in _LEGACY_DEFAULT_SECRETS:
+        JWT_SECRET_WARNING = "JWT_SECRET quá ngắn (cần >= 32 ký tự)."
+        return env_secret
+    import secrets as _secrets
+    if IS_SERVERLESS:
+        derived = derive_deployment_secret("jwt")
+        if derived:
+            # Khóa ổn định giữa các máy chủ của cùng một lần deploy (bị đổi khi deploy lại)
+            JWT_SECRET_WARNING = "Chưa đặt JWT_SECRET trên Vercel: đang dùng khóa tạm theo lần deploy, người dùng sẽ phải đăng nhập lại sau mỗi lần deploy."
+            return derived
+        JWT_SECRET_WARNING = "Chưa đặt JWT_SECRET trên Vercel: phiên đăng nhập có thể bị mất giữa các máy chủ."
+        return _secrets.token_hex(32)
+    # Chạy cục bộ: tạo một lần và lưu vào tệp riêng (đã nằm trong .gitignore)
+    secret_file = Path(__file__).resolve().parent.parent.parent / "auth_vault" / ".jwt_secret"
+    try:
+        if secret_file.exists():
+            val = secret_file.read_text(encoding="utf-8").strip()
+            if len(val) >= 32:
+                return val
+        secret_file.parent.mkdir(parents=True, exist_ok=True)
+        val = _secrets.token_hex(32)
+        secret_file.write_text(val, encoding="utf-8")
+        try:
+            os.chmod(secret_file, 0o600)
+        except OSError:
+            pass
+        return val
+    except OSError:
+        JWT_SECRET_WARNING = "Không lưu được khóa JWT cục bộ; dùng khóa tạm thời."
+        return _secrets.token_hex(32)
+
+
+JWT_SECRET = _load_jwt_secret()
 JWT_ALGORITHM = "HS256"
 
 security = HTTPBearer(auto_error=False)
@@ -192,6 +248,16 @@ def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depe
         return payload
     except Exception:
         return None
+
+def require_zotero_user(user: dict = Depends(get_current_user)) -> dict:
+    """Chức năng Zotero không dùng AI: chỉ cần đã đăng nhập, tài khoản còn hạn và không bị khóa."""
+    if not user.get("is_authenticated"):
+        raise HTTPException(status_code=401, detail="Vui lòng đăng nhập WEB SUPER (Google hoặc nút \"Dùng thử\") để dùng chức năng Zotero.")
+    from modules.auth.user_config_manager import check_user_can_operate
+    can_op, msg, _ = check_user_can_operate(user, feature="zotero")
+    if not can_op:
+        raise HTTPException(status_code=403, detail=msg)
+    return user
 
 def require_operational_user(user: dict = Depends(get_current_user)) -> dict:
     """Dependency to verify user is active and has valid plan quota"""

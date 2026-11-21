@@ -76,6 +76,15 @@ function parseJwtPayload(token) {
           opts.headers['Authorization'] = `Bearer ${token}`;
         }
       }
+      // Gắn thông tin đăng nhập Zotero Cloud (lưu ở trình duyệt) để máy chủ dùng đúng thư viện của người dùng
+      try {
+        const zc = JSON.parse(localStorage.getItem("web_super_zotero") || "null");
+        if (zc && zc.mode === "cloud" && zc.user_id && zc.api_key) {
+          opts.headers['X-Zotero-User-Id'] = String(zc.user_id);
+          opts.headers['X-Zotero-Api-Key'] = String(zc.api_key);
+          opts.headers['X-Zotero-Library-Type'] = zc.library_type || "user";
+        }
+      } catch (e) { /* bỏ qua */ }
     }
 
     return originalFetch.call(this, url, opts);
@@ -282,34 +291,10 @@ const AuthManager = {
           data = await res.json();
         }
       } catch (err) {
-        console.warn("Backend auth fetch error, using client-side JWT parse:", err);
+        console.warn("Backend auth fetch error:", err);
       }
 
-      // Client-side fallback if serverless backend returns 404/405
-      if (!data || !data.success) {
-        try {
-          const base64Url = response.credential.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-          const gProfile = JSON.parse(jsonPayload);
-          const email = (gProfile.email || "").toLowerCase().trim();
-          const isAdmin = email === "nhu.pt368@gmail.com" || email === "admin@websuper.edu.vn";
-          data = {
-            success: true,
-            token: response.credential,
-            user: {
-              email: email,
-              name: gProfile.name || email.split('@')[0],
-              picture: gProfile.picture || "",
-              role: isAdmin ? "admin" : "researcher",
-              plan: isAdmin ? "enterprise" : "free"
-            }
-          };
-        } catch (e) {
-          console.error("Client JWT decode error:", e);
-        }
-      }
-
+      // Không tự tạo phiên ở trình duyệt: máy chủ phải xác minh token Google
       if (data && data.success) {
         this.token = data.token;
         this.currentUser = data.user;
@@ -331,96 +316,48 @@ const AuthManager = {
     }
   },
 
-  async loginDirectAdmin(email = "nhu.pt368@gmail.com") {
+  async _applyLogin(data, successMsg) {
+    this.token = data.token;
+    this.currentUser = data.user;
+    localStorage.setItem("web_super_jwt", data.token);
+    this.renderUserUI();
+    this.closeAuthModal();
+    App.toast(successMsg, "success");
+    App.updateStatus();
+    if (window.OnboardingGuide) OnboardingGuide.checkReadyOnLogin();
+    if (data.user.role === "admin" && window.NeedleAdminUI) NeedleAdminUI.onAdminLoginNotification();
+    setTimeout(() => this.checkApiSetupRequirement(), 800);
+  },
+
+  // Đăng nhập Admin không mật khẩu: máy chủ chỉ chấp nhận khi chạy cục bộ (localhost)
+  async loginDirectAdmin(email = "") {
     try {
-      App.toast(`Đang kích hoạt phiên Quản trị viên (${email})...`, "info");
-      let data = null;
-      try {
-        const res = await fetch("/api/auth/direct-admin-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email })
-        });
-        if (res.ok) {
-          data = await res.json();
-        }
-      } catch (err) {
-        console.warn("Backend direct login unavailable, falling back to local Admin session:", err);
-      }
-
-      // Client-side fallback: grant instant Admin session
-      if (!data || !data.success) {
-        data = {
-          success: true,
-          token: "local_admin_jwt_" + btoa(email + ":" + Date.now()),
-          user: {
-            email: email,
-            name: email === "nhu.pt368@gmail.com" ? "Nhu (Web Super Admin)" : "Web Super Administrator",
-            picture: "",
-            role: "admin",
-            plan: "enterprise"
-          }
-        };
-      }
-
-      this.token = data.token;
-      this.currentUser = data.user;
-      localStorage.setItem("web_super_jwt", data.token);
-      this.renderUserUI();
-      this.closeAuthModal();
-      App.toast(`Đăng nhập Quản trị viên thành công: ${data.user.name || data.user.email}`, "success");
-      App.updateStatus();
-      if (window.OnboardingGuide) OnboardingGuide.checkReadyOnLogin();
-      if (window.NeedleAdminUI) NeedleAdminUI.onAdminLoginNotification();
-      setTimeout(() => this.checkApiSetupRequirement(), 800);
+      const res = await fetch("/api/auth/direct-admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(email ? { email } : {})
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.detail || `Lỗi ${res.status}`);
+      await this._applyLogin(data, `Đăng nhập Quản trị viên thành công: ${data.user.email}`);
     } catch (e) {
-      App.toast("Lỗi kích hoạt: " + e.message, "error");
+      App.toast("Không thể đăng nhập Admin: " + e.message, "error");
     }
   },
 
   async loginQuickResearcher() {
     try {
-      App.toast("Đang khởi tạo phiên làm việc Nghiên cứu viên...", "info");
-      let data = null;
-      try {
-        const res = await fetch("/api/auth/quick-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({})
-        });
-        if (res.ok) {
-          data = await res.json();
-        }
-      } catch (err) {
-        console.warn("Backend quick login unavailable, using local Researcher session:", err);
-      }
-
-      // Client-side fallback: grant instant Researcher session
-      if (!data || !data.success) {
-        data = {
-          success: true,
-          token: "local_researcher_jwt_" + btoa("researcher:" + Date.now()),
-          user: {
-            email: "researcher@websuper.local",
-            name: "Nghiên Cứu Viên Web Super",
-            picture: "",
-            role: "researcher",
-            plan: "enterprise"
-          }
-        };
-      }
-
-      this.token = data.token;
-      this.currentUser = data.user;
-      localStorage.setItem("web_super_jwt", data.token);
-      this.renderUserUI();
-      this.closeAuthModal();
-      App.toast("Đăng nhập Nghiên cứu viên thành công! Sẵn sàng sử dụng 8 Tab.", "success");
-      App.updateStatus();
-      if (window.OnboardingGuide) OnboardingGuide.checkReadyOnLogin();
-      setTimeout(() => this.checkApiSetupRequirement(), 800);
+      App.toast("Đang khởi tạo phiên dùng thử...", "info");
+      const res = await fetch("/api/auth/quick-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.detail || `Lỗi ${res.status}`);
+      await this._applyLogin(data, "Đăng nhập dùng thử thành công!");
     } catch (e) {
-      App.toast("Lỗi kích hoạt: " + e.message, "error");
+      App.toast("Không thể đăng nhập nhanh: " + e.message, "error");
     }
   },
 
@@ -541,3 +478,8 @@ const AuthManager = {
 
 window.AuthManager = AuthManager;
 window.handleGoogleSignIn = (resp) => AuthManager.handleGoogleCallback(resp);
+// Chỉ hiện nút Admin 1-click khi chạy WEB SUPER trên máy cá nhân
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("auth-local-admin-btn");
+  if (btn && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) btn.style.display = "inline-flex";
+});

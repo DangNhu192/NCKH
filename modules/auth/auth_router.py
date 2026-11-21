@@ -36,31 +36,46 @@ def google_auth_login(payload: dict = Body(...)):
         "message": f"Đăng nhập thành công với tài khoản {user_record.get('email')}"
     }
 
+def _is_local_request(request: Request) -> bool:
+    """Chỉ đúng khi máy chủ chạy trên máy cá nhân và yêu cầu đến từ chính máy đó."""
+    import os
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        return False
+    if any(request.headers.get(h) for h in ("x-forwarded-for", "x-real-ip", "forwarded")):
+        return False
+    host = (request.client.host if request.client else "") or ""
+    return host in ("127.0.0.1", "::1", "localhost")
+
+
 @auth_router.post("/api/auth/direct-admin-login")
-def direct_admin_login(payload: dict = Body(...)):
+def direct_admin_login(request: Request, payload: dict = Body(default={})):
     """
-    Direct Admin Login cho Quản trị viên (admin@websuper.edu.vn hoặc superadmin@local).
-    Cho phép đăng nhập trực tiếp 1-click vào quyền Quản trị tối cao.
+    Đăng nhập Admin 1-click KHÔNG cần mật khẩu – chỉ dành cho máy chủ chạy cục bộ (localhost).
+    Trên Vercel / Internet, Admin phải đăng nhập bằng Google với email nằm trong ADMIN_EMAILS.
+    Có thể tắt hẳn bằng biến môi trường ALLOW_LOCAL_ADMIN_LOGIN=0.
     """
-    email = (payload.get("email") or "admin@websuper.edu.vn").strip().lower()
+    import os
+    if os.getenv("ALLOW_LOCAL_ADMIN_LOGIN", "1").strip() == "0" or not _is_local_request(request):
+        raise HTTPException(status_code=403, detail="Đăng nhập Admin trực tiếp chỉ khả dụng khi chạy WEB SUPER trên máy cá nhân. Vui lòng đăng nhập bằng Google.")
+
     from modules.auth.user_config_manager import ADMIN_EMAILS
-    
+    email = (payload.get("email") or "").strip().lower()
+    if not email:
+        email = sorted(ADMIN_EMAILS)[0] if ADMIN_EMAILS else ""
     if email not in ADMIN_EMAILS:
         raise HTTPException(status_code=403, detail="Tài khoản này không nằm trong danh sách Quản trị viên hệ thống.")
-        
+
     user_info = {
         "email": email,
-        "name": "Nhu (Web Super Admin)" if email == "nhu.pt368@gmail.com" else "Web Super Administrator",
+        "name": "Web Super Administrator",
         "picture": "",
-        "provider": "admin_direct_auth",
+        "provider": "admin_local_auth",
         "role": "admin",
         "plan": "enterprise"
     }
-    
     user_record = register_or_update_user(user_info)
     user_record["role"] = "admin"
     user_record["plan"] = "enterprise"
-    
     token = create_jwt_token(user_record)
     return {
         "success": True,
@@ -72,28 +87,38 @@ def direct_admin_login(payload: dict = Body(...)):
 @auth_router.post("/api/auth/quick-login")
 def quick_login(payload: dict = Body(default={})):
     """
-    Đăng nhập nhanh Nghiên cứu viên (Quick Researcher Access)
-    Dành cho người dùng trải nghiệm tức thời các công cụ học thuật mà không cần chờ cấu hình OAuth.
+    Đăng nhập nhanh không cần tài khoản: tạo một phiên KHÁCH riêng (email ngẫu nhiên),
+    dùng gói theo biến môi trường QUICK_LOGIN_PLAN (mặc định "free").
+    Không nhận email từ người dùng (tránh mạo danh tài khoản khác / Admin).
+    Tắt bằng QUICK_LOGIN_ENABLED=0.
     """
-    email = (payload.get("email") or "researcher@websuper.local").strip().lower()
-    name = (payload.get("name") or "Nghiên Cứu Viên Web Super").strip()
+    import os, secrets as _secrets
+    from modules.auth.user_config_manager import PLAN_CONFIGS
+    if os.getenv("QUICK_LOGIN_ENABLED", "1").strip() == "0":
+        raise HTTPException(status_code=403, detail="Đăng nhập nhanh đã bị tắt. Vui lòng đăng nhập bằng Google.")
+
+    plan = os.getenv("QUICK_LOGIN_PLAN", "free").strip().lower()
+    if plan not in PLAN_CONFIGS or plan == "enterprise":
+        plan = "free"
+    email = f"guest-{_secrets.token_hex(6)}@websuper.local"
     user_info = {
         "email": email,
-        "name": name,
+        "name": "Khách Nghiên Cứu",
         "picture": "",
         "provider": "quick_auth",
         "role": "researcher",
-        "plan": "enterprise"
+        "plan": plan
     }
     user_record = register_or_update_user(user_info)
     user_record["role"] = "researcher"
-    user_record["plan"] = "enterprise"
+    user_record["plan"] = plan
+    user_record["plan_name"] = PLAN_CONFIGS[plan]["name"]
     token = create_jwt_token(user_record)
     return {
         "success": True,
         "token": token,
         "user": user_record,
-        "message": f"Đăng nhập nhanh thành công: {name}"
+        "message": "Đăng nhập nhanh thành công (phiên khách)."
     }
 
 @auth_router.get("/api/auth/me")

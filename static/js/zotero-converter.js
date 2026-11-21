@@ -1,3 +1,255 @@
+// ── Kết nối Zotero: Đăng nhập trình duyệt (OAuth / API key) hoặc Zotero Desktop ──
+const ZoteroConnect = window.ZoteroConnect = {
+  STORAGE_KEY: "web_super_zotero",
+  DESKTOP_BASE: "http://localhost:23119",
+  desktopItems: null,
+  serverInfo: null,
+
+  get conn() {
+    try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || "null"); } catch (e) { return null; }
+  },
+  set conn(v) {
+    try {
+      if (v) localStorage.setItem(this.STORAGE_KEY, JSON.stringify(v));
+      else localStorage.removeItem(this.STORAGE_KEY);
+    } catch (e) { /* trình duyệt chặn lưu trữ */ }
+  },
+
+  toast(msg, type) { if (window.App && App.toast) App.toast(msg, type || "info"); },
+
+  init() {
+    if (this._inited) return;
+    this._inited = true;
+    window.addEventListener("message", (ev) => {
+      if (ev.origin !== window.location.origin || !ev.data || ev.data.type !== "zotero-auth") return;
+      if (ev.data.conn) {
+        this.conn = ev.data.conn;
+        this.desktopItems = null;
+        this.toast(`Đã đăng nhập Zotero: ${ev.data.conn.username || ev.data.conn.user_id}`, "success");
+      } else if (ev.data.error) {
+        this.toast(ev.data.error, "error");
+      }
+      ZoteroUI.checkZoteroStatus();
+    });
+    try {
+      const cached = sessionStorage.getItem("web_super_zotero_desktop_items");
+      if (cached) this.desktopItems = JSON.parse(cached);
+    } catch (e) { /* bỏ qua */ }
+  },
+
+  // ---------- Đăng nhập Zotero Web ----------
+  async loginWeb() {
+    if (!this.serverInfo) await ZoteroUI.checkZoteroStatus();
+    if (this.serverInfo && this.serverInfo.oauth_available) {
+      const w = window.open("/api/zotero/oauth/start", "zotero_oauth", "width=760,height=780");
+      if (!w) window.location.href = "/api/zotero/oauth/start";
+      return;
+    }
+    this.showKeyForm(true);
+  },
+
+  showKeyForm(show) {
+    const f = document.getElementById("zotero-key-form");
+    if (f) f.style.display = show ? "block" : "none";
+    if (show) document.getElementById("zotero-api-key-input")?.focus();
+  },
+
+  async submitApiKey() {
+    const input = document.getElementById("zotero-api-key-input");
+    const key = (input?.value || "").trim();
+    if (!key) return this.toast("Vui lòng dán API key Zotero.", "warning");
+    try {
+      const res = await fetch("/api/zotero/connect-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: key })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || `Lỗi ${res.status}`);
+      this.conn = { mode: "cloud", via: "api_key", user_id: data.user_id, api_key: data.api_key, username: data.username, library_type: "user", can_write: data.can_write };
+      this.desktopItems = null;
+      if (input) input.value = "";
+      this.showKeyForm(false);
+      this.toast(`Đã kết nối Zotero: ${data.username || data.user_id}`, "success");
+      ZoteroUI.checkZoteroStatus();
+    } catch (e) {
+      this.toast(`Không kết nối được Zotero: ${e.message}`, "error");
+    }
+  },
+
+  disconnect() {
+    this.conn = null;
+    this.desktopItems = null;
+    try { sessionStorage.removeItem("web_super_zotero_desktop_items"); } catch (e) { /* bỏ qua */ }
+    this.toast("Đã ngắt kết nối Zotero.", "info");
+    ZoteroUI.checkZoteroStatus();
+  },
+
+  // ---------- Zotero Desktop ----------
+  slimItem(it) {
+    const d = it.data || it;
+    const pick = ["itemType", "title", "creators", "date", "DOI", "url", "publicationTitle", "proceedingsTitle", "bookTitle", "volume", "issue", "pages", "publisher", "place", "ISBN", "ISSN", "language"];
+    const data = {};
+    pick.forEach(k => { if (d[k] !== undefined && d[k] !== "") data[k] = d[k]; });
+    const key = it.key || d.key || "";
+    data.key = key;
+    return { key, data };
+  },
+
+  storeDesktopItems(items, source, extra) {
+    this.desktopItems = items.filter(it => !["attachment", "note", "annotation"].includes((it.data || {}).itemType));
+    try { sessionStorage.setItem("web_super_zotero_desktop_items", JSON.stringify(this.desktopItems)); } catch (e) { /* thư viện quá lớn để lưu tạm */ }
+    this.conn = { mode: "desktop", source, count: this.desktopItems.length, synced_at: new Date().toISOString(), ...(extra || {}) };
+  },
+
+  async pingDesktop() {
+    try {
+      await fetch(`${this.DESKTOP_BASE}/connector/ping`, { mode: "no-cors", cache: "no-store" });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async fetchDesktopLibrary() {
+    const all = [];
+    for (let start = 0; start < 50000; start += 100) {
+      const r = await fetch(`${this.DESKTOP_BASE}/api/users/0/items/top?format=json&limit=100&start=${start}`, { cache: "no-store" });
+      if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        const err = new Error(body || `HTTP ${r.status}`);
+        err.status = r.status;
+        throw err;
+      }
+      const batch = await r.json();
+      batch.forEach(it => all.push(this.slimItem(it)));
+      if (batch.length < 100) break;
+    }
+    return all;
+  },
+
+  showDesktopHelp(html) {
+    const el = document.getElementById("zotero-desktop-help");
+    if (!el) return;
+    el.style.display = html ? "block" : "none";
+    el.innerHTML = html || "";
+  },
+
+  async connectDesktop() {
+    this.showKeyForm(false);
+    // Khi chạy WEB SUPER trên chính máy tính (START_WEB_SUPER.bat), máy chủ tự đọc Zotero Desktop.
+    if (this.serverInfo && this.serverInfo.server_mode === "local" && this.serverInfo.desktop_running) {
+      this.conn = null;
+      this.showDesktopHelp("");
+      this.toast("Máy chủ WEB SUPER đang chạy trên máy bạn và đã đọc trực tiếp Zotero Desktop.", "success");
+      return ZoteroUI.checkZoteroStatus();
+    }
+
+    this.toast("Đang kết nối Zotero Desktop (cổng 23119)...", "info");
+    try {
+      const items = await this.fetchDesktopLibrary();
+      this.storeDesktopItems(items, "local-api");
+      this.showDesktopHelp("");
+      this.toast(`Đã đọc ${this.desktopItems.length} tài liệu từ Zotero Desktop.`, "success");
+      return ZoteroUI.checkZoteroStatus();
+    } catch (e) {
+      const running = (e && e.status) ? true : await this.pingDesktop();
+      let reason;
+      if (!running) {
+        reason = "❌ Không tìm thấy Zotero Desktop trên máy này. Hãy mở ứng dụng Zotero (bản 7 trở lên) rồi bấm lại.";
+      } else if (e && e.status === 403) {
+        reason = "⚠️ Zotero Desktop đang chạy nhưng <strong>Local API</strong> chưa bật: vào <em>Zotero ➔ Settings ➔ Advanced</em>, tích <strong>“Allow other applications on this computer to communicate with Zotero”</strong>, rồi bấm lại.";
+      } else {
+        reason = "⚠️ Zotero Desktop đang chạy nhưng không cho trình duyệt đọc thư viện trực tiếp (chặn CORS).";
+      }
+      this.showDesktopHelp(`
+        <div style="margin-bottom:6px;">${reason}</div>
+        <div>Cách khác để dùng thư viện Zotero Desktop:</div>
+        <ol style="margin:6px 0 0 18px; padding:0;">
+          <li><strong>Khuyên dùng:</strong> bật đồng bộ trong Zotero Desktop (<em>Settings ➔ Sync</em>) rồi bấm <a href="#" onclick="ZoteroConnect.loginWeb();return false;" style="color:#60a5fa;">🌐 Đăng nhập Zotero (trình duyệt)</a>.</li>
+          <li>Xuất thư viện: <em>File ➔ Export Library… ➔ định dạng CSL JSON</em>, rồi <a href="#" onclick="document.getElementById('zotero-csl-json-input').click();return false;" style="color:#60a5fa;">📂 nạp tệp .json vào đây</a>.</li>
+          <li>Chạy WEB SUPER ngay trên máy tính (<code>START_WEB_SUPER.bat</code>) để máy chủ đọc trực tiếp Zotero Desktop.</li>
+        </ol>`);
+      this.toast("Chưa đọc được Zotero Desktop – xem hướng dẫn bên dưới.", "warning");
+    }
+  },
+
+  cslToZotero(csl) {
+    const typeMap = {
+      "article-journal": "journalArticle", "article-magazine": "magazineArticle", "article-newspaper": "newspaperArticle",
+      "book": "book", "chapter": "bookSection", "paper-conference": "conferencePaper", "thesis": "thesis",
+      "report": "report", "webpage": "webpage", "legislation": "statute", "legal_case": "case", "dataset": "dataset"
+    };
+    const people = (arr, role) => (Array.isArray(arr) ? arr : []).map(a => a.literal
+      ? { creatorType: role, name: a.literal, firstName: "", lastName: a.literal }
+      : { creatorType: role, firstName: a.given || "", lastName: a.family || "" });
+    const issued = csl.issued || {};
+    const parts = (issued["date-parts"] && issued["date-parts"][0]) || [];
+    const key = String(csl.id || "").split("/").pop();
+    return {
+      key,
+      data: {
+        key,
+        itemType: typeMap[csl.type] || "document",
+        title: csl.title || "",
+        creators: [...people(csl.author, "author"), ...people(csl.editor, "editor")],
+        date: parts.length ? parts.join("-") : (issued.raw || issued.literal || ""),
+        DOI: csl.DOI || "",
+        url: csl.URL || "",
+        publicationTitle: csl["container-title"] || "",
+        volume: csl.volume || "", issue: csl.issue || "", pages: csl.page || "",
+        publisher: csl.publisher || "", ISBN: csl.ISBN || "", ISSN: csl.ISSN || ""
+      }
+    };
+  },
+
+  async importCslJson(file) {
+    try {
+      const parsed = JSON.parse(await file.text());
+      const arr = Array.isArray(parsed) ? parsed : (parsed.items || []);
+      if (!arr.length) throw new Error("Tệp không chứa tài liệu nào.");
+      const items = arr.map(x => (x && x.data && x.data.itemType) ? this.slimItem(x) : this.cslToZotero(x));
+      this.storeDesktopItems(items, "csl-json", { file: file.name });
+      this.showDesktopHelp("");
+      this.toast(`Đã nạp ${this.desktopItems.length} tài liệu từ ${file.name}.`, "success");
+      ZoteroUI.checkZoteroStatus();
+    } catch (e) {
+      this.toast(`Không đọc được tệp CSL JSON: ${e.message}`, "error");
+    }
+  },
+
+  // Thư viện Desktop gửi kèm request chuyển đổi (máy chủ trên cloud không thấy được máy người dùng)
+  libraryPayload() {
+    const c = this.conn;
+    if (!c || c.mode !== "desktop" || !Array.isArray(this.desktopItems)) return null;
+    return JSON.stringify(this.desktopItems);
+  },
+
+  renderState(statusData) {
+    const el = document.getElementById("zotero-connect-state");
+    const btn = document.getElementById("zotero-disconnect-btn");
+    const c = this.conn;
+    if (btn) btn.style.display = c ? "inline-flex" : "none";
+    if (!el) return;
+    if (c && c.mode === "cloud") {
+      const n = statusData && statusData.success ? ` · ${statusData.total_library_items} tài liệu` : "";
+      el.innerHTML = `☁️ <strong>${c.username || "Zotero"}</strong> (ID ${c.user_id}, ${c.via === "oauth" ? "đăng nhập trình duyệt" : "API key"})${n}`;
+    } else if (c && c.mode === "desktop") {
+      const n = Array.isArray(this.desktopItems) ? this.desktopItems.length : 0;
+      const src = c.source === "csl-json" ? `tệp ${c.file || "CSL JSON"}` : "Local API cổng 23119";
+      el.innerHTML = n
+        ? `🖥️ <strong>Zotero Desktop</strong> (${src}) · ${n} tài liệu`
+        : `🖥️ Zotero Desktop – cần đồng bộ lại (bấm "Kết nối Zotero Desktop")`;
+    } else if (statusData && statusData.server_mode === "local" && (statusData.desktop_running || statusData.total_library_items)) {
+      el.innerHTML = `🖥️ Máy chủ đọc trực tiếp Zotero trên máy này · ${statusData.total_library_items} tài liệu`;
+    } else if (statusData && statusData.has_cloud_config && statusData.server_mode === "local") {
+      el.innerHTML = `☁️ Dùng cấu hình Zotero của máy chủ (ID ${statusData.library_id})`;
+    } else {
+      el.textContent = "Chưa kết nối";
+    }
+  }
+};
+
 // Zotero Word Dynamic Citation Converter & Reference Normalizer (Universal Academic & Legal Edition)
 const ZoteroUI = {
   selectedFile: null,
@@ -40,6 +292,7 @@ const ZoteroUI = {
     }
 
     this.setupNormDocxDropZone();
+    ZoteroConnect.init();
     this.checkZoteroStatus();
   },
 
@@ -128,25 +381,38 @@ const ZoteroUI = {
 
   async checkZoteroStatus() {
     const textEl = document.getElementById("zotero-status-text");
-    if (!textEl) return;
-    textEl.innerText = "Đang kiểm tra Zotero...";
+    if (textEl) textEl.innerText = "Đang kiểm tra Zotero...";
+    const conn = ZoteroConnect.conn;
 
+    // Kết nối Desktop qua Local API: tự đồng bộ lại nếu bộ nhớ tạm trống
+    if (conn && conn.mode === "desktop" && conn.source === "local-api" && !Array.isArray(ZoteroConnect.desktopItems)) {
+      try { ZoteroConnect.storeDesktopItems(await ZoteroConnect.fetchDesktopLibrary(), "local-api"); } catch (e) { /* hiển thị trạng thái cần đồng bộ */ }
+    }
+
+    let data = null;
     try {
       const res = await fetch("/api/zotero/status");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.desktop_running) {
-          textEl.innerHTML = `🟢 <strong>Zotero Desktop Sẵn Sàng</strong> (${data.total_library_items} tài liệu)`;
-        } else if (data.has_cloud_config) {
-          textEl.innerHTML = `☁️ <strong>Zotero Cloud Kết Nối</strong> (${data.total_library_items} tài liệu)`;
-        } else {
-          textEl.innerHTML = `📁 <strong>Zotero Cục Bộ</strong> (${data.total_library_items} tài liệu)`;
-        }
-      } else {
-        textEl.innerText = "⚠️ Chưa mở Zotero Desktop";
-      }
-    } catch (e) {
-      textEl.innerText = "📁 Zotero Sẵn sàng";
+      if (res.ok) data = await res.json();
+    } catch (e) { /* mạng lỗi */ }
+    ZoteroConnect.serverInfo = data;
+    ZoteroConnect.renderState(data);
+    if (!textEl) return;
+
+    if (conn && conn.mode === "desktop") {
+      const n = Array.isArray(ZoteroConnect.desktopItems) ? ZoteroConnect.desktopItems.length : 0;
+      textEl.innerHTML = n ? `🟢 <strong>Zotero Desktop</strong> (${n} tài liệu)` : "⚠️ Zotero Desktop cần đồng bộ lại";
+    } else if (!data) {
+      textEl.innerText = "⚠️ Không kiểm tra được trạng thái Zotero";
+    } else if (data.error) {
+      textEl.innerHTML = `⚠️ ${data.error}`;
+    } else if (data.desktop_running) {
+      textEl.innerHTML = `🟢 <strong>Zotero Desktop Sẵn Sàng</strong> (${data.total_library_items} tài liệu)`;
+    } else if (data.has_cloud_config) {
+      textEl.innerHTML = `☁️ <strong>Zotero Cloud Kết Nối</strong> (${data.total_library_items} tài liệu)`;
+    } else if (data.server_mode === "cloud") {
+      textEl.innerHTML = `🔌 <strong>Chưa kết nối Zotero</strong> – đăng nhập bên dưới`;
+    } else {
+      textEl.innerHTML = `📁 <strong>Zotero Cục Bộ</strong> (${data.total_library_items} tài liệu)`;
     }
   },
 
@@ -191,6 +457,8 @@ const ZoteroUI = {
 
     const formData = new FormData();
     formData.append("file", this.selectedFile);
+    const desktopLibrary = ZoteroConnect.libraryPayload();
+    if (desktopLibrary) formData.append("zotero_library", desktopLibrary);
 
     try {
       const res = await fetch(`/api/zotero/convert?mode=${encodeURIComponent(mode)}`, {
@@ -200,6 +468,7 @@ const ZoteroUI = {
       });
 
       const data = await res.json().catch(() => ({ detail: `Máy chủ phản hồi lỗi ${res.status}: ${res.statusText}` }));
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
 
       if (res.ok && data.status === "success") {
         if (window.App) App.toast(data.message || "Chuyển đổi Zotero thành công!", "success");
@@ -375,6 +644,8 @@ const ZoteroUI = {
         });
 
         const data = await res.json();
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
+        if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (res.ok && data.success) {
           this.lastNormItems = data.items || [];
           this.renderNormResults(data);
@@ -431,6 +702,8 @@ const ZoteroUI = {
         });
 
         const data = await res.json();
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
+        if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (res.ok && data.success) {
           this.lastNormItems = data.items || [];
           this.renderNormDocxResults(data);
@@ -646,6 +919,7 @@ const ZoteroUI = {
       });
 
       const data = await res.json();
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
       if (res.ok && data.success) {
         if (window.App) App.toast(data.message || `Đã nạp ${data.desktop_synced || data.total} mục vào Zotero!`, "success");
         this.checkZoteroStatus();
