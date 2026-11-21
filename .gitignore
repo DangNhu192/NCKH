@@ -141,3 +141,9 @@ tmp/
 /opencode.json.bak
 # END Ruler Generated Files
 
+
+# Khóa bí mật sinh tự động (không bao giờ commit)
+auth_vault/_master_vault_metadata.json
+auth_vault/.jwt_secret
+auth_vault/backup_before_rotate_*/
+modules/workspace/users/

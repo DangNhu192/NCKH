@@ -97,7 +97,9 @@ ROLE_CONFIGS = {
     "researcher": "🎓 Nhà Nghiên Cứu (User)"
 }
 
-ADMIN_EMAILS = {"admin@websuper.edu.vn", "nhu.pt368@gmail.com"}
+# Danh sách email Quản trị viên: đặt biến môi trường ADMIN_EMAILS="a@x.com,b@y.com" để thay đổi.
+_DEFAULT_ADMIN_EMAILS = "admin@websuper.edu.vn,nhu.pt368@gmail.com"
+ADMIN_EMAILS = {e.strip().lower() for e in (os.getenv("ADMIN_EMAILS") or _DEFAULT_ADMIN_EMAILS).split(",") if e.strip()}
 
 def get_plan_quota(plan: str) -> dict:
     return PLAN_CONFIGS.get(plan, PLAN_CONFIGS["free"])
@@ -113,7 +115,16 @@ def check_user_can_operate(user_dict: dict, user_config: Optional[dict] = None, 
     user_record = registry.get(email)
 
     if not user_record:
-        return False, "Tài khoản chưa được kích hoạt. Vui lòng đăng nhập lại.", "unregistered"
+        # Trên Vercel, sổ người dùng nằm ở /tmp và không chia sẻ giữa các máy chủ.
+        # Token JWT đã được máy chủ ký nên có thể dùng các thông tin gói trong token.
+        if user_dict.get("is_authenticated") and email:
+            user_record = {
+                "status": user_dict.get("status", "active"),
+                "plan": user_dict.get("plan", "free"),
+                "plan_expires_at": user_dict.get("plan_expires_at", ""),
+            }
+        else:
+            return False, "Tài khoản chưa được kích hoạt. Vui lòng đăng nhập lại.", "unregistered"
 
     if user_record.get("status") == "blocked":
         return False, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin.", "blocked"

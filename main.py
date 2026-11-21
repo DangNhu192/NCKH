@@ -46,7 +46,17 @@ except Exception as e:
 # Add debug startup endpoint
 @app.get("/api/debug-startup")
 def debug_startup():
+    warnings = []
+    try:
+        from modules.auth import auth_service
+        if auth_service.JWT_SECRET_WARNING:
+            warnings.append(auth_service.JWT_SECRET_WARNING)
+    except Exception:
+        pass
+    if os.getenv("VERCEL") and not (os.getenv("VAULT_MASTER_SECRET") and os.getenv("VAULT_MASTER_SALT")):
+        warnings.append("Chưa đặt VAULT_MASTER_SECRET / VAULT_MASTER_SALT: API key người dùng được mã hóa bằng khóa tạm thời.")
     return {
+        "security_warnings": warnings,
         "status": "ok" if init_error is None else "error",
         "service": "WEB SUPER v2.0",
         "has_init_error": init_error is not None,

@@ -50,6 +50,12 @@ class VaultCryptoEngine:
         self.master_secret, self.master_salt = self._init_or_load_master_metadata()
 
     def _init_or_load_master_metadata(self) -> Tuple[str, str]:
+        # Ưu tiên khóa từ biến môi trường (bắt buộc trên Vercel / máy chủ thật)
+        env_secret = os.getenv("VAULT_MASTER_SECRET", "").strip()
+        env_salt = os.getenv("VAULT_MASTER_SALT", "").strip()
+        if env_secret and env_salt:
+            return env_secret, env_salt
+
         if VAULT_METADATA_FILE.exists():
             try:
                 with open(VAULT_METADATA_FILE, "r", encoding="utf-8") as f:
@@ -72,8 +78,12 @@ class VaultCryptoEngine:
             "description": "Kho lưu trữ mã hóa người dùng và License Keys của Web Super.",
             "recovery_guide": "Xem tệp PHUONG_THUC_MA_HOA_VA_GIAI_MA.md và chạy tools_decrypt_vault.py để giải mã."
         }
-        with open(VAULT_METADATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(metadata, f, ensure_ascii=False, indent=2)
+        try:
+            with open(VAULT_METADATA_FILE, "w", encoding="utf-8") as f:
+                json.dump(metadata, f, ensure_ascii=False, indent=2)
+            os.chmod(VAULT_METADATA_FILE, 0o600)
+        except OSError:
+            pass
 
         return master_secret, master_salt
 
