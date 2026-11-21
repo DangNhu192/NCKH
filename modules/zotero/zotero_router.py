@@ -149,7 +149,7 @@ async def convert_docx_zotero_citations(
             result_data=res,
             summary=f"Khớp {res.get('stats', {}).get('matched_citations', 0)}/{res.get('stats', {}).get('total_citations_found', 0)} trích dẫn"
         )
-        return res
+        return zc.attach_inline_files(res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi chuyển đổi mã Zotero: {str(e)}")
 
@@ -193,7 +193,7 @@ async def normalize_text_references(
             result_data=res,
             summary=f"Chuẩn hóa {res.get('total', 0)} mục theo chuẩn {style} ({res.get('matched_dois', 0)} có DOI)"
         )
-        return res
+        return zc.attach_inline_files(res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi chuẩn hóa danh mục trích dẫn: {str(e)}")
 
@@ -224,7 +224,7 @@ async def normalize_docx_references_endpoint(
             result_data=res,
             summary=f"Đã chuẩn hóa {res.get('total_references', 0)} tài liệu theo chuẩn {style}"
         )
-        return res
+        return zc.attach_inline_files(res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi chuẩn hóa file Word: {str(e)}")
 
@@ -242,7 +242,7 @@ async def sync_references_to_zotero_endpoint(
         raise HTTPException(status_code=400, detail="Danh sách tài liệu tham khảo rỗng.")
     try:
         res = eng.sync_items_to_zotero(items)
-        return res
+        return zc.attach_inline_files(res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi đồng bộ vào Zotero: {str(e)}")
 

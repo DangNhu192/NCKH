@@ -213,3 +213,47 @@ def engine_with_library(base: ZoteroConverterEngine, items: Optional[List[Dict[s
     eng._cache = list(items)
     eng._cache_loaded = True
     return eng
+
+
+# ── Tệp kết quả gửi kèm response (Vercel) ────────────────────────────────────
+# Trên Vercel, tệp được ghi vào /tmp của một máy chủ; yêu cầu "Tải về" sau đó có thể rơi vào
+# máy chủ khác => 404. Vì vậy gửi luôn nội dung tệp (base64) trong kết quả để trình duyệt tự tải.
+
+INLINE_EXTS = (".docx", ".ris", ".bib", ".md", ".txt", ".csv", ".xlsx", ".json")
+INLINE_MAX_TOTAL = 3_500_000  # byte, dưới giới hạn response 4.5MB của Vercel
+
+
+def is_serverless() -> bool:
+    return bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+
+
+def attach_inline_files(res: Any, force: bool = False) -> Any:
+    if not isinstance(res, dict) or not (force or is_serverless()):
+        return res
+    from modules.shared.file_manager import file_mgr
+    ws = file_mgr.workspace.resolve()
+    inline: Dict[str, str] = {}
+    total = 0
+    for val in list(res.values()):
+        if not isinstance(val, str) or not val.lower().endswith(INLINE_EXTS):
+            continue
+        rel = urllib.parse.unquote(val).replace("\\", "/")
+        if rel.startswith("file:"):
+            continue
+        rel = rel.split("/workspace/", 1)[-1].lstrip("/")
+        if rel in inline:
+            continue
+        try:
+            fpath = (ws / rel).resolve()
+            if not str(fpath).startswith(str(ws)) or not fpath.is_file():
+                continue
+            size = fpath.stat().st_size
+            if total + size > INLINE_MAX_TOTAL:
+                continue
+            inline[rel] = base64.b64encode(fpath.read_bytes()).decode("ascii")
+            total += size
+        except OSError:
+            continue
+    if inline:
+        res["inline_files"] = inline
+    return res

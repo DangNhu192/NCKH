@@ -723,6 +723,10 @@ const App = {
 
   async openWindowsExplorer(relPath = "") {
     const clean = (typeof relPath === "string" ? relPath.trim() : "");
+    if (this.isCloudServer) {
+      this.toast("Mở thư mục chỉ khả dụng khi chạy WEB SUPER trên máy cá nhân. Hãy dùng các nút Tải về.", "info");
+      return;
+    }
     const customInput = document.getElementById("pipeline-storage-dir")?.value?.trim() || document.getElementById("cfg-custom-storage-dir")?.value?.trim() || "";
     const targetPath = clean || customInput || "Tai_Lieu";
     try {
@@ -742,6 +746,12 @@ const App = {
       return;
     }
     const fileName = clean.split("/").pop() || "Tai_Lieu.docx";
+    if (this.isCloudServer) {
+      // Máy chủ trên cloud không mở được Word trên máy bạn: tải tệp về để mở
+      this.toast(`📥 Đang tải '${fileName}' – mở tệp vừa tải bằng Microsoft Word.`, "info");
+      this.downloadFile(clean);
+      return;
+    }
     this.toast(`📝 Đang mở tệp '${fileName}' trực tiếp bằng Microsoft Word...`, "info");
     
     try {
@@ -761,9 +771,61 @@ const App = {
     }
   },
 
+  // ── Tệp kết quả gửi kèm response (máy chủ Vercel không giữ tệp giữa các request) ──
+  inlineFiles: {},
+
+  get isCloudServer() {
+    return !["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
+  },
+
+  _normRel(p) {
+    let s = String(p || "");
+    if (s.startsWith("/api/files/download")) {
+      try {
+        const u = new URL(s, window.location.origin);
+        s = u.searchParams.get("path") || u.pathname.replace(/^\/api\/files\/download\/?/, "");
+      } catch (e) { /* bỏ qua */ }
+    }
+    try { s = decodeURIComponent(s); } catch (e) { /* giữ nguyên */ }
+    s = s.replace(/\\/g, "/").split("?")[0];
+    s = s.replace(/^.*\/workspace\//, "").replace(/^\/+/, "");
+    return s;
+  },
+
+  registerInlineFiles(data) {
+    if (!data || typeof data !== "object" || !data.inline_files) return;
+    Object.entries(data.inline_files).forEach(([rel, b64]) => { this.inlineFiles[this._normRel(rel)] = b64; });
+    delete data.inline_files;
+  },
+
+  _findInline(relPath) {
+    const rel = this._normRel(relPath);
+    if (!rel) return null;
+    if (this.inlineFiles[rel]) return { rel, b64: this.inlineFiles[rel] };
+    const base = rel.split("/").pop();
+    const hit = Object.keys(this.inlineFiles).find(k => k.split("/").pop() === base);
+    return hit ? { rel: hit, b64: this.inlineFiles[hit] } : null;
+  },
+
+  _downloadInline(found) {
+    const bin = atob(found.b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: "application/octet-stream" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = found.rel.split("/").pop() || "download";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  },
+
   downloadFile(relPath = "") {
     const clean = (typeof relPath === "string" ? relPath.trim() : "");
     if (!clean || clean === "undefined" || clean === "null") return;
+    const inline = this._findInline(clean);
+    if (inline) return this._downloadInline(inline);
     const url = `/api/files/download?path=${encodeURIComponent(clean)}`;
     const a = document.createElement("a");
     a.href = url;
@@ -811,3 +873,16 @@ const App = {
 
 window.App = App;
 document.addEventListener("DOMContentLoaded", () => App.init());
+
+// Liên kết tải trực tiếp (/workspace/... hoặc /api/files/download) dùng bản gửi kèm nếu có
+document.addEventListener("click", (ev) => {
+  const a = ev.target && ev.target.closest ? ev.target.closest("a[href]") : null;
+  if (!a || !window.App || !App._findInline) return;
+  const href = a.getAttribute("href") || "";
+  if (!href.startsWith("/workspace/") && !href.startsWith("/api/files/download")) return;
+  const found = App._findInline(href);
+  if (found) {
+    ev.preventDefault();
+    App._downloadInline(found);
+  }
+}, true);

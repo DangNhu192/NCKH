@@ -468,6 +468,7 @@ const ZoteroUI = {
       });
 
       const data = await res.json().catch(() => ({ detail: `Máy chủ phản hồi lỗi ${res.status}: ${res.statusText}` }));
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
 
       if (res.ok && data.status === "success") {
         if (window.App) App.toast(data.message || "Chuyển đổi Zotero thành công!", "success");
@@ -643,6 +644,8 @@ const ZoteroUI = {
         });
 
         const data = await res.json();
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
+        if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (res.ok && data.success) {
           this.lastNormItems = data.items || [];
           this.renderNormResults(data);
@@ -699,6 +702,8 @@ const ZoteroUI = {
         });
 
         const data = await res.json();
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
+        if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (res.ok && data.success) {
           this.lastNormItems = data.items || [];
           this.renderNormDocxResults(data);
@@ -914,6 +919,7 @@ const ZoteroUI = {
       });
 
       const data = await res.json();
+      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
       if (res.ok && data.success) {
         if (window.App) App.toast(data.message || `Đã nạp ${data.desktop_synced || data.total} mục vào Zotero!`, "success");
         this.checkZoteroStatus();
