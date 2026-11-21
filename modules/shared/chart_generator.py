@@ -21,9 +21,9 @@ except Exception:
     plt = None
     ticker = None
 
-from modules.shared.file_manager import file_mgr
+from modules.shared.file_manager import file_mgr, WORKSPACE_DIR
 
-CHARTS_DIR = Path(__file__).resolve().parent.parent.parent / "workspace" / "charts"
+CHARTS_DIR = WORKSPACE_DIR / "charts"
 try:
     CHARTS_DIR.mkdir(parents=True, exist_ok=True)
 except OSError:
@@ -41,6 +41,8 @@ COLOR_GRID = "#E2E8F0"       # Light Grid
 
 class ChartGenerator:
     def __init__(self):
+        if not HAS_MATPLOTLIB:
+            return
         # Configure standard font settings
         plt.rcParams['font.family'] = 'sans-serif'
         plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica', 'Calibri']
