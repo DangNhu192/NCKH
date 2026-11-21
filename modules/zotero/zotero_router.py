@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from modules.auth.auth_service import require_operational_user, get_current_user
+from modules.auth.auth_service import require_zotero_user, get_current_user
 from modules.zotero.zotero_converter_engine import zotero_converter
 from modules.history.history_manager import history_mgr
 from modules.zotero import zotero_connect as zc
@@ -133,7 +133,7 @@ async def convert_docx_zotero_citations(
     mode: Optional[str] = Form(None),
     mode_query: Optional[str] = Query(None, alias="mode"),
     zotero_library: Optional[str] = Form(None),
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     selected_mode = mode or mode_query or "A"
     eng = zc.engine_with_library(zc.engine_for_request(request), zc.parse_library_json(zotero_library))
@@ -170,7 +170,7 @@ def get_zotero_library(request: Request, force_refresh: bool = False, user: dict
 async def normalize_text_references(
     request: Request,
     payload: dict,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Chuẩn hóa danh sách chuỗi trích dẫn thô theo 3 chuẩn APA, MLA, ISO 690 dựa trên Google Scholar & Scholarly APIs."""
@@ -203,7 +203,7 @@ async def normalize_docx_references_endpoint(
     request: Request,
     file: UploadFile = File(...),
     style: str = Form("APA"),
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Quét và chuẩn hóa phần Tài Liệu Tham Khảo trong file Word (.docx) theo 3 chuẩn APA, MLA, ISO 690."""
@@ -233,7 +233,7 @@ async def normalize_docx_references_endpoint(
 async def sync_references_to_zotero_endpoint(
     request: Request,
     payload: dict,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Nạp trực tiếp danh sách tài liệu tham khảo vào phần mềm Zotero Desktop (port 23119) hoặc Cloud."""
@@ -251,7 +251,7 @@ async def sync_references_to_zotero_endpoint(
 async def export_ris_endpoint(
     request: Request,
     payload: dict,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Xuất bản danh mục tài liệu tham khảo sang định dạng chuẩn RIS tương thích Zotero."""
@@ -275,7 +275,7 @@ async def export_ris_endpoint(
 async def export_bibtex_endpoint(
     request: Request,
     payload: dict,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Xuất bản danh mục tài liệu tham khảo sang định dạng chuẩn BibTeX (.bib)."""
@@ -299,7 +299,7 @@ async def export_bibtex_endpoint(
 async def standardize_vietnamese_names_endpoint(
     request: Request,
     payload: Optional[dict] = None,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Quét và chuẩn hóa tên tác giả tiếng Việt trong Zotero Cloud sang cấu trúc Hai ô (Two-Field Mode theo Thông báo 5343/TB-ĐHĐT)."""
@@ -318,7 +318,7 @@ async def standardize_vietnamese_names_endpoint(
 async def optimize_storage_endpoint(
     request: Request,
     payload: Optional[dict] = None,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Giao thức Zero-Risk: Quét và giải phóng tệp PDF đính kèm đã có DOI/URL trực tuyến, kèm sao lưu ZIP dự phòng."""
@@ -339,7 +339,7 @@ async def optimize_storage_endpoint(
 async def convert_hyperlinks_endpoint(
     request: Request,
     payload: dict,
-    user: dict = Depends(require_operational_user)
+    user: dict = Depends(require_zotero_user)
 ):
     eng = zc.engine_for_request(request)
     """Chuyển đổi URL/DOI trong file Word thành đối tượng <w:hyperlink> tương tác hỗ trợ Ctrl + Click."""

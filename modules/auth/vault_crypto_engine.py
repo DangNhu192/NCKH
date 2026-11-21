@@ -55,6 +55,12 @@ class VaultCryptoEngine:
         env_salt = os.getenv("VAULT_MASTER_SALT", "").strip()
         if env_secret and env_salt:
             return env_secret, env_salt
+        if IS_VERCEL:
+            # Dự phòng: khóa ổn định theo lần deploy để mọi máy chủ giải mã được như nhau
+            from modules.auth.auth_service import derive_deployment_secret
+            derived = derive_deployment_secret("vault")
+            if derived:
+                return derived, derive_deployment_secret("vault-salt")[:32]
 
         if VAULT_METADATA_FILE.exists():
             try:

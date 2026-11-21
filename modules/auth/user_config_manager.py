@@ -104,6 +104,9 @@ ADMIN_EMAILS = {e.strip().lower() for e in (os.getenv("ADMIN_EMAILS") or _DEFAUL
 def get_plan_quota(plan: str) -> dict:
     return PLAN_CONFIGS.get(plan, PLAN_CONFIGS["free"])
 
+# Chức năng không gọi AI: không bắt buộc người dùng nhập API key Gemini/OpenAI
+NO_AI_FEATURES = {"zotero"}
+
 def check_user_can_operate(user_dict: dict, user_config: Optional[dict] = None, feature: str = "ai"):
     email = (user_dict.get("email") or "").strip().lower()
     role = user_dict.get("role", "researcher")
@@ -143,6 +146,9 @@ def check_user_can_operate(user_dict: dict, user_config: Optional[dict] = None, 
 
     if feature in ["pipeline", "writer", "editorial", "humanizer"] and not plan_info.get("can_use_ai", False):
         return False, f"Gói hiện tại ({plan_info['name']}) không hỗ trợ chức năng AI này. Vui lòng nâng cấp lên gói Pro hoặc Enterprise.", "plan_restricted"
+
+    if feature in NO_AI_FEATURES:
+        return True, "Hợp lệ", "ok"
 
     if plan_info.get("requires_own_api", True):
         cfg = user_config or load_user_config(user_dict)
