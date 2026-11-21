@@ -76,6 +76,15 @@ function parseJwtPayload(token) {
           opts.headers['Authorization'] = `Bearer ${token}`;
         }
       }
+      // Gắn thông tin đăng nhập Zotero Cloud (lưu ở trình duyệt) để máy chủ dùng đúng thư viện của người dùng
+      try {
+        const zc = JSON.parse(localStorage.getItem("web_super_zotero") || "null");
+        if (zc && zc.mode === "cloud" && zc.user_id && zc.api_key) {
+          opts.headers['X-Zotero-User-Id'] = String(zc.user_id);
+          opts.headers['X-Zotero-Api-Key'] = String(zc.api_key);
+          opts.headers['X-Zotero-Library-Type'] = zc.library_type || "user";
+        }
+      } catch (e) { /* bỏ qua */ }
     }
 
     return originalFetch.call(this, url, opts);

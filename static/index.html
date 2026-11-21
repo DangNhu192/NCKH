@@ -1365,6 +1365,29 @@
               </div>
             </div>
 
+            <!-- KẾT NỐI ZOTERO (WEB / DESKTOP) -->
+            <div id="zotero-connect-panel" style="margin-top:14px; background:rgba(15,23,42,0.6); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:12px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div style="font-size:13px; color:#cbd5e1;">
+                  🔗 <strong>Tài khoản Zotero:</strong> <span id="zotero-connect-state">Chưa kết nối</span>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.loginWeb()" style="font-weight:700;">🌐 Đăng nhập Zotero (trình duyệt)</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.connectDesktop()" style="font-weight:700;">🖥️ Kết nối Zotero Desktop</button>
+                  <button type="button" id="zotero-disconnect-btn" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.disconnect()" style="display:none;">⏏️ Ngắt kết nối</button>
+                </div>
+              </div>
+              <div id="zotero-key-form" style="display:none; margin-top:12px; font-size:12.5px; color:#94a3b8;">
+                <p style="margin:0 0 8px;">Đăng nhập bằng <strong>API key</strong>: mở <a href="https://www.zotero.org/settings/keys/new" target="_blank" rel="noopener" style="color:#60a5fa;">zotero.org/settings/keys/new</a>, tích <em>Allow library access</em> (và <em>Allow write access</em> nếu dùng Chế độ B), bấm <em>Save Key</em> rồi dán key vào đây.</p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <input type="password" id="zotero-api-key-input" class="form-control" placeholder="Dán Zotero API key..." autocomplete="off" style="flex:1; min-width:220px; font-size:12.5px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.submitApiKey()" style="font-weight:700;">✅ Kết nối</button>
+                </div>
+              </div>
+              <div id="zotero-desktop-help" style="display:none; margin-top:12px; font-size:12.5px; color:#94a3b8; line-height:1.55;"></div>
+              <input type="file" id="zotero-csl-json-input" accept=".json,application/json" style="display:none;" onchange="if(this.files.length) ZoteroConnect.importCslJson(this.files[0]); this.value='';">
+            </div>
+
             <!-- SUBTABS BAR -->
             <div class="mathchem-subtabs" style="display:flex; gap:8px; margin-top:16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top:14px; flex-wrap:wrap;">
               <button type="button" class="btn btn-secondary zotero-subtab-btn active" data-zsubtab="convert" onclick="ZoteroUI.switchSubtab('convert')" style="font-weight:700; font-size:13px; display:flex; align-items:center; gap:6px;">
@@ -3949,13 +3972,13 @@ function activateKeyFromPaymentModal() {
 </div>
 
 <!-- JavaScript Modules -->
-<script src="/static/js/auth.js?v=18.0"></script>
+<script src="/static/js/auth.js?v=18.1"></script>
 <script src="/static/js/app.js?v=18.0"></script>
 <script src="/static/js/agency-agents.js?v=18.0"></script>
 <script src="/static/js/pipeline.js?v=18.0"></script>
 <script src="/static/js/notebooklm.js?v=18.0"></script>
 <script src="/static/js/harvester.js?v=18.0"></script>
-<script src="/static/js/zotero-converter.js?v=18.0"></script>
+<script src="/static/js/zotero-converter.js?v=18.1"></script>
 <script src="/static/js/academic-writer.js?v=18.0"></script>
 <script src="/static/js/editorial-office.js?v=18.0"></script>
 <script src="/static/js/humanizer.js?v=18.0"></script>
