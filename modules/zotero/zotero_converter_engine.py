@@ -473,6 +473,9 @@ class ZoteroConverterEngine:
 
     def is_zotero_desktop_running(self) -> bool:
         """Kiểm tra Zotero Desktop có đang chạy trên máy cục bộ (cổng 23119) hay không (kèm cache 4s)"""
+        if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+            # Máy chủ serverless không thể thấy Zotero Desktop của người dùng; trình duyệt sẽ tự kết nối.
+            return False
         now = time.time()
         last_check = getattr(self, "_zotero_desktop_check_time", 0)
         if now - last_check < 4.0 and hasattr(self, "_zotero_desktop_cached_status"):

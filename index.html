@@ -1365,27 +1365,47 @@
               </div>
             </div>
 
-            <!-- Zotero Connection Status & Quick Login Banner -->
-            <div id="zotero-auth-banner" style="margin-top: 14px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.22) 0%, rgba(15, 23, 42, 0.7) 100%); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 14px 18px;">
+            <!-- KẾT NỐI ZOTERO (WEB / CLOUD / DESKTOP) -->
+            <div id="zotero-connect-panel" style="margin-top:14px; background:linear-gradient(135deg, rgba(30, 58, 138, 0.22) 0%, rgba(15, 23, 42, 0.7) 100%); border:1px solid rgba(59, 130, 246, 0.35); border-radius:12px; padding:14px 18px;">
               <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:12px;">
                   <span style="font-size:26px;">🔗</span>
                   <div>
-                    <div style="font-size:13.5px; font-weight:800; color:#93c5fd;" id="zotero-conn-title">Kết Nối Zotero Desktop &amp; Zotero Cloud</div>
+                    <div style="font-size:13.5px; font-weight:800; color:#93c5fd;">
+                      Tài khoản Zotero: <span id="zotero-connect-state" style="color:#67e8f9;">Đang kiểm tra...</span>
+                    </div>
                     <div style="font-size:11.5px; color:#cbd5e1; margin-top:2px;" id="zotero-conn-desc">
                       Tài khoản Cloud: <strong>DangNhu192</strong> (313 bài báo) · CSDL Máy: <code>zotero.sqlite</code> (373 bài báo)
                     </div>
                   </div>
                 </div>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroUI.connectZoteroCloud()" style="font-size:11.5px; font-weight:700;">
-                    🔑 Đăng Nhập Cloud
+                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.loginWeb()" style="font-size:11.5px; font-weight:700;">
+                    🌐 Đăng nhập Web
                   </button>
-                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroUI.launchDesktopApp()" style="font-size:11.5px; font-weight:700;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.toggleKeyForm()" style="font-size:11.5px; font-weight:700;">
+                    🔑 Nhập API Key
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.connectDesktop()" style="font-size:11.5px; font-weight:700;">
+                    🖥️ Quét Desktop (Port 23119)
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroUI.launchDesktopApp()" style="font-size:11.5px; font-weight:700;">
                     💻 Mở Zotero Desktop
+                  </button>
+                  <button type="button" id="zotero-disconnect-btn" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.disconnect()" style="display:none; font-size:11.5px;">
+                    ⏏️ Ngắt kết nối
                   </button>
                 </div>
               </div>
+              <div id="zotero-key-form" style="display:none; margin-top:12px; font-size:12.5px; color:#94a3b8; border-top:1px dashed rgba(148,163,184,0.25); padding-top:10px;">
+                <p style="margin:0 0 8px;">Đăng nhập bằng <strong>API key</strong>: Mở <a href="https://www.zotero.org/settings/keys/new" target="_blank" rel="noopener" style="color:#60a5fa;">zotero.org/settings/keys/new</a>, tích <em>Allow library access</em>, bấm <em>Save Key</em> rồi dán key vào đây.</p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <input type="password" id="zotero-api-key-input" class="form-control" placeholder="Dán Zotero API key (mặc định CkousIzBeXirlHm9aYxzFT3b)..." autocomplete="off" style="flex:1; min-width:260px; font-size:12.5px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.submitApiKey()" style="font-weight:700;">✅ Kết nối Cloud</button>
+                </div>
+              </div>
+              <div id="zotero-desktop-help" style="display:none; margin-top:12px; font-size:12.5px; color:#94a3b8; line-height:1.55;"></div>
+              <input type="file" id="zotero-csl-json-input" accept=".json,application/json" style="display:none;" onchange="if(this.files.length) ZoteroConnect.importCslJson(this.files[0]); this.value='';">
             </div>
 
             <!-- SUBTABS BAR -->
@@ -3345,12 +3365,6 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
           ⚡ Hoặc đăng nhập nhanh không qua Google OAuth:
         </div>
         <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="AuthManager.loginDirectAdmin('nhu.pt368@gmail.com')" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; border-color: rgba(66, 133, 244, 0.4); background: rgba(66, 133, 244, 0.12);">
-            🛡️ Admin: nhu.pt368@gmail.com
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="AuthManager.loginDirectAdmin('admin@websuper.edu.vn')" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px;">
-            ⚡ Super Admin
-          </button>
           <button type="button" class="btn btn-secondary btn-sm" onclick="AuthManager.loginQuickResearcher()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.12);">
             🔬 Nghiên Cứu Viên
           </button>
