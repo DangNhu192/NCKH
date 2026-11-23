@@ -178,8 +178,32 @@ def verify_google_credential(id_token: str) -> dict:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Không thể xác thực tài khoản Google: {str(e)}")
 
-def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> dict:
-    """Dependency to get authenticated user via JWT Bearer Token, with guest fallback."""
+def extract_client_device_headers(request: Request = None) -> dict:
+    """Trích xuất các khóa API được lưu ở trình duyệt/thiết bị của người dùng gửi qua HTTP Headers."""
+    client_headers = {}
+    if request is not None:
+        try:
+            h = request.headers
+            gk = (h.get("x-gemini-api-key") or "").strip()
+            ok = (h.get("x-openai-api-key") or "").strip()
+            zk = (h.get("x-zotero-api-key") or "").strip()
+            zu = (h.get("x-zotero-user-id") or "").strip()
+            ak = (h.get("x-abbyy-api-key") or "").strip()
+            sm = (h.get("x-selected-gemini-model") or "").strip()
+            if gk: client_headers["gemini_api_key"] = gk
+            if ok: client_headers["openai_api_key"] = ok
+            if zk: client_headers["zotero_api_key"] = zk
+            if zu: client_headers["zotero_user_id"] = zu
+            if ak: client_headers["abbyy_api_key"] = ak
+            if sm: client_headers["selected_gemini_model"] = sm
+        except Exception:
+            pass
+    return client_headers
+
+
+def get_current_user(request: Request = None, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> dict:
+    """Dependency to get authenticated user via JWT Bearer Token, with guest fallback and client device header extraction."""
+    client_headers = extract_client_device_headers(request)
     if not credentials or not credentials.credentials:
         return {
             "sub": "guest",
@@ -190,13 +214,15 @@ def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depen
             "plan": "free",
             "plan_name": "Gói Dùng Thử",
             "is_authenticated": False,
-            "is_admin": False
+            "is_admin": False,
+            "client_headers": client_headers
         }
         
     token = credentials.credentials
     try:
         payload = decode_jwt_token(token)
         payload["is_authenticated"] = True
+        payload["client_headers"] = client_headers
         return payload
     except HTTPException:
         raise
@@ -210,7 +236,8 @@ def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depen
             "plan": "free",
             "plan_name": "Gói Dùng Thử",
             "is_authenticated": False,
-            "is_admin": False
+            "is_admin": False,
+            "client_headers": client_headers
         }
 
 def require_admin_user(user: dict = Depends(get_current_user)) -> dict:
@@ -238,15 +265,43 @@ def require_admin_or_reseller(user: dict = Depends(get_current_user)) -> dict:
     if user.get("role") != "reseller":
         raise HTTPException(status_code=403, detail="Yêu cầu quyền Quản trị viên hoặc Cộng tác viên (Reseller) để tạo mã key.")
     return user
-def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[dict]:
+def get_optional_user(request: Request = None, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[dict]:
     """Dependency to get authenticated user if token is provided, or None if unauthenticated."""
+    client_headers = extract_client_device_headers(request)
     if not credentials or not credentials.credentials:
+        if client_headers:
+            return {
+                "sub": "guest",
+                "name": "Khách dùng thử",
+                "email": "",
+                "role": "guest",
+                "status": "active",
+                "plan": "free",
+                "plan_name": "Gói Dùng Thử",
+                "is_authenticated": False,
+                "is_admin": False,
+                "client_headers": client_headers
+            }
         return None
     try:
         payload = decode_jwt_token(credentials.credentials)
         payload["is_authenticated"] = True
+        payload["client_headers"] = client_headers
         return payload
     except Exception:
+        if client_headers:
+            return {
+                "sub": "guest",
+                "name": "Khách dùng thử",
+                "email": "",
+                "role": "guest",
+                "status": "active",
+                "plan": "free",
+                "plan_name": "Gói Dùng Thử",
+                "is_authenticated": False,
+                "is_admin": False,
+                "client_headers": client_headers
+            }
         return None
 
 def require_zotero_user(user: dict = Depends(get_current_user)) -> dict:

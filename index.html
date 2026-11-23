@@ -3424,8 +3424,8 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 22px;">⚙️</span>
         <div>
-          <h3 style="color: var(--text-primary, #fff); font-size: 17px; font-weight: 800; margin: 0;">Cài Đặt Hệ Thống & Khóa API</h3>
-          <p style="font-size: 11.5px; color: var(--text-muted, #94a3b8); margin: 2px 0 0 0;">Cấu hình AI, Zotero, kho lưu trữ và tối ưu giao diện hiển thị</p>
+          <h3 style="color: var(--text-primary, #fff); font-size: 17px; font-weight: 800; margin: 0;">Cài Đặt Hệ Thống &amp; Khóa API</h3>
+          <p style="font-size: 11.5px; color: #67e8f9; margin: 2px 0 0 0;">🔒 Khóa API được lưu độc quyền trên thiết bị này (localStorage) · Không lưu lên GitHub</p>
         </div>
       </div>
       <button class="btn btn-secondary btn-sm modal-close-btn" onclick="App.closeSettingsModal()" style="padding: 4px 8px; font-size: 13px;">✕</button>
@@ -3782,9 +3782,14 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
     </div>
 
     <!-- Modal Footer Actions -->
-    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-      <button class="btn btn-secondary modal-close-btn" onclick="App.closeSettingsModal()">Hủy</button>
-      <button class="btn btn-primary" onclick="App.saveSettings()">💾 Lưu Cài Đặt</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 14px; flex-wrap: wrap; gap: 10px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="App.clearAllDeviceApiKeys()" style="font-size: 11.5px; color: #fca5a5; border-color: rgba(239, 68, 68, 0.35);">
+        🗑️ Xóa Toàn Bộ API Khỏi Thiết Bị
+      </button>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary modal-close-btn" onclick="App.closeSettingsModal()">Hủy</button>
+        <button class="btn btn-primary" onclick="App.saveSettings()">💾 Lưu Cài Đặt Vào Thiết Bị</button>
+      </div>
     </div>
   </div>
 </div>

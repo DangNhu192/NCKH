@@ -259,6 +259,13 @@ def load_user_config(user_or_dict: Optional[dict] = None) -> Dict[str, Any]:
             except Exception:
                 pass
 
+    # Ưu tiên cao nhất: Ghi đè/bổ sung bằng cấu hình API gửi kèm từ thiết bị của người dùng (Device Headers)
+    client_headers = user_dict.get("client_headers")
+    if isinstance(client_headers, dict):
+        for k, v in client_headers.items():
+            if v and isinstance(v, str) and v.strip():
+                config[k] = v.strip()
+
     return config
 
 def save_user_config(arg1: Any, arg2: Optional[Any] = None, user: Optional[dict] = None) -> Dict[str, Any]:

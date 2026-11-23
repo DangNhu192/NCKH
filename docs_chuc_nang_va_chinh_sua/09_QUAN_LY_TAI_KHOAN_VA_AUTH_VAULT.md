@@ -53,3 +53,11 @@
     1. Bọc an toàn toàn bộ module mật mã `modules/auth/vault_crypto_engine.py` với cơ chế Pure-Python Stream Cipher khi thiếu thư viện `cryptography`.
     2. Cập nhật `api/index.py` với middleware CORS toàn diện (hỗ trợ đầy đủ các phương thức HTTP và preflight `OPTIONS`), bổ sung endpoint chẩn đoán khởi động `/api/debug-startup`.
     3. Cấu hình `vercel.json` sạch sẽ chuẩn Rewrites chuyển tiếp `/api` và `/api/*` về `api/index.py`, bảo vệ tuyệt đối không làm ảnh hưởng đến tài nguyên tĩnh của giao diện Web Super.
+
+- **Yêu cầu 9 (2026-11-23 - Kiến Trúc Lưu Trữ API Key Theo Thiết Bị - Device-First Storage & Zero Git Secret Leaks):**
+  - *Yêu cầu:* Cho phép người dùng lưu trữ toàn bộ API Keys (Gemini, OpenAI, Zotero User ID, Zotero API Key, ABBYY) và cấu hình Model trực tiếp trên từng thiết bị (Client Browser `localStorage`), không đẩy hoặc lưu khóa nhạy cảm lên GitHub.
+  - *Kết quả xử lý:*
+    1. **Frontend Device Storage & Interceptor:** Toàn bộ API keys được đọc/ghi tại `localStorage` trình duyệt máy người dùng. Cả 2 tầng fetch interceptor trong `static/js/app.js` và `static/js/auth.js` tự động đính kèm các HTTP Headers (`X-Gemini-Api-Key`, `X-OpenAI-Api-Key`, `X-Zotero-Api-Key`, `X-Zotero-User-Id`, `X-Abbyy-Api-Key`, `X-Selected-Gemini-Model`) vào mọi request gọi tới `/api/*`.
+    2. **Giao Diện Modal Cài Đặt:** Thêm huy hiệu bảo mật *"Lưu cục bộ trên thiết bị này · Không lưu lên GitHub/Server"* và nút *"🗑️ Xóa Toàn Bộ API Khỏi Thiết Bị"* tại chân Modal Cài Đặt.
+    3. **Backend Stateless Resolution:** `modules/auth/auth_service.py` trích xuất `client_headers` từ request và `modules/auth/user_config_manager.py` ưu tiên tuyệt đối các header này (precedence cao nhất) trước khi tra cứu file đĩa hay env. Giúp ứng dụng hoạt động 100% không trạng thái (stateless) hoàn hảo trên Vercel Serverless.
+    4. **Kiểm Thử Toàn Diện:** Bộ test `verify_all_modules.py` vượt qua 100% 7 bài test, xác nhận git không lưu bất kỳ credential nhạy cảm nào (`test_07_zero_leakage_check: PASS`).

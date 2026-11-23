@@ -76,8 +76,17 @@ function parseJwtPayload(token) {
           opts.headers['Authorization'] = `Bearer ${token}`;
         }
       }
-      // Gắn thông tin đăng nhập Zotero Cloud (lưu ở trình duyệt) để máy chủ dùng đúng thư viện của người dùng
+      // Gắn thông tin khóa API lưu theo thiết bị (localStorage)
       try {
+        const gk = localStorage.getItem("websuper_gemini_api_key");
+        const ok = localStorage.getItem("websuper_openai_api_key");
+        const ak = localStorage.getItem("websuper_abbyy_api_key");
+        const sm = localStorage.getItem("websuper_selected_model");
+        if (gk) opts.headers['X-Gemini-Api-Key'] = gk;
+        if (ok) opts.headers['X-OpenAI-Api-Key'] = ok;
+        if (ak) opts.headers['X-Abbyy-Api-Key'] = ak;
+        if (sm) opts.headers['X-Selected-Gemini-Model'] = sm;
+
         const zc = JSON.parse(localStorage.getItem("web_super_zotero") || "null");
         const zId = (zc && zc.user_id) || localStorage.getItem("websuper_zotero_user_id");
         const zKey = (zc && zc.api_key) || localStorage.getItem("websuper_zotero_api_key");
