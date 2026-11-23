@@ -1,10 +1,6 @@
 // Main Application Coordinator for WEB SUPER v2.0
-// Smart Backend URL Interceptor for Vercel Cloud & Local Hybrid Mode + Zotero Auto-Auth
+// Smart Backend URL Interceptor for Vercel Cloud & Local Hybrid Mode + Zotero Device Auto-Auth
 (function() {
-  // Tự động gán thông tin Zotero mặc định từ cấu hình đã xác thực nếu chưa có trong LocalStorage
-  if (!localStorage.getItem('websuper_zotero_user_id')) localStorage.setItem('websuper_zotero_user_id', '20886334');
-  if (!localStorage.getItem('websuper_zotero_api_key')) localStorage.setItem('websuper_zotero_api_key', 'CkousIzBeXirlHm9aYxzFT3b');
-
   const originalFetch = window.fetch;
   window.fetch = function(resource, init) {
     init = init || {};
@@ -15,20 +11,26 @@
         resource = `${base}${resource}`;
       }
     }
-    // Tự động nhúng Headers xác thực Zotero Cloud cho toàn bộ các API Zotero
+    // Tự động nhúng Headers xác thực Zotero Cloud lưu theo thiết bị (localStorage)
     if (typeof resource === 'string' && resource.includes('/api/zotero/')) {
-      const zId = localStorage.getItem('websuper_zotero_user_id');
-      const zKey = localStorage.getItem('websuper_zotero_api_key');
-      if (zKey) {
-        init.headers = init.headers || {};
-        if (init.headers instanceof Headers) {
-          if (zId) init.headers.set('X-Zotero-User-Id', zId);
-          init.headers.set('X-Zotero-Api-Key', zKey);
-        } else {
-          if (zId) init.headers['X-Zotero-User-Id'] = zId;
-          init.headers['X-Zotero-Api-Key'] = zKey;
+      try {
+        const zConn = JSON.parse(localStorage.getItem('web_super_zotero') || 'null');
+        const zId = localStorage.getItem('websuper_zotero_user_id') || (zConn ? zConn.user_id : '');
+        const zKey = localStorage.getItem('websuper_zotero_api_key') || (zConn ? zConn.api_key : '');
+        const zLibType = (zConn && zConn.library_type) || localStorage.getItem('websuper_zotero_library_type') || 'user';
+        if (zKey) {
+          init.headers = init.headers || {};
+          if (init.headers instanceof Headers) {
+            if (zId) init.headers.set('X-Zotero-User-Id', String(zId));
+            init.headers.set('X-Zotero-Api-Key', String(zKey));
+            init.headers.set('X-Zotero-Library-Type', String(zLibType));
+          } else {
+            if (zId) init.headers['X-Zotero-User-Id'] = String(zId);
+            init.headers['X-Zotero-Api-Key'] = String(zKey);
+            init.headers['X-Zotero-Library-Type'] = String(zLibType);
+          }
         }
-      }
+      } catch (e) { /* bỏ qua nếu lỗi parse */ }
     }
     return originalFetch.call(this, resource, init);
   };
@@ -547,10 +549,12 @@ const App = {
       if (geminiKeyEl) geminiKeyEl.value = cfg.gemini_api_key || "";
       const openaiKeyEl = document.getElementById("cfg-openai-key");
       if (openaiKeyEl) openaiKeyEl.value = cfg.openai_api_key || "";
+      const zoteroUserEl = document.getElementById("cfg-zotero-username");
+      if (zoteroUserEl) zoteroUserEl.value = localStorage.getItem("websuper_zotero_username") || "";
       const zoteroIdEl = document.getElementById("cfg-zotero-id");
-      if (zoteroIdEl) zoteroIdEl.value = cfg.zotero_user_id || "";
+      if (zoteroIdEl) zoteroIdEl.value = localStorage.getItem("websuper_zotero_user_id") || cfg.zotero_user_id || "";
       const zoteroKeyEl = document.getElementById("cfg-zotero-key");
-      if (zoteroKeyEl) zoteroKeyEl.value = cfg.zotero_api_key || "";
+      if (zoteroKeyEl) zoteroKeyEl.value = localStorage.getItem("websuper_zotero_api_key") || cfg.zotero_api_key || "";
       const abbyyKeyEl = document.getElementById("cfg-abbyy-key");
       if (abbyyKeyEl) abbyyKeyEl.value = cfg.abbyy_api_key || "";
       const abbyyEndpointEl = document.getElementById("cfg-abbyy-endpoint");
@@ -688,6 +692,37 @@ const App = {
   },
 
   async saveSettings() {
+    const zUname = document.getElementById("cfg-zotero-username")?.value.trim() || "";
+    const zId = document.getElementById("cfg-zotero-id")?.value.trim() || "";
+    const zKey = document.getElementById("cfg-zotero-key")?.value.trim() || "";
+    if (zKey) {
+      localStorage.setItem("websuper_zotero_api_key", zKey);
+      if (zId) localStorage.setItem("websuper_zotero_user_id", zId);
+      else localStorage.removeItem("websuper_zotero_user_id");
+      if (zUname) localStorage.setItem("websuper_zotero_username", zUname);
+      else localStorage.removeItem("websuper_zotero_username");
+      try {
+        const prevConn = JSON.parse(localStorage.getItem("web_super_zotero") || "{}");
+        localStorage.setItem("web_super_zotero", JSON.stringify({
+          mode: "cloud",
+          via: "device_settings",
+          user_id: zId,
+          api_key: zKey,
+          username: zUname,
+          library_type: prevConn.library_type || "user",
+          can_write: true
+        }));
+      } catch (e) {}
+    } else {
+      localStorage.removeItem("websuper_zotero_api_key");
+      localStorage.removeItem("websuper_zotero_user_id");
+      localStorage.removeItem("websuper_zotero_username");
+      localStorage.removeItem("web_super_zotero");
+    }
+    if (window.ZoteroUI && ZoteroUI.checkZoteroStatus) {
+      ZoteroUI.checkZoteroStatus();
+    }
+
     const payload = {
       gemini_api_key: document.getElementById("cfg-gemini-key")?.value.trim() || "",
       selected_gemini_model: document.getElementById("cfg-selected-model")?.value || "auto",

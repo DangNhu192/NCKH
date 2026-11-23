@@ -1375,7 +1375,7 @@
                       Tài khoản Zotero: <span id="zotero-connect-state" style="color:#67e8f9;">Đang kiểm tra...</span>
                     </div>
                     <div style="font-size:11.5px; color:#cbd5e1; margin-top:2px;" id="zotero-conn-desc">
-                      Tài khoản Cloud: <strong>DangNhu192</strong> (313 bài báo) · CSDL Máy: <code>zotero.sqlite</code> (373 bài báo)
+                      Lưu trữ cục bộ trên thiết bị này · Hỗ trợ Zotero Cloud &amp; Zotero Desktop
                     </div>
                   </div>
                 </div>
@@ -1383,8 +1383,8 @@
                   <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.loginWeb()" style="font-size:11.5px; font-weight:700;">
                     🌐 Đăng nhập Web
                   </button>
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.toggleKeyForm()" style="font-size:11.5px; font-weight:700;">
-                    🔑 Nhập API Key
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.toggleSettingsForm()" style="font-size:11.5px; font-weight:700;">
+                    ⚙️ Cài Đặt Zotero (Thiết Bị)
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.connectDesktop()" style="font-size:11.5px; font-weight:700;">
                     🖥️ Quét Desktop (Port 23119)
@@ -1397,13 +1397,52 @@
                   </button>
                 </div>
               </div>
-              <div id="zotero-key-form" style="display:none; margin-top:12px; font-size:12.5px; color:#94a3b8; border-top:1px dashed rgba(148,163,184,0.25); padding-top:10px;">
-                <p style="margin:0 0 8px;">Đăng nhập bằng <strong>API key</strong>: Mở <a href="https://www.zotero.org/settings/keys/new" target="_blank" rel="noopener" style="color:#60a5fa;">zotero.org/settings/keys/new</a>, tích <em>Allow library access</em>, bấm <em>Save Key</em> rồi dán key vào đây.</p>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <input type="password" id="zotero-api-key-input" class="form-control" placeholder="Dán Zotero API key (mặc định CkousIzBeXirlHm9aYxzFT3b)..." autocomplete="off" style="flex:1; min-width:260px; font-size:12.5px;">
-                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.submitApiKey()" style="font-weight:700;">✅ Kết nối Cloud</button>
+
+              <!-- FORM CÀI ĐẶT ZOTERO THEO THIẾT BỊ -->
+              <div id="zotero-device-settings-form" style="display:none; margin-top:14px; background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.35); border-radius:10px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid rgba(255,255,200,0.08); padding-bottom:8px;">
+                  <div style="font-size:13.5px; font-weight:700; color:#93c5fd; display:flex; align-items:center; gap:6px;">
+                    <span>⚙️</span> Cài Đặt Tài Khoản Zotero (Lưu Trên Trình Duyệt / Thiết Bị Này)
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.toggleSettingsForm(false)" style="padding:2px 8px; font-size:11px;">✕ Đóng</button>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-bottom:12px;">
+                  <div>
+                    <label style="font-size:11.5px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Zotero Username (Tùy chọn):</label>
+                    <input type="text" id="zotero-username-input" class="form-control" placeholder="Tên người dùng zotero.org..." style="font-size:12.5px;">
+                  </div>
+                  <div>
+                    <label style="font-size:11.5px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">
+                      Zotero User ID: <a href="https://www.zotero.org/settings/keys" target="_blank" rel="noopener" style="color:#60a5fa; font-weight:400; font-size:11px;">(Lấy ID số tại đây ↗)</a>
+                    </label>
+                    <input type="text" id="zotero-user-id-input" class="form-control" placeholder="Ví dụ: 12345678" style="font-size:12.5px;">
+                  </div>
+                  <div style="grid-column: 1 / -1;">
+                    <label style="font-size:11.5px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">
+                      Zotero API Key: <a href="https://www.zotero.org/settings/keys/new" target="_blank" rel="noopener" style="color:#60a5fa; font-weight:400; font-size:11px;">(Tạo key mới tại đây ↗ - Nhớ tích 'Allow library access')</a>
+                    </label>
+                    <input type="password" id="zotero-api-key-input" class="form-control" placeholder="Dán Zotero API Key của bạn..." autocomplete="off" style="font-size:12.5px;">
+                  </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:12px; border-top:1px dashed rgba(255,255,255,0.08); padding-top:12px;">
+                  <div style="font-size:11px; color:#94a3b8; max-width:62%; line-height:1.45;">
+                    🔒 <em>Bảo mật 100%: Thông tin Zotero chỉ lưu trong <code>localStorage</code> trên thiết bị của bạn, <strong>tuyệt đối không lưu trên GitHub</strong>.</em>
+                  </div>
+                  <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroConnect.clearDeviceSettings()" style="font-size:11.5px; color:#fca5a5;">
+                      🗑️ Xóa Khỏi Thiết Bị
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroConnect.saveDeviceSettings()" style="font-size:11.5px; font-weight:700;">
+                      💾 Lưu &amp; Kiểm Tra Kết Nối
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              <!-- Hỗ trợ tương thích ngược id zotero-key-form -->
+              <div id="zotero-key-form" style="display:none;"></div>
               <div id="zotero-desktop-help" style="display:none; margin-top:12px; font-size:12.5px; color:#94a3b8; line-height:1.55;"></div>
               <input type="file" id="zotero-csl-json-input" accept=".json,application/json" style="display:none;" onchange="if(this.files.length) ZoteroConnect.importCslJson(this.files[0]); this.value='';">
             </div>
@@ -3460,18 +3499,22 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
 
     <!-- TAB 2: ZOTERO & LƯU TRỮ -->
     <div id="settings-subtab-storage" class="settings-subtab-pane" style="display: none;">
-      <div class="grid-2" style="margin-bottom: 10px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 10px;">
         <div class="form-group">
-          <label class="form-label" for="cfg-zotero-id" style="font-weight: 700;">Zotero User ID:</label>
-          <input type="text" id="cfg-zotero-id" class="form-control" placeholder="12345678">
+          <label class="form-label" for="cfg-zotero-username" style="font-weight: 700;">Zotero Username (Tùy chọn):</label>
+          <input type="text" id="cfg-zotero-username" class="form-control" placeholder="Tên người dùng zotero.org...">
         </div>
         <div class="form-group">
-          <label class="form-label" for="cfg-zotero-key" style="font-weight: 700;">Zotero API Key (Quyền Ghi):</label>
-          <input type="password" id="cfg-zotero-key" class="form-control" placeholder="API Key...">
+          <label class="form-label" for="cfg-zotero-id" style="font-weight: 700;">Zotero User ID:</label>
+          <input type="text" id="cfg-zotero-id" class="form-control" placeholder="Dạng số, ví dụ: 12345678">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="cfg-zotero-key" style="font-weight: 700;">Zotero API Key:</label>
+          <input type="password" id="cfg-zotero-key" class="form-control" placeholder="Dán API Key Zotero...">
         </div>
       </div>
       <p style="font-size: 11.5px; color: #94a3b8; margin-bottom: 14px; line-height: 1.5;">
-        💡 <em>Để lưu bài báo trực tiếp lên Zotero Cloud: Truy cập <a href="https://www.zotero.org/settings/keys/new" target="_blank" style="color: #60a5fa; text-decoration: underline;">Tạo Key Zotero mới ↗</a> và nhớ <strong>tích chọn "Allow library write access"</strong> (cho phép ghi thư viện). Hệ thống cũng tự động nạp vào Zotero Desktop (.ris) khi ứng dụng đang mở trên máy.</em>
+        🔒 <em>Thông tin Zotero được lưu trực tiếp trên thiết bị này (<code>localStorage</code>), <strong>tuyệt đối không lưu trên GitHub</strong>. Truy cập <a href="https://www.zotero.org/settings/keys/new" target="_blank" style="color: #60a5fa; text-decoration: underline;">Tạo Key Zotero mới ↗</a> (nhớ <strong>tích "Allow library access"</strong>).</em>
       </p>
 
       <!-- Custom Storage Directory -->

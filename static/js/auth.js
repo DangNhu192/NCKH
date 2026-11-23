@@ -79,10 +79,13 @@ function parseJwtPayload(token) {
       // Gắn thông tin đăng nhập Zotero Cloud (lưu ở trình duyệt) để máy chủ dùng đúng thư viện của người dùng
       try {
         const zc = JSON.parse(localStorage.getItem("web_super_zotero") || "null");
-        if (zc && zc.mode === "cloud" && zc.user_id && zc.api_key) {
-          opts.headers['X-Zotero-User-Id'] = String(zc.user_id);
-          opts.headers['X-Zotero-Api-Key'] = String(zc.api_key);
-          opts.headers['X-Zotero-Library-Type'] = zc.library_type || "user";
+        const zId = (zc && zc.user_id) || localStorage.getItem("websuper_zotero_user_id");
+        const zKey = (zc && zc.api_key) || localStorage.getItem("websuper_zotero_api_key");
+        const zLib = (zc && zc.library_type) || localStorage.getItem("websuper_zotero_library_type") || "user";
+        if (zKey) {
+          opts.headers['X-Zotero-User-Id'] = String(zId || "");
+          opts.headers['X-Zotero-Api-Key'] = String(zKey);
+          opts.headers['X-Zotero-Library-Type'] = String(zLib);
         }
       } catch (e) { /* bỏ qua */ }
     }

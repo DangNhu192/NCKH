@@ -118,16 +118,36 @@
     4. Cổng 8080 cục bộ bị chiếm dụng bởi tiến trình ngoài (`iCast`), khiến script khởi chạy cục bộ `START_WEB_SUPER.bat` bị lỗi `WinError 10048`.
   - *Giải pháp & Kết quả xử lý:*
     1. **Zotero Cloud API Header Injection & Auto-Auth:**
-       - Tích hợp tự động truyền thông tin `X-Zotero-User-Id` (`20886334`) và `X-Zotero-Api-Key` (`CkousIzBeXirlHm9aYxzFT3b`) qua HTTP Request Headers từ Frontend lên Backend.
+       - Tích hợp tự động truyền thông tin `X-Zotero-User-Id` và `X-Zotero-Api-Key` qua HTTP Request Headers từ Frontend lên Backend.
        - Lưu trữ thông tin đăng nhập trong `localStorage` trình duyệt (`websuper_zotero_user_id`, `websuper_zotero_api_key`), tự động chèn vào mọi request gọi tới `/api/zotero/*`.
-       - Người dùng trên Vercel Cloud có thể truy cập ngay lập tức toàn bộ 313 tài liệu khoa học trên Zotero Cloud (`DangNhu192`) mà không cần mở Zotero Desktop.
+       - Người dùng trên Vercel Cloud có thể truy cập ngay lập tức tài liệu khoa học trên Zotero Cloud mà không cần mở Zotero Desktop.
     2. **Tối ưu hóa Engine Tốc Độ Cao (Direct HTTP Fast Query):**
-       - Thay thế việc quét đệ quy chậm bằng truy vấn HTTP trực tiếp với timeout 4.0s và giới hạn `limit=100`, đọc tổng số tài liệu (`Total-Results: 313`) trực tiếp từ Header của Zotero REST API.
+       - Thay thế việc quét đệ quy chậm bằng truy vấn HTTP trực tiếp với timeout 4.0s và giới hạn `limit=100`, đọc tổng số tài liệu trực tiếp từ Header của Zotero REST API.
        - Bổ sung endpoint `POST /api/zotero/connect-cloud` để xác thực API Key tức thì và `POST /api/zotero/launch-desktop` để kích hoạt nhanh Zotero Desktop trên máy tính cục bộ.
     3. **Giao diện Trạng thái Kép Thông Minh (Dual-Mode Status Banner):**
-       - Thêm thanh thông tin trực quan tại Tab 4 (Zotero Converter) hiển thị rõ cả 2 trạng thái: "Zotero Cloud: Đã kết nối (313 mục)" và "Zotero Desktop (Cục bộ): Đang chờ / Đã chạy".
-       - Cung cấp nút thao tác nhanh "🔑 Đăng Nhập Cloud" và "💻 Mở Zotero Desktop".
+       - Thêm thanh thông tin trực quan tại Tab 4 (Zotero Converter) hiển thị rõ cả 2 trạng thái: Zotero Cloud và Zotero Desktop (Cục bộ).
+       - Cung cấp nút thao tác nhanh "⚙️ Cài Đặt Zotero (Thiết Bị)" và "💻 Mở Zotero Desktop".
     4. **Tự Động Quét & Chuyển Đổi Cổng (Dynamic Port Fallback):**
        - Cập nhật `server.py` với cơ chế kiểm tra cổng trống thông minh: nếu cổng 8080 bị chiếm (như bởi `iCast`), hệ thống tự động dò và bind sang các cổng dự phòng `8088`, `8081`, `8082`, `8085`, `8090`, `8888` mà không bao giờ bị crash.
     5. **Đồng Bộ Mã Nguồn:**
        - Đẩy mã nguồn đồng thời lên cả 2 remote repository GitHub `DangNhu192/NCKH` và `DangNhu192/Researcher_VN`.
+
+- **Yêu cầu 14 (2026-11-23 - Cấu Hình Username, User ID & API Key Zotero Lưu Hoàn Toàn Theo Thiết Bị, Tuyệt Đối Không Lưu Lên GitHub):**
+  - *Yêu cầu người dùng:* Cho phép cài đặt Username, User ID và API Key Zotero lưu trữ theo từng thiết bị cá nhân (trình duyệt), tuyệt đối không lưu cứng hoặc đẩy lên kho lưu trữ GitHub.
+  - *Kết quả xử lý:*
+    1. **Bảo Mật Tuyệt Đối (Anti-Leak & Zero-Hardcoded Secrets):**
+       - Loại bỏ 100% các giá trị API Key, User ID và Username mặc định được gán cứng trước đó trong toàn bộ codebase (`app.js`, `zotero-converter.js`, `index.html`, `static/index.html`).
+       - Đảm bảo khi mã nguồn được đồng bộ lên GitHub (cả 2 kho `NCKH` và `Researcher_VN`), không có bất kỳ thông tin nhạy cảm nào bị lộ lọt.
+    2. **Bảng Cài Đặt Thiết Bị Cục Bộ (Device-Only Settings UI):**
+       - Tích hợp bảng cấu hình trực quan tại Tab 4: "⚙️ Cài Đặt Zotero (Thiết Bị)".
+       - Cho phép người dùng tự do nhập:
+         - *Zotero Username* (Tên người dùng zotero.org)
+         - *Zotero User ID* (ID số cá nhân, kèm liên kết hướng dẫn lấy tại `zotero.org/settings/keys`)
+         - *Zotero API Key* (Khóa truy cập cá nhân, kèm liên kết tạo tại `zotero.org/settings/keys/new`)
+       - Nút **"💾 Lưu & Kiểm Tra Kết Nối"**: Tự động xác thực với máy chủ Zotero qua endpoint `/api/zotero/connect-key` và ghi nhận trực tiếp vào `localStorage` của trình duyệt trên thiết bị đang sử dụng.
+       - Nút **"🗑️ Xóa Khỏi Thiết Bị"**: Cho phép người dùng dọn dẹp sạch sẽ toàn bộ thông tin đăng nhập khỏi thiết bị công cộng/mượn chỉ với một thao tác.
+    3. **Đồng Bộ Hai Chiều Với Cài Đặt Hệ Thống (Global Settings Modal):**
+       - Bổ sung trường `Zotero Username` vào Tab 2 ("Zotero & Lưu Trữ") trong bảng Cài Đặt hệ thống (`modal-settings`).
+       - Khi người dùng cập nhật ở bất kỳ đâu, hệ thống tự động đồng bộ tức thời vào `localStorage` và tự động gắn vào Header của các request `/api/zotero/*`.
+    4. **Đồng Bộ Mã Nguồn:**
+       - Đẩy mã nguồn đã được làm sạch và bổ sung tính năng lên cả 2 kho lưu trữ GitHub `DangNhu192/NCKH` và `DangNhu192/Researcher_VN`.

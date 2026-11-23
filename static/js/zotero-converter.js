@@ -23,14 +23,15 @@ const ZoteroConnect = window.ZoteroConnect = {
     if (!this.conn) {
       const savedKey = localStorage.getItem("websuper_zotero_api_key");
       const savedUid = localStorage.getItem("websuper_zotero_user_id");
+      const savedUname = localStorage.getItem("websuper_zotero_username");
       if (savedKey) {
         this.conn = {
           mode: "cloud",
-          via: "api_key",
-          user_id: savedUid || "20886334",
+          via: "device_settings",
+          user_id: savedUid || "",
           api_key: savedKey,
-          username: localStorage.getItem("websuper_zotero_username") || "DangNhu192",
-          library_type: "user",
+          username: savedUname || "",
+          library_type: localStorage.getItem("websuper_zotero_library_type") || "user",
           can_write: true
         };
       }
@@ -40,6 +41,9 @@ const ZoteroConnect = window.ZoteroConnect = {
       if (ev.data.conn) {
         this.conn = ev.data.conn;
         this.desktopItems = null;
+        if (ev.data.conn.api_key) localStorage.setItem("websuper_zotero_api_key", ev.data.conn.api_key);
+        if (ev.data.conn.user_id) localStorage.setItem("websuper_zotero_user_id", String(ev.data.conn.user_id));
+        if (ev.data.conn.username) localStorage.setItem("websuper_zotero_username", String(ev.data.conn.username));
         this.toast(`Đã đăng nhập Zotero: ${ev.data.conn.username || ev.data.conn.user_id}`, "success");
       } else if (ev.data.error) {
         this.toast(ev.data.error, "error");
@@ -60,56 +64,135 @@ const ZoteroConnect = window.ZoteroConnect = {
       if (!w) window.location.href = "/api/zotero/oauth/start";
       return;
     }
-    this.showKeyForm(true);
+    this.toggleSettingsForm(true);
   },
 
-  toggleKeyForm() {
-    const f = document.getElementById("zotero-key-form");
-    const isHidden = !f || f.style.display === "none";
-    this.showKeyForm(isHidden);
-    if (isHidden) {
-      const inp = document.getElementById("zotero-api-key-input");
-      if (inp && !inp.value) {
-        inp.value = localStorage.getItem("websuper_zotero_api_key") || "CkousIzBeXirlHm9aYxzFT3b";
-      }
+  toggleSettingsForm(show) {
+    const f = document.getElementById("zotero-device-settings-form") || document.getElementById("zotero-key-form");
+    if (!f) return;
+    const isHidden = (show !== undefined) ? !show : (f.style.display !== "none");
+    f.style.display = isHidden ? "none" : "block";
+    if (!isHidden) {
+      const conn = this.conn || {};
+      const uInp = document.getElementById("zotero-username-input");
+      const idInp = document.getElementById("zotero-user-id-input");
+      const keyInp = document.getElementById("zotero-api-key-input");
+      if (uInp && !uInp.value) uInp.value = localStorage.getItem("websuper_zotero_username") || conn.username || "";
+      if (idInp && !idInp.value) idInp.value = localStorage.getItem("websuper_zotero_user_id") || conn.user_id || "";
+      if (keyInp && !keyInp.value) keyInp.value = localStorage.getItem("websuper_zotero_api_key") || conn.api_key || "";
+      keyInp?.focus();
     }
   },
 
-  showKeyForm(show) {
-    const f = document.getElementById("zotero-key-form");
-    if (f) f.style.display = show ? "block" : "none";
-    if (show) document.getElementById("zotero-api-key-input")?.focus();
+  toggleKeyForm(show) {
+    this.toggleSettingsForm(show);
   },
 
-  async submitApiKey() {
-    const input = document.getElementById("zotero-api-key-input");
-    const key = (input?.value || "").trim();
-    if (!key) return this.toast("Vui lòng dán API key Zotero.", "warning");
+  showKeyForm(show) {
+    this.toggleSettingsForm(show);
+  },
+
+  async saveDeviceSettings() {
+    const uInp = document.getElementById("zotero-username-input");
+    const idInp = document.getElementById("zotero-user-id-input");
+    const keyInp = document.getElementById("zotero-api-key-input");
+
+    const apiKey = (keyInp?.value || "").trim();
+    let userId = (idInp?.value || "").trim();
+    let username = (uInp?.value || "").trim();
+
+    if (!apiKey) {
+      return this.toast("Vui lòng nhập Zotero API Key.", "warning");
+    }
+
+    this.toast("Đang kiểm tra kết nối với máy chủ Zotero...", "info");
     try {
       const res = await fetch("/api/zotero/connect-key", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ api_key: key })
+        body: JSON.stringify({ api_key: apiKey, user_id: userId })
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.detail || `Lỗi ${res.status}`);
-      this.conn = { mode: "cloud", via: "api_key", user_id: data.user_id, api_key: data.api_key, username: data.username, library_type: "user", can_write: data.can_write };
+      if (!res.ok) {
+        throw new Error(data.detail || data.message || `Lỗi ${res.status}`);
+      }
+
+      if (!userId && data.user_id) userId = String(data.user_id);
+      if (!username && data.username) username = String(data.username);
+
+      // Lưu trữ hoàn toàn cục bộ trên thiết bị này (localStorage)
+      localStorage.setItem("websuper_zotero_api_key", apiKey);
+      if (userId) localStorage.setItem("websuper_zotero_user_id", userId);
+      if (username) localStorage.setItem("websuper_zotero_username", username);
+
+      const connObj = {
+        mode: "cloud",
+        via: "device_settings",
+        user_id: userId,
+        api_key: apiKey,
+        username: username,
+        library_type: "user",
+        can_write: Boolean(data.can_write)
+      };
+      this.conn = connObj;
       this.desktopItems = null;
-      if (input) input.value = "";
-      this.showKeyForm(false);
-      this.toast(`Đã kết nối Zotero: ${data.username || data.user_id}`, "success");
+
+      // Đồng bộ vào modal settings nếu có
+      const cfgId = document.getElementById("cfg-zotero-id");
+      const cfgKey = document.getElementById("cfg-zotero-key");
+      const cfgUser = document.getElementById("cfg-zotero-username");
+      if (cfgId) cfgId.value = userId;
+      if (cfgKey) cfgKey.value = apiKey;
+      if (cfgUser) cfgUser.value = username;
+
+      this.toggleSettingsForm(false);
+      this.toast(`✅ Đã lưu cấu hình Zotero thành công trên thiết bị này (${username || userId})!`, "success");
       ZoteroUI.checkZoteroStatus();
     } catch (e) {
-      this.toast(`Không kết nối được Zotero: ${e.message}`, "error");
+      this.toast(`Xác thực Zotero thất bại: ${e.message}`, "error");
     }
   },
 
-  disconnect() {
+  clearDeviceSettings() {
+    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ cấu hình Zotero khỏi trình duyệt trên thiết bị này không?")) {
+      return;
+    }
     this.conn = null;
     this.desktopItems = null;
-    try { sessionStorage.removeItem("web_super_zotero_desktop_items"); } catch (e) { /* bỏ qua */ }
-    this.toast("Đã ngắt kết nối Zotero.", "info");
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      localStorage.removeItem("websuper_zotero_api_key");
+      localStorage.removeItem("websuper_zotero_user_id");
+      localStorage.removeItem("websuper_zotero_username");
+      localStorage.removeItem("websuper_zotero_library_type");
+      sessionStorage.removeItem("web_super_zotero_desktop_items");
+    } catch (e) { /* bỏ qua */ }
+
+    const uInp = document.getElementById("zotero-username-input");
+    const idInp = document.getElementById("zotero-user-id-input");
+    const keyInp = document.getElementById("zotero-api-key-input");
+    if (uInp) uInp.value = "";
+    if (idInp) idInp.value = "";
+    if (keyInp) keyInp.value = "";
+
+    const cfgId = document.getElementById("cfg-zotero-id");
+    const cfgKey = document.getElementById("cfg-zotero-key");
+    const cfgUser = document.getElementById("cfg-zotero-username");
+    if (cfgId) cfgId.value = "";
+    if (cfgKey) cfgKey.value = "";
+    if (cfgUser) cfgUser.value = "";
+
+    this.toggleSettingsForm(false);
+    this.toast("Đã xóa toàn bộ thông tin Zotero khỏi thiết bị này.", "info");
     ZoteroUI.checkZoteroStatus();
+  },
+
+  async submitApiKey() {
+    return this.saveDeviceSettings();
+  },
+
+  disconnect() {
+    this.clearDeviceSettings();
   },
 
   // ---------- Zotero Desktop ----------
@@ -433,9 +516,9 @@ const ZoteroUI = {
       const n = Array.isArray(ZoteroConnect.desktopItems) ? ZoteroConnect.desktopItems.length : 0;
       textEl.innerHTML = n ? `🟢 <strong>Zotero Desktop</strong> (${n} tài liệu)` : "⚠️ Zotero Desktop cần đồng bộ lại";
     } else if (conn && conn.mode === "cloud") {
-      const uname = conn.username || conn.user_id || "DangNhu192";
-      textEl.innerHTML = `☁️ <strong>Zotero Cloud: ${uname}</strong> (${total || 313} tài liệu)`;
-      if (bannerDesc) bannerDesc.innerHTML = `Đã kết nối tài khoản Cloud: <strong>${uname}</strong> (${total || 313} bài báo). Sẵn sàng chuyển đổi &amp; đối soát.`;
+      const uname = conn.username || conn.user_id || "Người dùng";
+      textEl.innerHTML = `☁️ <strong>Zotero Cloud: ${uname}</strong> (${total} tài liệu)`;
+      if (bannerDesc) bannerDesc.innerHTML = `Đã kết nối tài khoản Cloud: <strong>${uname}</strong> (${total} bài báo). Cấu hình lưu trên thiết bị này.`;
     } else if (!data) {
       textEl.innerText = "⚠️ Không kiểm tra được trạng thái Zotero";
     } else if (data.error) {
@@ -444,11 +527,11 @@ const ZoteroUI = {
       textEl.innerHTML = `🟢 <strong>Zotero Desktop Sẵn Sàng</strong> (${total} tài liệu)`;
       if (bannerDesc) bannerDesc.innerHTML = `Đang đọc trực tiếp thư viện <strong>${total} bài báo</strong> từ phần mềm Zotero trên máy tính (Port ${data.desktop_port || 23119}).`;
     } else if (data.has_cloud_config || data.cloud_username) {
-      const userDisp = data.cloud_username || "DangNhu192";
+      const userDisp = data.cloud_username || "Người dùng";
       textEl.innerHTML = `☁️ <strong>Zotero Cloud: ${userDisp}</strong> (${total} tài liệu)`;
       if (bannerDesc) bannerDesc.innerHTML = `Đã đồng bộ trực tuyến <strong>${total} bài báo</strong> từ Zotero Cloud.`;
     } else if (data.server_mode === "cloud") {
-      textEl.innerHTML = `🔌 <strong>Chưa kết nối Zotero</strong> – đăng nhập bên dưới`;
+      textEl.innerHTML = `🔌 <strong>Chưa kết nối Zotero</strong> – bấm Cài Đặt Thiết Bị bên dưới`;
     } else {
       textEl.innerHTML = `📁 <strong>Zotero Cục Bộ</strong> (${total} tài liệu)`;
     }
