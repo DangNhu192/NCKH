@@ -7,24 +7,30 @@ echo ========================================================
 echo        🚀 WEB SUPER v2.0 - ACADEMIC RESEARCH AI
 echo ========================================================
 echo.
-echo [*] Dang khoi dong Web Super Server tai cong 8080...
-echo [*] Trinh duyet se tu dong mo tai: http://127.0.0.1:8080
+echo [*] Dang khoi dong Web Super Server...
 echo.
 
 cd /d "%~dp0"
-start "" "http://127.0.0.1:8080"
 
-REM Kiem tra uv
+REM 1. Uu tien dung moi truong Python ao .venv da cai dat day du 100%% thu vien
+if exist ".venv\Scripts\python.exe" (
+    echo [*] Phat hien moi truong .venv san sang. Dang chay server.py...
+    ".venv\Scripts\python.exe" server.py
+    goto :end
+)
+
+REM 2. Thu dung uv neu co
 set "UV_CMD=uv"
 if exist "%USERPROFILE%\.local\bin\uv.exe" set "UV_CMD=%USERPROFILE%\.local\bin\uv.exe"
 if exist "C:\Users\User\.local\bin\uv.exe" set "UV_CMD=C:\Users\User\.local\bin\uv.exe"
 
-"%UV_CMD%" run --no-project --with fastapi --with uvicorn --with python-multipart --with python-docx --with pypdf --with requests --with pyzotero --with python-dotenv --with google-auth --with pyjwt --with deep-translator --with beautifulsoup4 --with google-generativeai --with matplotlib python server.py
+"%UV_CMD%" run python server.py
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo [*] Thu chay truc tiep bang python...
+    echo [*] Thu chay bang python he thong...
     python server.py
 )
 
+:end
 pause

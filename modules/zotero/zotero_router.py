@@ -1,6 +1,6 @@
 # modules/zotero/zotero_router.py
 from typing import Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Form, Query, Header
 
 from modules.auth.auth_service import require_operational_user, get_current_user
 from modules.zotero.zotero_converter_engine import zotero_converter
@@ -10,8 +10,14 @@ zotero_router = APIRouter(tags=["Zotero Word Dynamic Citation Converter"])
 
 
 @zotero_router.get("/api/zotero/status")
-def get_zotero_status():
+def get_zotero_status(
+    x_zotero_user_id: Optional[str] = Header(None, alias="X-Zotero-User-Id"),
+    x_zotero_api_key: Optional[str] = Header(None, alias="X-Zotero-Api-Key")
+):
     """Kiểm tra trạng thái Zotero Desktop cục bộ (Cổng 23119) và Zotero Cloud API."""
+    if x_zotero_api_key or x_zotero_user_id:
+        zotero_converter._init_zotero(x_zotero_user_id, x_zotero_api_key)
+
     desktop_running = zotero_converter.is_zotero_desktop_running()
     items = zotero_converter.load_library(force=False)
     has_cloud_config = bool(zotero_converter.user_id and zotero_converter.api_key)
@@ -21,10 +27,36 @@ def get_zotero_status():
         "desktop_running": desktop_running,
         "desktop_port": 23119,
         "has_cloud_config": has_cloud_config,
+        "cloud_username": getattr(zotero_converter, "cloud_username", "") or (zotero_converter.user_id if has_cloud_config else ""),
         "library_id": zotero_converter.user_id or "local",
-        "total_library_items": len(items),
+        "total_library_items": len(items) if items else getattr(zotero_converter, "total_cloud_items", 0),
+        "total_cloud_items": getattr(zotero_converter, "total_cloud_items", 0),
         "library_type": zotero_converter.library_type
     }
+
+
+@zotero_router.post("/api/zotero/connect-cloud")
+def connect_zotero_cloud(payload: dict):
+    """Xác thực và kết nối trực tuyến tài khoản Zotero Cloud qua API Key."""
+    api_key = payload.get("api_key", "").strip()
+    user_id = payload.get("user_id", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp Zotero API Key")
+    
+    result = zotero_converter.verify_cloud_credentials(api_key=api_key, user_id=user_id)
+    if not result.get("valid"):
+        raise HTTPException(status_code=400, detail=result.get("message", "Xác thực Zotero thất bại"))
+    return result
+
+
+@zotero_router.post("/api/zotero/launch-desktop")
+def launch_zotero_desktop_app():
+    """Khởi động ứng dụng Zotero Desktop trên máy tính cá nhân."""
+    res = zotero_converter.launch_zotero_desktop()
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("message"))
+    return res
+
 
 
 @zotero_router.post("/api/zotero/convert")
@@ -33,8 +65,12 @@ async def convert_docx_zotero_citations(
     file: UploadFile = File(...),
     mode: Optional[str] = Form(None),
     mode_query: Optional[str] = Query(None, alias="mode"),
+    x_zotero_user_id: Optional[str] = Header(None, alias="X-Zotero-User-Id"),
+    x_zotero_api_key: Optional[str] = Header(None, alias="X-Zotero-Api-Key"),
     user: dict = Depends(require_operational_user)
 ):
+    if x_zotero_api_key or x_zotero_user_id:
+        zotero_converter._init_zotero(x_zotero_user_id, x_zotero_api_key)
     selected_mode = mode or mode_query or "A"
     if not file.filename.lower().endswith(".docx"):
         raise HTTPException(status_code=400, detail="Chỉ hỗ trợ tệp định dạng .docx")

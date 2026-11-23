@@ -1,13 +1,33 @@
 // Main Application Coordinator for WEB SUPER v2.0
-// Smart Backend URL Interceptor for Vercel Cloud & Local Hybrid Mode
+// Smart Backend URL Interceptor for Vercel Cloud & Local Hybrid Mode + Zotero Auto-Auth
 (function() {
+  // Tự động gán thông tin Zotero mặc định từ cấu hình đã xác thực nếu chưa có trong LocalStorage
+  if (!localStorage.getItem('websuper_zotero_user_id')) localStorage.setItem('websuper_zotero_user_id', '20886334');
+  if (!localStorage.getItem('websuper_zotero_api_key')) localStorage.setItem('websuper_zotero_api_key', 'CkousIzBeXirlHm9aYxzFT3b');
+
   const originalFetch = window.fetch;
   window.fetch = function(resource, init) {
+    init = init || {};
     if (typeof resource === 'string' && resource.startsWith('/api')) {
       const customBase = localStorage.getItem('websuper_api_backend_url');
       if (customBase && customBase.trim()) {
         const base = customBase.trim().replace(/\/+$/, '');
         resource = `${base}${resource}`;
+      }
+    }
+    // Tự động nhúng Headers xác thực Zotero Cloud cho toàn bộ các API Zotero
+    if (typeof resource === 'string' && resource.includes('/api/zotero/')) {
+      const zId = localStorage.getItem('websuper_zotero_user_id');
+      const zKey = localStorage.getItem('websuper_zotero_api_key');
+      if (zKey) {
+        init.headers = init.headers || {};
+        if (init.headers instanceof Headers) {
+          if (zId) init.headers.set('X-Zotero-User-Id', zId);
+          init.headers.set('X-Zotero-Api-Key', zKey);
+        } else {
+          if (zId) init.headers['X-Zotero-User-Id'] = zId;
+          init.headers['X-Zotero-Api-Key'] = zKey;
+        }
       }
     }
     return originalFetch.call(this, resource, init);

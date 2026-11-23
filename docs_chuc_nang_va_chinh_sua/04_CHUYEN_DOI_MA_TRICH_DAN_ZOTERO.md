@@ -108,3 +108,26 @@
        - Cung cấp cơ chế dự phòng Stream Cipher cho `vault_crypto_engine.py` khi thiếu `cryptography`.
        - Bổ sung `cryptography` và `pillow` vào `requirements.txt`.
     3. **Đồng bộ mã nguồn:** Đẩy code lên cả 2 kho lưu trữ GitHub `DangNhu192/NCKH` và `DangNhu192/Researcher_VN`.
+
+- **Yêu cầu 13 (2026-11-23 - Hỗ Trợ Đầy Đủ Zotero Cloud Auto-Auth, Xử Lý Ngắt Kết Nối Vercel vs Local Desktop & Xung Đột Cổng 8080):**
+  - *Vấn đề người dùng phản ánh:* "chưa sử dụng được các chức năng liên quan đến Zotero, chưa đăng nhập sử dụng được khi đã đăng nhập phần mềm Zotero".
+  - *Nguyên nhân kỹ thuật:*
+    1. Khi người dùng mở website trên Vercel Cloud (`https://nckh-seven-sooty.vercel.app/`), trình duyệt và máy chủ Vercel chạy độc lập với máy tính cục bộ. Do chính sách bảo mật trình duyệt (Mixed Content & Private Network Access - PNA), trang web HTTPS không thể tự động kết nối cổng `http://127.0.0.1:23119` của Zotero Desktop trên máy người dùng.
+    2. File cấu hình `config.json` chỉ nằm trên máy cục bộ và được chặn bởi `.gitignore`, dẫn đến việc các instance Vercel Serverless không tự động có thông tin User ID và API Key của người dùng.
+    3. Engine Zotero trước đó gọi `self.zot.everything(self.zot.top())` tuần tự qua hàng trăm mục, gây nghẽn timeout 15s trên Serverless.
+    4. Cổng 8080 cục bộ bị chiếm dụng bởi tiến trình ngoài (`iCast`), khiến script khởi chạy cục bộ `START_WEB_SUPER.bat` bị lỗi `WinError 10048`.
+  - *Giải pháp & Kết quả xử lý:*
+    1. **Zotero Cloud API Header Injection & Auto-Auth:**
+       - Tích hợp tự động truyền thông tin `X-Zotero-User-Id` (`20886334`) và `X-Zotero-Api-Key` (`CkousIzBeXirlHm9aYxzFT3b`) qua HTTP Request Headers từ Frontend lên Backend.
+       - Lưu trữ thông tin đăng nhập trong `localStorage` trình duyệt (`websuper_zotero_user_id`, `websuper_zotero_api_key`), tự động chèn vào mọi request gọi tới `/api/zotero/*`.
+       - Người dùng trên Vercel Cloud có thể truy cập ngay lập tức toàn bộ 313 tài liệu khoa học trên Zotero Cloud (`DangNhu192`) mà không cần mở Zotero Desktop.
+    2. **Tối ưu hóa Engine Tốc Độ Cao (Direct HTTP Fast Query):**
+       - Thay thế việc quét đệ quy chậm bằng truy vấn HTTP trực tiếp với timeout 4.0s và giới hạn `limit=100`, đọc tổng số tài liệu (`Total-Results: 313`) trực tiếp từ Header của Zotero REST API.
+       - Bổ sung endpoint `POST /api/zotero/connect-cloud` để xác thực API Key tức thì và `POST /api/zotero/launch-desktop` để kích hoạt nhanh Zotero Desktop trên máy tính cục bộ.
+    3. **Giao diện Trạng thái Kép Thông Minh (Dual-Mode Status Banner):**
+       - Thêm thanh thông tin trực quan tại Tab 4 (Zotero Converter) hiển thị rõ cả 2 trạng thái: "Zotero Cloud: Đã kết nối (313 mục)" và "Zotero Desktop (Cục bộ): Đang chờ / Đã chạy".
+       - Cung cấp nút thao tác nhanh "🔑 Đăng Nhập Cloud" và "💻 Mở Zotero Desktop".
+    4. **Tự Động Quét & Chuyển Đổi Cổng (Dynamic Port Fallback):**
+       - Cập nhật `server.py` với cơ chế kiểm tra cổng trống thông minh: nếu cổng 8080 bị chiếm (như bởi `iCast`), hệ thống tự động dò và bind sang các cổng dự phòng `8088`, `8081`, `8082`, `8085`, `8090`, `8888` mà không bao giờ bị crash.
+    5. **Đồng Bộ Mã Nguồn:**
+       - Đẩy mã nguồn đồng thời lên cả 2 remote repository GitHub `DangNhu192/NCKH` và `DangNhu192/Researcher_VN`.

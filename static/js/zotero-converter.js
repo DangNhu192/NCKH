@@ -135,18 +135,72 @@ const ZoteroUI = {
       const res = await fetch("/api/zotero/status");
       if (res.ok) {
         const data = await res.json();
+        const total = data.total_library_items || data.total_cloud_items || 0;
+        const bannerTitle = document.getElementById("zotero-conn-title");
+        const bannerDesc = document.getElementById("zotero-conn-desc");
+        
         if (data.desktop_running) {
-          textEl.innerHTML = `🟢 <strong>Zotero Desktop Sẵn Sàng</strong> (${data.total_library_items} tài liệu)`;
-        } else if (data.has_cloud_config) {
-          textEl.innerHTML = `☁️ <strong>Zotero Cloud Kết Nối</strong> (${data.total_library_items} tài liệu)`;
+          textEl.innerHTML = `🟢 <strong>Zotero Desktop Sẵn Sàng</strong> (${total} tài liệu)`;
+          if (bannerTitle) bannerTitle.innerHTML = `🟢 Đã Kết Nối Zotero Desktop (Port ${data.desktop_port || 23119})`;
+          if (bannerDesc) bannerDesc.innerHTML = `Đang đọc trực tiếp thư viện <strong>${total} bài báo</strong> từ phần mềm Zotero trên máy tính.`;
+        } else if (data.has_cloud_config || data.cloud_username) {
+          const userDisp = data.cloud_username || "DangNhu192";
+          textEl.innerHTML = `☁️ <strong>Zotero Cloud: ${userDisp}</strong> (${total} tài liệu)`;
+          if (bannerTitle) bannerTitle.innerHTML = `☁️ Đã Kết Nối Zotero Cloud: <strong>${userDisp}</strong>`;
+          if (bannerDesc) bannerDesc.innerHTML = `Đã đồng bộ trực tuyến <strong>${total} bài báo</strong> từ tài khoản Zotero của bạn. Sẵn sàng chuyển đổi &amp; đối soát.`;
         } else {
-          textEl.innerHTML = `📁 <strong>Zotero Cục Bộ</strong> (${data.total_library_items} tài liệu)`;
+          textEl.innerHTML = `⚠️ <strong>Chưa Kết Nối Zotero</strong> (Bấm để đăng nhập)`;
+          if (bannerTitle) bannerTitle.innerHTML = `⚠️ Chưa Kết Nối Zotero`;
+          if (bannerDesc) bannerDesc.innerHTML = `Vui lòng đăng nhập Zotero Cloud bằng API Key hoặc mở Zotero Desktop trên máy để sử dụng.`;
         }
       } else {
-        textEl.innerText = "⚠️ Chưa mở Zotero Desktop";
+        textEl.innerText = "⚠️ Chưa kết nối Zotero";
       }
     } catch (e) {
-      textEl.innerText = "📁 Zotero Sẵn sàng";
+      textEl.innerText = "⚠️ Chưa kết nối Zotero";
+    }
+  },
+
+  async connectZoteroCloud() {
+    const defaultKey = localStorage.getItem("websuper_zotero_api_key") || "CkousIzBeXirlHm9aYxzFT3b";
+    const key = prompt("Nhập Zotero API Key của bạn (hoặc nhấn OK để dùng key mặc định):", defaultKey);
+    if (!key || !key.trim()) return;
+
+    if (window.App) App.toast("Đang xác thực tài khoản với máy chủ Zotero...", "info");
+    try {
+      const res = await fetch("/api/zotero/connect-cloud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ api_key: key.trim() })
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        localStorage.setItem("websuper_zotero_api_key", key.trim());
+        if (data.user_id) localStorage.setItem("websuper_zotero_user_id", String(data.user_id));
+        if (data.username) localStorage.setItem("websuper_zotero_username", String(data.username));
+        if (window.App) App.toast(data.message || "Kết nối Zotero Cloud thành công!", "success");
+        this.checkZoteroStatus();
+      } else {
+        if (window.App) App.toast(data.detail || data.message || "Xác thực Zotero thất bại", "error");
+      }
+    } catch (e) {
+      if (window.App) App.toast("Lỗi kết nối Zotero: " + e.message, "error");
+    }
+  },
+
+  async launchDesktopApp() {
+    if (window.App) App.toast("Đang gửi lệnh khởi động Zotero Desktop...", "info");
+    try {
+      const res = await fetch("/api/zotero/launch-desktop", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (window.App) App.toast(data.message, "success");
+        setTimeout(() => this.checkZoteroStatus(), 3000);
+      } else {
+        if (window.App) App.toast(data.detail || data.message || "Không thể mở Zotero Desktop trên máy này", "warning");
+      }
+    } catch (e) {
+      if (window.App) App.toast("Lưu ý: Mở ứng dụng Desktop yêu cầu chạy Web Super cục bộ trên máy tính.", "warning");
     }
   },
 

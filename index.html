@@ -1365,6 +1365,29 @@
               </div>
             </div>
 
+            <!-- Zotero Connection Status & Quick Login Banner -->
+            <div id="zotero-auth-banner" style="margin-top: 14px; background: linear-gradient(135deg, rgba(30, 58, 138, 0.22) 0%, rgba(15, 23, 42, 0.7) 100%); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 14px 18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <span style="font-size:26px;">🔗</span>
+                  <div>
+                    <div style="font-size:13.5px; font-weight:800; color:#93c5fd;" id="zotero-conn-title">Kết Nối Zotero Desktop &amp; Zotero Cloud</div>
+                    <div style="font-size:11.5px; color:#cbd5e1; margin-top:2px;" id="zotero-conn-desc">
+                      Tài khoản Cloud: <strong>DangNhu192</strong> (313 bài báo) · CSDL Máy: <code>zotero.sqlite</code> (373 bài báo)
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="ZoteroUI.connectZoteroCloud()" style="font-size:11.5px; font-weight:700;">
+                    🔑 Đăng Nhập Cloud
+                  </button>
+                  <button type="button" class="btn btn-primary btn-sm" onclick="ZoteroUI.launchDesktopApp()" style="font-size:11.5px; font-weight:700;">
+                    💻 Mở Zotero Desktop
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- SUBTABS BAR -->
             <div class="mathchem-subtabs" style="display:flex; gap:8px; margin-top:16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top:14px; flex-wrap:wrap;">
               <button type="button" class="btn btn-secondary zotero-subtab-btn active" data-zsubtab="convert" onclick="ZoteroUI.switchSubtab('convert')" style="font-weight:700; font-size:13px; display:flex; align-items:center; gap:6px;">
@@ -3667,6 +3690,17 @@ Hoặc bấm 'AI Gợi Ý Đề Cương Mẫu' để AI tạo dàn ý cho bạn 
         <h4 style="color: #cbd5e1; font-size: 13px; font-weight: 700; margin: 0 0 12px 0;">⚡ Quản Trị Bộ Nhớ Đệm &amp; Hướng Dẫn</h4>
         
         <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 12px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px;">
+            <div style="font-size: 13px; font-weight: 700; color: #93c5fd; margin-bottom: 4px;">🌐 Kết Nối Máy Chủ (Hybrid Cloud / Local Backend)</div>
+            <div style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px;">
+              Mặc định để trống để sử dụng trực tiếp Vercel Cloud Serverless. Khi muốn kết nối ứng dụng đám mây với máy tính cá nhân (để đồng bộ Zotero Desktop nội bộ và không giới hạn thời gian chạy), hãy nhập URL backend tại đây.
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="cfg-api-backend-url" class="form-control" style="font-family: var(--font-mono); font-size: 12px;" placeholder="Ví dụ: http://127.0.0.1:8080 hoặc https://tunnel-domain.app">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('cfg-api-backend-url').value='http://127.0.0.1:8080'" style="white-space: nowrap; font-size: 11px;">Gán Localhost</button>
+            </div>
+          </div>
+
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px;">
             <div>
               <div style="font-size: 12.5px; font-weight: 600; color: #f8fafc;">🔄 Đặt Lại Toàn Bộ Hướng Dẫn Sử Dụng (Onboarding)</div>

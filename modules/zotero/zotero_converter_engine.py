@@ -79,12 +79,14 @@ class ZoteroConverterEngine:
         self.zot = None
         self._cache: List[Dict[str, Any]] = []
         self._cache_loaded = False
+        self.total_cloud_items = 0
+        self.cloud_username = ""
         self._init_zotero()
 
-    def _init_zotero(self):
+    def _init_zotero(self, user_id: str = None, api_key: str = None):
         cfg = _load_config()
-        self.user_id = self.user_id or cfg.get("zotero_user_id", "").strip() or os.environ.get("ZOTERO_USER_ID", "")
-        self.api_key = self.api_key or cfg.get("zotero_api_key", "").strip() or os.environ.get("ZOTERO_API_KEY", "")
+        self.user_id = user_id or self.user_id or cfg.get("zotero_user_id", "").strip() or os.environ.get("ZOTERO_USER_ID", "")
+        self.api_key = api_key or self.api_key or cfg.get("zotero_api_key", "").strip() or os.environ.get("ZOTERO_API_KEY", "")
         self.library_type = self.library_type or cfg.get("zotero_library_type", "user") or os.environ.get("ZOTERO_LIBRARY_TYPE", "user")
 
         if zotero and self.user_id and self.api_key:
@@ -206,20 +208,87 @@ class ZoteroConverterEngine:
             file_mgr.add_log("zotero_sync", f"Đã nạp {len(self._cache)} mục từ cơ sở dữ liệu Zotero Desktop cục bộ")
             return self._cache
 
-        # 2. Fallback sang Pyzotero Cloud
-        if not self.zot:
+        # 2. Fallback sang Zotero Cloud API (Nhanh & Tin cậy, không bị nghẽn timeout)
+        if not (self.user_id and self.api_key):
             self._init_zotero()
-        if self.zot:
+        if self.user_id and self.api_key:
             try:
-                raw_items = self.zot.everything(self.zot.top())
-                self._cache = [it for it in raw_items if it.get("data", {}).get("itemType") not in ["attachment", "note"]]
-                self._cache_loaded = True
-                file_mgr.add_log("zotero_sync", f"Đã nạp {len(self._cache)} mục từ thư viện Zotero Cloud ID {self.user_id}")
-                return self._cache
+                headers = {"Zotero-API-Key": self.api_key}
+                url = f"https://api.zotero.org/users/{self.user_id}/items?limit=100"
+                resp = requests.get(url, headers=headers, timeout=4.0)
+                if resp.status_code == 200:
+                    raw_items = resp.json()
+                    self._cache = [it for it in raw_items if it.get("data", {}).get("itemType") not in ["attachment", "note"]]
+                    self._cache_loaded = True
+                    self.total_cloud_items = int(resp.headers.get("Total-Results", len(self._cache)))
+                    file_mgr.add_log("zotero_sync", f"Đã nạp {len(self._cache)} mục từ Zotero Cloud ID {self.user_id} (Tổng số: {self.total_cloud_items})")
+                    return self._cache
+                else:
+                    file_mgr.add_log("zotero_sync", f"Zotero Cloud API phản hồi HTTP {resp.status_code}")
             except Exception as e:
-                file_mgr.add_log("zotero_sync", f"Lỗi tải Zotero: {e}")
+                file_mgr.add_log("zotero_sync", f"Lỗi tải Zotero Cloud: {e}")
                 
         return self._cache
+
+    def verify_cloud_credentials(self, api_key: str, user_id: str = None) -> dict:
+        """Kiểm tra tính hợp lệ của Zotero API Key và tự động truy xuất User ID & Username"""
+        key = (api_key or "").strip()
+        if not key:
+            return {"valid": False, "message": "API Key không được để trống"}
+        try:
+            r = requests.get(f"https://api.zotero.org/keys/{key}", headers={"Zotero-API-Key": key}, timeout=4.0)
+            if r.status_code == 200:
+                data = r.json()
+                detected_uid = str(data.get("userID", ""))
+                detected_name = data.get("username", "")
+                
+                # Cập nhật cấu hình engine
+                self.api_key = key
+                self.user_id = detected_uid or user_id or self.user_id
+                self.cloud_username = detected_name
+                
+                # Đếm tổng số tài liệu trong thư viện Cloud
+                items_r = requests.get(f"https://api.zotero.org/users/{self.user_id}/items?limit=1", headers={"Zotero-API-Key": key}, timeout=4.0)
+                total = int(items_r.headers.get("Total-Results", 0)) if items_r.status_code == 200 else 0
+                self.total_cloud_items = total
+                
+                return {
+                    "valid": True,
+                    "user_id": self.user_id,
+                    "username": detected_name,
+                    "total_items": total,
+                    "message": f"Kết nối Zotero Cloud thành công! Tìm thấy {total} tài liệu (Tài khoản: {detected_name})."
+                }
+            elif r.status_code == 403:
+                return {"valid": False, "message": "API Key không hợp lệ hoặc đã bị thu hồi trên Zotero.org"}
+            else:
+                return {"valid": False, "message": f"Máy chủ Zotero phản hồi HTTP {r.status_code}"}
+        except Exception as e:
+            return {"valid": False, "message": f"Lỗi kết nối tới api.zotero.org: {str(e)}"}
+
+    def launch_zotero_desktop(self) -> dict:
+        """Khởi chạy ứng dụng Zotero Desktop trên máy tính Windows nếu được cài đặt"""
+        candidate_paths = [
+            Path(r"C:\Program Files\Zotero\zotero.exe"),
+            Path(r"C:\Program Files (x86)\Zotero\zotero.exe"),
+            Path(os.path.expandvars(r"%LOCALAPPDATA%\Programs\Zotero\zotero.exe"))
+        ]
+        exe_path = None
+        for p in candidate_paths:
+            if p.exists():
+                exe_path = p
+                break
+        
+        if not exe_path:
+            return {"success": False, "message": "Không tìm thấy zotero.exe trên máy tính. Vui lòng tải tại zotero.org."}
+        
+        try:
+            import subprocess
+            subprocess.Popen([str(exe_path)], close_fds=True)
+            return {"success": True, "message": f"Đã gửi lệnh mở Zotero Desktop từ: {exe_path}"}
+        except Exception as e:
+            return {"success": False, "message": f"Không thể mở Zotero Desktop: {str(e)}"}
+
 
     def save_item_to_zotero_desktop(self, paper: dict) -> bool:
         """

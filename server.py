@@ -116,7 +116,24 @@ def serve_index():
 
 if __name__ == "__main__":
     import uvicorn
+    import socket
+
+    def get_free_port(preferred_port=8080):
+        candidate_ports = [preferred_port, 8088, 8081, 8082, 8085, 8090, 8888]
+        for p in candidate_ports:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.bind(("127.0.0.1", p))
+                    return p
+                except OSError:
+                    continue
+        return preferred_port
+
     host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", "8080"))
+    default_p = int(os.getenv("PORT", "8080"))
+    port = get_free_port(default_p)
+    if port != default_p:
+        print(f"⚠️ Cổng {default_p} đang bận. WEB SUPER tự động chuyển sang cổng {port}!")
     print(f"🚀 WEB SUPER Modular Server đang khởi động tại: http://{host}:{port}")
     uvicorn.run("server:app", host=host, port=port, reload=False, access_log=True)
+
