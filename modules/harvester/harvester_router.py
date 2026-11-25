@@ -311,7 +311,9 @@ def search_reactome_pathways(payload: dict = Body(...), user: dict = Depends(req
         "status": "success",
         "query": query,
         "count": len(results),
-        "results": results
+        "total_found": len(results),
+        "results": results,
+        "pathways": results
     }
 
 

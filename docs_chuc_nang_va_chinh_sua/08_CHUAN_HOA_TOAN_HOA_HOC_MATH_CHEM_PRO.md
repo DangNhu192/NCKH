@@ -76,3 +76,8 @@
     1. **Tích hợp Quy tắc Diễn giải 4 Thành phần Bắt buộc:** Chống công thức mồ côi; mọi công thức/phương trình sinh ra trong văn bản BẮT BUỘC có 4 yếu tố: (1) Tên gọi, nguồn gốc APA 7th & mục đích, (2) Định nghĩa rõ từng biến số, (3) Đơn vị đo lường chuẩn khoa học, và (4) Ý nghĩa môi trường/kinh tế thực chứng.
     2. **Đồng bộ hóa Ký hiệu Hóa học Run-level DOM:** Bảo toàn 100% mã trường Zotero XML khi định dạng Subscript/Superscript cho 109+ hợp chất và ion môi trường.
     3. **Chuẩn hóa số thập phân tiếng Việt:** Bắt buộc dùng dấu phẩy cho số thập phân (`1,5; 28,5%`), dấu chấm cho hàng nghìn (`1.000; 50.000`), giữ nguyên dấu chấm cho số thứ tự mục (`1.1.`, `2.1.`).
+- **Yêu cầu 10 (2026-11-25 - Tổng Duyệt Mã Nguồn Math-Chem Pro & PubChem 2D Resolver):**
+  - *Kết quả xử lý:*
+    1. Khắc phục lỗi thiếu dấu đóng ngoặc `}` tại hàm `openInDocxEditor(relPath)` trong `static/js/math-chem-pro.js` và kết nối trực tiếp với `window.DocEditor.loadFileDirect(relPath)`.
+    2. Đồng bộ hóa `POST /api/math-chem/pubchem-resolve` và `PubChemService.resolve_compound()` hỗ trợ cả `chemical_query` và `name`, trả về `resolved: True` cùng các trường phẳng (`cid`, `molecular_formula`, `molecular_weight`, `iupac_name`, `canonical_smiles`, `inchikey`).
+    3. Hỗ trợ tham số `?redirect=true` trên `GET /api/math-chem/pubchem-image/{cid}` để hiển thị trực tiếp thẻ `<img src="...">` cấu trúc 2D trên giao diện, đồng thời xử lý an toàn trường hợp `gemini_service.generate_content()` trả về `None` tại `/api/math-chem/generate-interpretation`.

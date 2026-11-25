@@ -1,4 +1,5 @@
 from typing import Optional
+import contextvars
 import os
 import time
 import json
@@ -7,6 +8,21 @@ import jwt
 from pathlib import Path
 from fastapi import HTTPException, Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+_CURRENT_DEVICE_HEADERS: contextvars.ContextVar[dict] = contextvars.ContextVar("_CURRENT_DEVICE_HEADERS", default={})
+
+
+def set_current_device_headers(headers: dict):
+    """Lưu cấu hình API theo thiết bị cho request hiện tại (thread/coroutine-safe)."""
+    _CURRENT_DEVICE_HEADERS.set(headers or {})
+
+
+def get_current_device_headers() -> dict:
+    """Lấy cấu hình API theo thiết bị của request hiện tại."""
+    try:
+        return dict(_CURRENT_DEVICE_HEADERS.get() or {})
+    except Exception:
+        return {}
 
 CONFIG_FILE = Path(__file__).resolve().parent.parent.parent / "config.json"
 USERS_INDEX_FILE = Path(__file__).resolve().parent.parent.parent / "auth_vault" / "users_registry.vault.json"
@@ -198,6 +214,12 @@ def extract_client_device_headers(request: Request = None) -> dict:
             if sm: client_headers["selected_gemini_model"] = sm
         except Exception:
             pass
+    if client_headers:
+        set_current_device_headers(client_headers)
+    else:
+        existing = get_current_device_headers()
+        if existing:
+            client_headers = existing
     return client_headers
 
 

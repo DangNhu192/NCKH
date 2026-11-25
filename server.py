@@ -47,6 +47,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def inject_device_api_headers_middleware(request, call_next):
+    """Tự động trích xuất và lưu cấu hình API theo thiết bị (X-*-Api-Key) vào ContextVar cho toàn bộ chu trình request."""
+    from modules.auth.auth_service import extract_client_device_headers, set_current_device_headers
+    set_current_device_headers({})
+    extract_client_device_headers(request)
+    try:
+        return await call_next(request)
+    finally:
+        set_current_device_headers({})
+
 # --- IMPORT & REGISTER FEATURE ROUTERS (TỪNG MODULE CHỨC NĂNG) ---
 
 from modules.auth.auth_router import auth_router

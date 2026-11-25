@@ -107,6 +107,21 @@ def batch_delete_history_entries(payload: dict = Body(...), user: dict = Depends
     cleared = history_mgr.delete_entries_batch(entry_ids, user_email=user_email)
     return {"status": "success", "deleted_count": cleared}
 
+@history_router.delete("/api/history")
+def delete_all_history_entries(module: str = Query(None), user: dict = Depends(get_current_user)):
+    """Xóa toàn bộ lịch sử hoặc theo một module nhất định (phân quyền theo user)"""
+    user_email = user.get("email") or ""
+    cleared = history_mgr.clear_history(module=module, user_email=user_email)
+    return {"status": "success", "cleared_count": cleared, "deleted_count": cleared}
+
+@history_router.post("/api/history/clear")
+def clear_all_history_entries(payload: dict = Body({}), user: dict = Depends(get_current_user)):
+    """Xóa toàn bộ lịch sử qua POST /api/history/clear"""
+    user_email = user.get("email") or ""
+    module = payload.get("module")
+    cleared = history_mgr.clear_history(module=module, user_email=user_email)
+    return {"status": "success", "cleared_count": cleared, "deleted_count": cleared}
+
 @history_router.post("/api/history/record")
 def record_activity_history(payload: dict = Body(...), user: dict = Depends(get_current_user)):
     user_email = user.get("email") or ""

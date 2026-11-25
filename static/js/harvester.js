@@ -941,6 +941,78 @@ ${errMsg}`);
     } catch (e) {
       App.toast("Lỗi nạp vào Vault: " + e.message, "error");
     }
+  },
+
+  async readPaperWithAi(paperId) {
+    const paper = (this.results || []).find(p => p.id === paperId);
+    if (!paper) {
+      App.toast("Không tìm thấy thông tin bài báo để đọc toàn văn.", "warning");
+      return;
+    }
+    App.toast(`🤖 Đang bóc tách & đọc chuyên sâu bài báo "${paper.title}"...`, "info");
+    try {
+      const res = await fetch("/api/harvest/read-for-ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...((window.AuthManager && AuthManager.token) ? { "Authorization": `Bearer ${AuthManager.token}` } : {})
+        },
+        body: JSON.stringify({ paper_id: paperId, paper_data: paper })
+      });
+      const data = await res.json();
+      if (res.ok && (data.status === "success" || data.rel_path || data.docx_rel_path || data.md_rel_path)) {
+        const cleanRel = (data.md_rel_path || data.docx_rel_path || data.rel_path || "").replace(/\\/g, "/");
+        paper.already_saved = true;
+        paper.is_saved_to_disk = true;
+        paper.rel_path = (data.docx_rel_path || data.rel_path || cleanRel).replace(/\\/g, "/");
+        App.toast(`✅ Đã đọc và chuẩn hóa toàn văn bài báo cho AI (${data.word_count || "đầy đủ"} từ)!`, "success");
+        if (cleanRel && window.App && typeof window.App.openFileInSystem === "function") {
+          window.App.openFileInSystem(cleanRel);
+        }
+        this.renderHarvestResults(this.results);
+      } else {
+        App.toast(data.detail || data.message || "Không thể đọc toàn văn bài báo", "error");
+      }
+    } catch (e) {
+      App.toast("Lỗi đọc toàn văn với AI: " + e.message, "error");
+    }
+  },
+
+  async downloadPaperPdf(paperId) {
+    const paper = (this.results || []).find(p => p.id === paperId);
+    if (!paper) {
+      App.toast("Không tìm thấy thông tin bài báo.", "warning");
+      return;
+    }
+    App.toast(`📥 Đang tải và đóng gói tài liệu "${paper.title}"...`, "info");
+    try {
+      const res = await fetch("/api/harvest/download-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...((window.AuthManager && AuthManager.token) ? { "Authorization": `Bearer ${AuthManager.token}` } : {})
+        },
+        body: JSON.stringify({ paper_id: paperId, paper_data: paper })
+      });
+      const data = await res.json();
+      if (res.ok && (data.status === "success" || data.rel_path || data.docx_rel_path || data.pdf_rel_path)) {
+        const cleanRel = (data.pdf_rel_path || data.docx_rel_path || data.rel_path || "").replace(/\\/g, "/");
+        paper.already_saved = true;
+        paper.is_saved_to_disk = true;
+        paper.rel_path = (data.docx_rel_path || data.rel_path || cleanRel).replace(/\\/g, "/");
+        App.toast("✅ Đã tải tài liệu về kho lưu trữ thành công!", "success");
+        if (cleanRel && window.App && typeof window.App.downloadFile === "function") {
+          window.App.downloadFile(cleanRel);
+        }
+        this.renderHarvestResults(this.results);
+      } else if (paper.pdf_url || paper.source_url) {
+        window.open(paper.pdf_url || paper.source_url, "_blank", "noopener");
+      } else {
+        App.toast(data.detail || data.message || "Không tìm thấy link PDF trực tiếp", "warning");
+      }
+    } catch (e) {
+      App.toast("Lỗi tải PDF: " + e.message, "error");
+    }
   }
 };
 

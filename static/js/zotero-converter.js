@@ -785,7 +785,6 @@ const ZoteroUI = {
         });
 
         const data = await res.json();
-      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (res.ok && data.success) {
           this.lastNormItems = data.items || [];
@@ -843,7 +842,6 @@ const ZoteroUI = {
         });
 
         const data = await res.json();
-      if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (window.App && App.registerInlineFiles) App.registerInlineFiles(data);
         if (res.ok && data.success) {
           this.lastNormItems = data.items || [];

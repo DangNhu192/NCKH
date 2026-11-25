@@ -434,4 +434,18 @@ class HistoryManager:
         self._write_raw([], user_email)
         self._write_sessions_meta({}, user_email)
 
+    def clear_history(self, module: Optional[str] = None, user_email: Optional[str] = None) -> int:
+        entries = self._read_raw(user_email)
+        initial_len = len(entries)
+        if module and module != "all":
+            new_entries = [e for e in entries if e.get("module") != module]
+            cleared = initial_len - len(new_entries)
+            if cleared > 0:
+                self._write_raw(new_entries, user_email)
+            return cleared
+        else:
+            self.clear_all(user_email)
+            return initial_len
+
+
 history_mgr = HistoryManager()

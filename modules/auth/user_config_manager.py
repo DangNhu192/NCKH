@@ -105,7 +105,7 @@ def get_plan_quota(plan: str) -> dict:
     return PLAN_CONFIGS.get(plan, PLAN_CONFIGS["free"])
 
 # Chức năng không gọi AI: không bắt buộc người dùng nhập API key Gemini/OpenAI
-NO_AI_FEATURES = {"zotero"}
+NO_AI_FEATURES = {"zotero", "harvester", "workspace", "history", "notebooklm", "bigquery", "evidence_db"}
 
 def check_user_can_operate(user_dict: dict, user_config: Optional[dict] = None, feature: str = "ai"):
     email = (user_dict.get("email") or "").strip().lower()
@@ -113,6 +113,16 @@ def check_user_can_operate(user_dict: dict, user_config: Optional[dict] = None, 
 
     if email in ADMIN_EMAILS or role == "admin":
         return True, "Quản trị viên có toàn quyền vận hành.", "admin"
+
+    # Kiểm tra xem có API Key theo thiết bị gửi kèm qua HTTP Headers không
+    client_headers = user_dict.get("client_headers") or {}
+    if not client_headers:
+        try:
+            from modules.auth.auth_service import get_current_device_headers
+            client_headers = get_current_device_headers()
+        except Exception:
+            client_headers = {}
+    has_device_ai_key = bool((client_headers.get("gemini_api_key") or "").strip() or (client_headers.get("openai_api_key") or "").strip())
 
     registry = load_user_registry()
     user_record = registry.get(email)
@@ -144,19 +154,13 @@ def check_user_can_operate(user_dict: dict, user_config: Optional[dict] = None, 
     user_plan = user_record.get("plan", "free")
     plan_info = PLAN_CONFIGS.get(user_plan, PLAN_CONFIGS["free"])
 
-    if feature in ["pipeline", "writer", "editorial", "humanizer"] and not plan_info.get("can_use_ai", False):
-        return False, f"Gói hiện tại ({plan_info['name']}) không hỗ trợ chức năng AI này. Vui lòng nâng cấp lên gói Pro hoặc Enterprise.", "plan_restricted"
+    if feature in ["pipeline", "writer", "editorial", "humanizer"] and not plan_info.get("can_use_ai", False) and not has_device_ai_key:
+        return False, f"Gói hiện tại ({plan_info['name']}) không hỗ trợ chức năng AI này. Vui lòng nâng cấp lên gói Pro hoặc Enterprise, hoặc nhập API Key cá nhân.", "plan_restricted"
 
     if feature in NO_AI_FEATURES:
         return True, "Hợp lệ", "ok"
 
-    if plan_info.get("requires_own_api", True):
-        cfg = user_config or load_user_config(user_dict)
-        gemini_key = (cfg.get("gemini_api_key") or "").strip()
-        openai_key = (cfg.get("openai_api_key") or "").strip()
-        if not gemini_key and not openai_key:
-            return False, "Chưa cấu hình API Gemini hoặc OpenAI cá nhân. Vui lòng vào mục Cài Đặt để nhập API Key.", "no_api_key"
-
+    # Người dùng đã đăng nhập hợp lệ: cho phép vận hành với API Key theo thiết bị hoặc chế độ Academic Fallback
     return True, "Hợp lệ", "ok"
 
 def get_user_file_path(user_id: str) -> Path:
@@ -261,6 +265,12 @@ def load_user_config(user_or_dict: Optional[dict] = None) -> Dict[str, Any]:
 
     # Ưu tiên cao nhất: Ghi đè/bổ sung bằng cấu hình API gửi kèm từ thiết bị của người dùng (Device Headers)
     client_headers = user_dict.get("client_headers")
+    if not client_headers:
+        try:
+            from modules.auth.auth_service import get_current_device_headers
+            client_headers = get_current_device_headers()
+        except Exception:
+            client_headers = {}
     if isinstance(client_headers, dict):
         for k, v in client_headers.items():
             if v and isinstance(v, str) and v.strip():
@@ -335,9 +345,6 @@ def list_all_users() -> List[Dict[str, Any]]:
     registry = load_user_registry()
     return list(registry.values())
 
-def list_all_license_keys() -> List[Dict[str, Any]]:
-    return load_license_keys()
-
 def update_user_role_status(email: str, role: Optional[str] = None, status: Optional[str] = None, plan: Optional[str] = None, extend_days: Optional[int] = None) -> dict:
     email = email.lower().strip()
     registry = load_user_registry()
@@ -393,10 +400,11 @@ def list_all_license_keys(filter_creator: Optional[str] = None) -> List[dict]:
         keys = [k for k in keys if k.get("created_by", "").lower() == filter_creator.lower()]
     return keys
 
-def generate_license_key(plan: str, duration_days: int, creator_email: str, note: str = "", max_activations: int = 1) -> dict:
+def generate_license_key(plan: str, duration_days: int, creator_email: str = "", note: str = "", max_activations: int = 1, created_by: str = "") -> dict:
     if plan not in PLAN_CONFIGS:
         raise ValueError(f"Gói '{plan}' không hợp lệ.")
 
+    effective_creator = (creator_email or created_by or "admin@websuper.edu.vn").strip()
     rand_part = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16))
     key_formatted = f"SUPER-{plan.upper()[:3]}-{rand_part[:4]}-{rand_part[4:8]}-{rand_part[8:12]}-{rand_part[12:16]}"
     sig = vault_crypto.sign_license_key(key_formatted, plan, duration_days)
@@ -408,7 +416,9 @@ def generate_license_key(plan: str, duration_days: int, creator_email: str, note
         "plan_name": PLAN_CONFIGS[plan]["name"],
         "duration_days": duration_days,
         "max_activations": max_activations,
-        "created_by": creator_email,
+        "activations_count": 0,
+        "activated_by": [],
+        "created_by": effective_creator,
         "created_at": now_str,
         "status": "unused",
         "used_by": None,
@@ -487,6 +497,13 @@ def activate_license_key(key_string: str, user_email: str) -> dict:
     target_key["used_by"] = user_email
     target_key["used_at"] = now_str
     target_key["expires_after_activation"] = new_exp_str
+    target_key["activations_count"] = int(target_key.get("activations_count", 0)) + 1
+    activated_list = target_key.get("activated_by") or []
+    if not isinstance(activated_list, list):
+        activated_list = []
+    if user_email not in activated_list:
+        activated_list.append(user_email)
+    target_key["activated_by"] = activated_list
     all_keys[target_idx] = target_key
     save_license_keys(all_keys)
 
@@ -516,22 +533,27 @@ def activate_license_key(key_string: str, user_email: str) -> dict:
 def activate_license_key_for_user(user_email: str, key_string: str) -> dict:
     return activate_license_key(key_string, user_email)
 
-def revoke_or_delete_license_key(key_string: str, action: str = "revoke") -> dict:
+def revoke_or_delete_license_key(key_string: str, action: str = "revoke", delete_permanently: Optional[bool] = None, actor_email: str = "") -> dict:
+    if delete_permanently is not None:
+        action = "delete" if delete_permanently else "revoke"
     key_clean = key_string.strip().upper()
     all_keys = load_license_keys()
     found = False
 
     if action == "delete":
-        all_keys = [k for k in all_keys if k.get("key", "").upper() != key_clean]
-        save_license_keys(all_keys)
-        return {"success": True, "message": f"Đã xóa mã key {key_clean}."}
+        new_keys = [k for k in all_keys if k.get("key", "").upper() != key_clean]
+        found = len(new_keys) < len(all_keys)
+        save_license_keys(new_keys)
+        return {"success": True, "deleted": found, "message": f"Đã xóa mã key {key_clean}."}
     else:
         for k in all_keys:
             if k.get("key", "").upper() == key_clean:
                 k["status"] = "revoked"
+                if actor_email:
+                    k["revoked_by"] = actor_email
                 found = True
                 break
         if found:
             save_license_keys(all_keys)
-            return {"success": True, "message": f"Đã thu hồi mã key {key_clean}."}
+            return {"success": True, "revoked": True, "message": f"Đã thu hồi mã key {key_clean}."}
         return {"success": False, "message": "Không tìm thấy mã key."}

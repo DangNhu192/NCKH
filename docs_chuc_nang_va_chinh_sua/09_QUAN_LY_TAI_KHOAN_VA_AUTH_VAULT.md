@@ -61,3 +61,10 @@
     2. **Giao Diện Modal Cài Đặt:** Thêm huy hiệu bảo mật *"Lưu cục bộ trên thiết bị này · Không lưu lên GitHub/Server"* và nút *"🗑️ Xóa Toàn Bộ API Khỏi Thiết Bị"* tại chân Modal Cài Đặt.
     3. **Backend Stateless Resolution:** `modules/auth/auth_service.py` trích xuất `client_headers` từ request và `modules/auth/user_config_manager.py` ưu tiên tuyệt đối các header này (precedence cao nhất) trước khi tra cứu file đĩa hay env. Giúp ứng dụng hoạt động 100% không trạng thái (stateless) hoàn hảo trên Vercel Serverless.
     4. **Kiểm Thử Toàn Diện:** Bộ test `verify_all_modules.py` vượt qua 100% 7 bài test, xác nhận git không lưu bất kỳ credential nhạy cảm nào (`test_07_zero_leakage_check: PASS`).
+
+- **Yêu cầu 10 (2026-11-25 - Tổng Duyệt Toàn Bộ Ứng Dụng Từng Dòng Mã & Đồng Bộ ContextVar Thiết Bị Toàn Trình):**
+  - *Yêu cầu:* Tổng duyệt lại toàn bộ ứng dụng, đi chi tiết từng đoạn mã, từng dòng code, đối chiếu toàn bộ 16 Backend Routers và 20 Frontend JS Controllers để khắc phục triệt để mọi bất đồng bộ.
+  - *Kết quả xử lý:*
+    1. **Request-Scoped ContextVar Middleware (`server.py`, `modules/auth/auth_service.py`, `modules/shared/gemini_service.py`):** Tích hợp `inject_device_api_headers_middleware` và `_CURRENT_DEVICE_HEADERS` (`ContextVar`), tự động truyền khóa API theo thiết bị (`X-Gemini-Api-Key`, `X-OpenAI-Api-Key`, `X-Zotero-Api-Key`, `X-Zotero-User-Id`, `X-Abbyy-Api-Key`, `X-Selected-Gemini-Model`) xuống mọi tầng engine sâu (`gemini_service._get_api_key()`, `gemini_service.get_active_model()`, `load_user_config()`).
+    2. **Phân quyền SuperAdmin & Quản lý License Key (`modules/admin_needle/admin_router.py`, `user_config_manager.py`, `static/js/auth.js`, `app.js`, `admin.js`, `needle_admin.js`):** Đồng bộ email `nhu.pt368@gmail.com` cùng `admin@websuper.edu.vn` trên toàn bộ các kiểm tra quyền SuperAdmin ở Frontend; chuẩn hóa tham số `creator_email`/`created_by`, trường `activations_count`/`activated_by`, `key_record` và hàm `revoke_or_delete_license_key`.
+    3. **Kiểm Thử Tự Động (`tests/test_device_api_and_system_health.py`):** Vượt qua 100% bộ kiểm thử hồi quy (`test_08_audit_regression_fixes: PASS`).

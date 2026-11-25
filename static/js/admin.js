@@ -10,7 +10,8 @@ const AdminUI = {
     if (window.AuthManager && AuthManager.isLoggedIn && (
       AuthManager.currentUser?.role === "admin" ||
       AuthManager.currentUser?.role === "reseller" ||
-      AuthManager.currentUser?.email === "admin@websuper.edu.vn"
+      AuthManager.currentUser?.email === "admin@websuper.edu.vn" ||
+      AuthManager.currentUser?.email === "nhu.pt368@gmail.com"
     )) {
       this.loadAllData();
     }

@@ -10,7 +10,7 @@ const NeedleAdminUI = (() => {
 
   function init() {
     // Check if current user is admin and run background health check
-    if (window.AuthManager && AuthManager.currentUser && (AuthManager.currentUser.role === 'admin' || AuthManager.currentUser.email === 'admin@websuper.edu.vn')) {
+    if (window.AuthManager && AuthManager.currentUser && (AuthManager.currentUser.role === 'admin' || AuthManager.currentUser.email === 'admin@websuper.edu.vn' || AuthManager.currentUser.email === 'nhu.pt368@gmail.com')) {
       runAudit(false);
     }
   }

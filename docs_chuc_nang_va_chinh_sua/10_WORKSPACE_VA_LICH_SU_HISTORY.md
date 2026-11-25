@@ -66,5 +66,9 @@
   - *Kết quả:*
     - Bổ sung endpoint RESTful `@history_router.delete("/api/history/{entry_id}")` trong `modules/history/history_router.py`, kết nối trực tiếp với `history_mgr.delete_entry(entry_id, user_email)` để người dùng xóa từng bản ghi hoạt động cá nhân nhanh chóng mà không gặp lỗi 404/405.
     - Bổ sung định danh `id="pdf-ocr-btn-export-docx"` và `id="pdf-ocr-btn-ingest"` trong modal PDF Document AI OCR, trang bị cơ chế chống double-click (`btn.disabled = true` + spinner phản hồi lập tức) trong `static/js/pdf-ocr-reader.js`.
+- **Yêu cầu 10 (2026-11-25 - Tổng Duyệt Lịch Sử Thao Tác & Liên Thông PDF OCR ➔ Open-Notebook):**
+  - *Kết quả xử lý:*
+    1. Bổ sung phương thức `clear_history(module, user_email)` tại `modules/history/history_manager.py` và các endpoints `DELETE /api/history` & `POST /api/history/clear` tại `modules/history/history_router.py`, khớp 100% với `HistoryUI.clearAll()` trong `static/js/history.js`.
+    2. Đồng bộ lời gọi `window.NotebookLMUI.onNotebookChange(nbId)` và alias `selectNotebook(nbId)` giữa `static/js/pdf-ocr-reader.js` và `static/js/notebooklm.js`.
 
 

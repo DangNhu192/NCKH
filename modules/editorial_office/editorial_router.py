@@ -116,8 +116,8 @@ def fact_check_academic_manuscript(payload: dict = Body(...), user: dict = Depen
     - Kiểm tra phản hồi HTTP 200 OK của các DOI / URLs.
     - Phát hiện nguồn trích dẫn mồ côi hoặc số liệu nghi vấn bịa đặt.
     """
-    text = payload.get("text", "")
-    if not text or not text.strip():
+    text = (payload.get("text") or payload.get("text_to_check") or payload.get("manuscript") or "").strip()
+    if not text:
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp nội dung bản thảo cần kiểm chứng.")
 
     evidence_claims = payload.get("evidence_claims")
@@ -128,6 +128,34 @@ def fact_check_academic_manuscript(payload: dict = Body(...), user: dict = Depen
         evidence_claims=evidence_claims,
         allowed_dois=allowed_dois
     )
+
+    # Chuẩn hóa cấu trúc dữ liệu để tương thích đồng thời với cả Backend schema và Frontend EditorialOfficeUI
+    claims_details = result.get("claims_details", [])
+    quantitative_claims = [
+        {
+            "claim_text": c.get("sentence", ""),
+            "numbers": c.get("numbers", []),
+            "verified": c.get("status") != "UNVERIFIED_QUANTITATIVE_CLAIM",
+            "status": c.get("status", "VERIFIED")
+        }
+        for c in claims_details
+    ]
+    doi_verification_status = [
+        {
+            "doi": d.get("doi", ""),
+            "resolvable": bool(d.get("resolved", False)),
+            "status": d.get("status", "")
+        }
+        for d in result.get("verified_dois", [])
+    ]
+    flagged_anomalies = [
+        u.get("warning") or u.get("sentence") or "Mệnh đề định lượng thiếu nguồn trích dẫn thực chứng."
+        for u in result.get("unverified_claims", [])
+    ]
+    result["quantitative_claims"] = quantitative_claims
+    result["doi_verification_status"] = doi_verification_status
+    result["flagged_anomalies"] = flagged_anomalies
+    result["verified_claims_percentage"] = result.get("fact_check_score", 100)
 
     history_mgr.add_entry(
         module="editorial",
@@ -140,6 +168,7 @@ def fact_check_academic_manuscript(payload: dict = Body(...), user: dict = Depen
     return {
         "status": "success",
         "data": result,
+        "report": result,
         "message": "Đã hoàn thành kiểm định liêm chính học thuật thực chứng."
     }
 

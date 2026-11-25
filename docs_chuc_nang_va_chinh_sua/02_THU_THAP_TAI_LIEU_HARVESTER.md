@@ -145,3 +145,8 @@
     2. **Thẻ Explorer Chuyên Dụng:** Bổ sung giao diện Thẻ Tra Cứu Đường Dẫn Sinh Học & Phản Ứng (Reactome Pathways Explorer) với Quick Search Chips: Chuyển hóa Nitơ, Amoni, Chu trình Lưu huỳnh, Giải độc Kim loại nặng, Đường phân.
     3. **Nạp Thẳng Vào Vault:** Nút "📥 Thêm Vào Vault" chuyển dữ liệu đường dẫn sinh học và số lượng phản ứng hóa sinh trực tiếp sang Evidence Vault phục vụ Academic Writer.
     4. **Kiểm thử:** 100% test case trong `tests/test_reactome_service.py` đạt trạng thái PASS.
+- **Yêu cầu 17 (2026-11-25 - Tổng Duyệt & Đồng Bộ Toàn Diện Harvester, Reactome & Evidence Vault):**
+  - *Kết quả xử lý:*
+    1. Đồng bộ cấu trúc phản hồi `POST /api/harvester/reactome-search` trả về cả `results`/`pathways` và `count`/`total_found` khớp 100% với `static/js/harvester.js`.
+    2. Bổ sung route `POST /api/evidence-db/extract-and-feed` tại `modules/pipeline/evidence_db_router.py` hỗ trợ nạp trực tiếp đường dẫn sinh học Reactome (`text_content`, `document_id`, `metadata`) vào Evidence Vault.
+    3. Hoàn thiện 2 hàm `HarvesterUI.readPaperWithAi(paperId)` và `HarvesterUI.downloadPaperPdf(paperId)` trong `static/js/harvester.js` kết nối trực tiếp với `/api/harvest/read-for-ai` và `/api/harvest/download-pdf`.

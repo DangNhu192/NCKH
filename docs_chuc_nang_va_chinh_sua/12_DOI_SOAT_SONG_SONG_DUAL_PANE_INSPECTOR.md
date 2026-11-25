@@ -77,3 +77,5 @@ Nhằm giữ cho bản thảo học thuật IMRaD và danh mục tài liệu tha
   - **Khắc phục tạo file khởi chạy:** Bổ sung lệnh ghi tệp `Khoi_Chay_Doi_Soat.bat` trong hàm `package_standalone_bundle()`.
   - **Chuẩn hóa đối tượng trả về:** Xây dựng lớp `BundleResult(dict)` vừa hoạt động trọn vẹn như một dictionary (phục vụ `pipeline_engine`), vừa hỗ trợ phương thức `.exists()` khi kiểm tra đường dẫn thư mục gói đóng gói.
   - **Kết quả kiểm thử:** Toàn bộ 9/9 tests của module đạt 100% PASS.
+- **Ngày 25/11/2026 (Tổng Duyệt Mã Nguồn Stream PDF HTTP 206 Range):**
+  - Bổ sung `import re` tại đầu tệp `modules/inspector/inspector_router.py` phục vụ xử lý `Range: bytes=...` trong endpoint `GET /api/inspector/stream-pdf/{filename}`, đảm bảo phát luồng PDF 206 Partial Content không lỗi.

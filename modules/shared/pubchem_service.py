@@ -86,6 +86,35 @@ class PubChemService:
         }
     }
 
+    def _format_resolved_response(self, source: str, entry: Dict[str, Any], resolved: bool = True) -> Dict[str, Any]:
+        cid = entry.get("cid")
+        formula = entry.get("formula") or entry.get("molecular_formula")
+        mw = entry.get("molecular_weight")
+        iupac = entry.get("iupac_name")
+        smiles = entry.get("smiles") or entry.get("canonical_smiles")
+        inchikey = entry.get("inchikey")
+        env_role = entry.get("environmental_role", "")
+        return {
+            "status": "success",
+            "resolved": resolved,
+            "source": source,
+            "cid": cid,
+            "name": entry.get("name"),
+            "formula": formula,
+            "molecular_formula": formula,
+            "molecular_weight": mw,
+            "iupac_name": iupac,
+            "smiles": smiles,
+            "canonical_smiles": smiles,
+            "inchikey": inchikey,
+            "environmental_role": env_role,
+            "data": {
+                **entry,
+                "molecular_formula": formula,
+                "canonical_smiles": smiles
+            }
+        }
+
     def resolve_compound(self, name_or_formula: str) -> Dict[str, Any]:
         """
         Phân giải tên hoặc công thức hóa học sang mã PubChem CID và các thuộc tính lý hóa.
@@ -100,11 +129,7 @@ class PubChemService:
         # 1. Kiểm tra cache nội bộ trước
         for k, entry in self.CURATED_CHEMICAL_CACHE.items():
             if k == clean_key or k == term or term in entry["name"].lower():
-                return {
-                    "status": "success",
-                    "source": "curated_cache",
-                    "data": entry
-                }
+                return self._format_resolved_response("curated_cache", entry, resolved=True)
 
         # 2. Thử truy vấn online PUG REST API
         encoded_name = urllib.parse.quote(term)
@@ -121,10 +146,9 @@ class PubChemService:
                     props = data.get("PropertyTable", {}).get("Properties", [])
                     if props:
                         p = props[0]
-                        return {
-                            "status": "success",
-                            "source": "pubchem_api",
-                            "data": {
+                        return self._format_resolved_response(
+                            "pubchem_api",
+                            {
                                 "cid": p.get("CID"),
                                 "name": name_or_formula,
                                 "formula": p.get("MolecularFormula"),
@@ -133,16 +157,16 @@ class PubChemService:
                                 "smiles": p.get("CanonicalSMILES"),
                                 "inchikey": p.get("InChIKey"),
                                 "environmental_role": f"Hợp chất hóa học chuẩn hóa quốc tế (PubChem CID: {p.get('CID')})."
-                            }
-                        }
+                            },
+                            resolved=True
+                        )
         except Exception as e:
             logger.info(f"PubChem online lookup failed for '{name_or_formula}' ({e}), using academic estimation.")
 
         # 3. Fallback ước lượng học thuật
-        return {
-            "status": "success",
-            "source": "academic_fallback",
-            "data": {
+        return self._format_resolved_response(
+            "academic_fallback",
+            {
                 "cid": None,
                 "name": name_or_formula,
                 "formula": name_or_formula.upper(),
@@ -151,8 +175,9 @@ class PubChemService:
                 "smiles": None,
                 "inchikey": None,
                 "environmental_role": "Thực thể hóa học nghiên cứu thực nghiệm."
-            }
-        }
+            },
+            resolved=True
+        )
 
     def get_structure_image_url(self, cid: int, image_type: str = "png") -> str:
         """Trả về URL hình ảnh cấu trúc phân tử 2D độ phân giải cao từ PubChem."""

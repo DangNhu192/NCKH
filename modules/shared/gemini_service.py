@@ -61,15 +61,32 @@ class GeminiService:
         self._model_429_until: Dict[str, float] = {}
 
     def _get_config(self) -> dict:
+        cfg = {}
         if CONFIG_FILE.exists():
             try:
                 with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    cfg = json.load(f)
             except Exception:
                 pass
-        return {}
+        try:
+            from modules.auth.auth_service import get_current_device_headers
+            device_headers = get_current_device_headers()
+            if isinstance(device_headers, dict):
+                for k, v in device_headers.items():
+                    if v and isinstance(v, str) and v.strip():
+                        cfg[k] = v.strip()
+        except Exception:
+            pass
+        return cfg
 
     def _get_api_key(self) -> str:
+        try:
+            from modules.auth.auth_service import get_current_device_headers
+            device_key = (get_current_device_headers().get("gemini_api_key") or "").strip()
+            if device_key:
+                return device_key
+        except Exception:
+            pass
         key = os.getenv("GEMINI_API_KEY", "").strip()
         if not key:
             cfg = self._get_config()

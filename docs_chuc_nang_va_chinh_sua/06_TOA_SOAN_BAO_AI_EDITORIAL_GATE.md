@@ -89,6 +89,10 @@
     2. **Scorecard Thẩm Định Thực Chứng:** Render thẻ kết quả với: Số lượng khẳng định định lượng bóc tách được, số mã DOI tra cứu với trạng thái `HTTP 200 OK`, số dị biệt/cảnh báo, và danh sách trích đoạn câu văn kèm dấu chân số liệu chi tiết.
     3. **Bảo Đảm Liêm Chính Tuyệt Đối:** Tuân thủ Quy tắc Bất biến 1 (Evidence First & Zero Fabrication) và quy chuẩn trích dẫn APA 7th ĐH Đồng Tháp.
     4. **Kiểm Thử:** Đạt 100% PASS trên toàn bộ test suite `test_academic_fact_checker.py`.
+- **Yêu cầu 10 (2026-11-25 - Tổng Duyệt & Chuẩn Hóa Giao Thức Fact-Checker Giữa Frontend & Backend):**
+  - *Kết quả xử lý:*
+    1. Nâng cấp `POST /api/editorial/fact-check` (`modules/editorial_office/editorial_router.py`) tiếp nhận đồng thời cả `text`, `text_to_check` và `manuscript`.
+    2. Đồng bộ hóa cấu trúc trả về cả `data` và `report` kèm các trường chuẩn hóa (`quantitative_claims`, `doi_verification_status`, `flagged_anomalies`, `verified_claims_percentage`), hiển thị hoàn hảo trên Scorecard của `static/js/editorial-office.js`.
 
 
 

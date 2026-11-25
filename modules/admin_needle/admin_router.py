@@ -84,11 +84,12 @@ def admin_create_key(payload: dict = Body(...), user: dict = Depends(require_adm
         duration_days=duration_days,
         max_activations=max_activations,
         note=note,
-        created_by=user.get("email", "admin")
+        creator_email=user.get("email", "admin")
     )
     return {
         "success": True,
-        "key": key_obj
+        "key": key_obj,
+        "key_record": key_obj
     }
 
 @admin_router.post("/api/admin/license-keys/revoke")
@@ -98,12 +99,12 @@ def admin_revoke_key_body(payload: dict = Body(...), user: dict = Depends(requir
     if not key:
         raise HTTPException(status_code=400, detail="Thiếu mã key cần thu hồi.")
     res = revoke_or_delete_license_key(key, delete_permanently=delete, actor_email=user.get("email", ""))
-    return {"success": res}
+    return res
 
 @admin_router.delete("/api/admin/keys/{key}")
 def admin_revoke_or_delete_key(key: str, delete: bool = False, user: dict = Depends(require_admin_or_reseller)):
     res = revoke_or_delete_license_key(key, delete_permanently=delete, actor_email=user.get("email", ""))
-    return {"success": res}
+    return res
 
 @admin_router.get("/api/admin/plans")
 def admin_get_plans():

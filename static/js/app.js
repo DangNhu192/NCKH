@@ -343,7 +343,7 @@ const App = {
     if (tabId === "admin-tab") {
       const email = (user?.email || "").toLowerCase().trim();
       const role = (user?.role || "").toLowerCase().trim();
-      const isSuperAdmin = (email === "admin@websuper.edu.vn");
+      const isSuperAdmin = (email === "admin@websuper.edu.vn" || email === "nhu.pt368@gmail.com" || role === "admin");
       const isReseller = (role === "reseller");
       const isAllowedAdmin = auth && auth.isLoggedIn && (isSuperAdmin || isReseller);
       if (!isAllowedAdmin) {

@@ -129,7 +129,9 @@ Phong cách viết: Học thuật, chuẩn mực, khúc chiết, mạch lạc (k
 Chỉ trả về trực tiếp đoạn văn diễn giải tiếng Việt có dấu, không kèm lời chào hỏi hay tiêu đề phụ."""
 
         gemini_res = gemini_service.generate_content(prompt)
-        interpretation_text = gemini_res.get("text", "").strip() if isinstance(gemini_res, dict) else str(gemini_res).strip()
+        interpretation_text = (gemini_res.get("text", "").strip() if isinstance(gemini_res, dict) else str(gemini_res or "").strip())
+        if interpretation_text.lower() == "none":
+            interpretation_text = ""
         
         if not interpretation_text:
             interpretation_text = f"Phương trình mô tả động thái biến thiên và quan hệ hàm số giữa các thông số cốt lõi trong hệ thống. Các biến số được chuẩn hóa theo đơn vị đo lường tiêu chuẩn, phản ánh định lượng cơ chế tương tác và cung cấp cơ sở tin cậy cho việc mô hình hóa thực nghiệm."
@@ -471,20 +473,23 @@ def resolve_chemical_substance(payload: dict):
     - CID, SMILES, InChIKey, IUPAC Name, Khối lượng phân tử.
     - Cung cấp dữ liệu chuẩn hóa cho nghiên cứu thổ nhưỡng, hóa chất BVTV, nông nghiệp, môi trường.
     """
-    name = payload.get("name", "")
-    if not name or not name.strip():
+    name = (payload.get("name") or payload.get("chemical_query") or payload.get("query") or "").strip()
+    if not name:
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp tên hoặc công thức hóa học cần tra cứu.")
 
-    res = pubchem_service.resolve_compound(name.strip())
+    res = pubchem_service.resolve_compound(name)
     return res
 
 
 @math_chem_router.get("/pubchem-image/{cid}")
-def get_chemical_structure_image(cid: int):
+def get_chemical_structure_image(cid: int, redirect: bool = False):
     """Lấy URL hình ảnh cấu trúc phân tử 2D độ nét cao từ PubChem."""
     if not cid:
         raise HTTPException(status_code=400, detail="CID không hợp lệ.")
     image_url = pubchem_service.get_structure_image_url(cid)
+    if redirect:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=image_url)
     return {
         "status": "success",
         "cid": cid,

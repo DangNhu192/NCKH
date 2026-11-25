@@ -71,6 +71,10 @@ const NotebookLMUI = {
     await this.loadNotebookDetails(notebookId);
   },
 
+  async selectNotebook(notebookId) {
+    return this.onNotebookChange(notebookId);
+  },
+
   async loadNotebookDetails(notebookId) {
     if (!notebookId) return;
     try {

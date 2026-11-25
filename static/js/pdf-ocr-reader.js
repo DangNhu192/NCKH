@@ -364,7 +364,11 @@ const PdfOcrUI = (() => {
       if (window.App) App.toast(`🎉 Đã nạp thành công '${res.source ? res.source.title : 'Tài liệu'}' (${res.chunks_added || 0} chunks)!`, 'success');
       
       if (window.NotebookLMUI && window.NotebookLMUI.activeNotebookId === nbId) {
-        window.NotebookLMUI.selectNotebook(nbId);
+        if (typeof window.NotebookLMUI.onNotebookChange === "function") {
+          window.NotebookLMUI.onNotebookChange(nbId);
+        } else if (typeof window.NotebookLMUI.selectNotebook === "function") {
+          window.NotebookLMUI.selectNotebook(nbId);
+        }
       }
     } catch (e) {
       if (window.App) App.toast(`Lỗi: ${e.message}`, 'error');

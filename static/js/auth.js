@@ -22,8 +22,8 @@ function parseJwtPayload(token) {
     const payload = JSON.parse(jsonStr);
     const email = (payload.email || payload.sub || "").toLowerCase().trim();
     
-    // Strict Admin check: ONLY admin@websuper.edu.vn is admin
-    if (email === "admin@websuper.edu.vn") {
+    // Strict Admin check: admin@websuper.edu.vn or nhu.pt368@gmail.com
+    if (email === "admin@websuper.edu.vn" || email === "nhu.pt368@gmail.com") {
       payload.role = "admin";
       payload.plan = "enterprise";
       payload.is_admin = true;
@@ -41,7 +41,7 @@ function parseJwtPayload(token) {
       while (base64.length % 4) base64 += '=';
       const payload = JSON.parse(decodeURIComponent(escape(atob(base64))));
       const email = (payload.email || payload.sub || "").toLowerCase().trim();
-      if (email === "admin@websuper.edu.vn") {
+      if (email === "admin@websuper.edu.vn" || email === "nhu.pt368@gmail.com") {
         payload.role = "admin";
         payload.plan = "enterprise";
         payload.is_admin = true;
@@ -420,7 +420,7 @@ const AuthManager = {
     if (adminNav) {
       const email = (this.currentUser?.email || "").toLowerCase().trim();
       const role = (this.currentUser?.role || "").toLowerCase().trim();
-      const isSuperAdmin = (email === "admin@websuper.edu.vn");
+      const isSuperAdmin = (email === "admin@websuper.edu.vn" || email === "nhu.pt368@gmail.com" || role === "admin");
       const isReseller = (role === "reseller");
       const isAllowedAdmin = isAuthed && (isSuperAdmin || isReseller);
       if (isAllowedAdmin) {
@@ -457,7 +457,7 @@ const AuthManager = {
     if (!container) return;
 
     if (this.currentUser) {
-      const isAdmin = this.currentUser.role === "admin" || this.currentUser.email === "admin@websuper.edu.vn" || this.currentUser.email === "superadmin@local";
+      const isAdmin = this.currentUser.role === "admin" || this.currentUser.email === "admin@websuper.edu.vn" || this.currentUser.email === "nhu.pt368@gmail.com" || this.currentUser.email === "superadmin@local";
       container.innerHTML = `
         <div class="user-profile-badge">
           <img src="${this.currentUser.picture || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(this.currentUser.name)}" class="user-avatar" alt="Avatar">

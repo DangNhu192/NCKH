@@ -26,6 +26,7 @@ evidence_db_router = APIRouter(tags=["Empirical Evidence Database & Document Ext
 
 
 @evidence_db_router.post("/api/evidence-db/extract-provided-documents")
+@evidence_db_router.post("/api/evidence-db/extract-and-feed")
 async def extract_provided_documents(
     payload: dict = Body(...),
     user: dict = Depends(require_operational_user)
@@ -37,9 +38,21 @@ async def extract_provided_documents(
     - Thống kê định lượng số lượng trang, từ, luận điểm, bảng số liệu theo từng tài liệu.
     - Tạo lập Cơ sở dữ liệu Thực chứng (Empirical Evidence Database) lưu trữ vĩnh viễn (.json và .docx).
     """
-    topic = payload.get("topic", "").strip() or "Nghiên cứu Thực nghiệm"
+    topic = (
+        payload.get("topic", "").strip()
+        or payload.get("title", "").strip()
+        or (payload.get("metadata", {}) or {}).get("title", "").strip()
+        or "Nghiên cứu Thực nghiệm"
+    )
     provided_docs = payload.get("documents", [])
-    scan_workspace = payload.get("scan_workspace", True)
+    raw_text = payload.get("raw_text") or payload.get("text_content") or ""
+    if raw_text and not provided_docs:
+        doc_id = payload.get("document_id") or f"{payload.get('source_type', 'Reactome')}_{topic[:40].replace(' ', '_')}"
+        provided_docs = [{
+            "filename": f"{doc_id}.md",
+            "content": raw_text
+        }]
+    scan_workspace = payload.get("scan_workspace", not bool(raw_text))
     save_docx = payload.get("save_docx_report", True)
 
     docs_to_process = []

@@ -767,7 +767,9 @@ const MathChemProUI = (() => {
   }
 
   function openInDocxEditor(relPath) {
-    if (window.DocxEditorUI && typeof window.DocxEditorUI.loadDocxFromWorkspace === 'function') {
+    if (window.DocEditor && typeof window.DocEditor.loadFileDirect === 'function') {
+      window.DocEditor.loadFileDirect(relPath);
+    } else if (window.DocxEditorUI && typeof window.DocxEditorUI.loadDocxFromWorkspace === 'function') {
       if (window.App && typeof window.App.switchTab === 'function') {
         window.App.switchTab('workspace-tab');
       }
@@ -777,6 +779,8 @@ const MathChemProUI = (() => {
     } else if (window.App && typeof window.App.switchTab === 'function') {
       window.App.switchTab('workspace-tab');
     }
+  }
+
   let _lastPubChemData = null;
 
   function quickSearchPubChem(term) {
@@ -846,13 +850,14 @@ const MathChemProUI = (() => {
     const resultBox = document.getElementById('mathchem-pubchem-result-box');
     if (!resultBox) return;
 
-    const cid = data.cid || 'N/A';
-    const formula = data.molecular_formula || 'N/A';
-    const mw = data.molecular_weight !== undefined ? `${data.molecular_weight} g/mol` : 'N/A';
-    const iupac = data.iupac_name || data.name || 'N/A';
-    const smiles = data.canonical_smiles || 'N/A';
-    const inchiKey = data.inchikey || 'N/A';
-    const imgUrl = `/api/math-chem/pubchem-image/${encodeURIComponent(cid)}`;
+    const cid = data.cid || (data.data && data.data.cid) || 'N/A';
+    const formula = data.molecular_formula || data.formula || (data.data && data.data.formula) || 'N/A';
+    const mwVal = data.molecular_weight !== undefined && data.molecular_weight !== null ? data.molecular_weight : (data.data && data.data.molecular_weight);
+    const mw = mwVal !== undefined && mwVal !== null ? `${mwVal} g/mol` : 'N/A';
+    const iupac = data.iupac_name || data.name || (data.data && data.data.iupac_name) || 'N/A';
+    const smiles = data.canonical_smiles || data.smiles || (data.data && data.data.smiles) || 'N/A';
+    const inchiKey = data.inchikey || (data.data && data.data.inchikey) || 'N/A';
+    const imgUrl = `/api/math-chem/pubchem-image/${encodeURIComponent(cid)}?redirect=true`;
 
     resultBox.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:14px;">

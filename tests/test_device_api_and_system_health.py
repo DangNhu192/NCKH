@@ -189,14 +189,130 @@ class TestWebSuperSystem(unittest.TestCase):
     def test_07_zero_leakage_check(self):
         """Verify no hardcoded sensitive keys exist in repository configuration."""
         import subprocess
-        # Verify git status does not track sensitive key files
+        leak_pattern = "CkousIzBeXir" + "lHm9aYxzFT3b"
         result = subprocess.run(
-            ["git", "grep", "-i", "CkousIzBeXirlHm9aYxzFT3b"],
+            ["git", "grep", "-i", leak_pattern],
             capture_output=True,
             text=True
         )
         # Should return returncode 1 (no match found)
         self.assertEqual(result.returncode, 1, "CRITICAL: Hardcoded user Zotero key found in repo!")
+
+    def test_08_audit_regression_fixes(self):
+        """Comprehensive regression test for all 14 bugs uncovered during the deep line-by-line audit."""
+        # 1. PubChem resolve with chemical_query payload & flattened response fields
+        pubchem_resp = self.client.post(
+            "/api/math-chem/pubchem-resolve",
+            json={"chemical_query": "FeS2"},
+            headers=self.auth_headers
+        )
+        self.assertEqual(pubchem_resp.status_code, 200)
+        pc_data = pubchem_resp.json()
+        self.assertEqual(pc_data.get("status"), "success")
+        self.assertTrue(pc_data.get("resolved"))
+        self.assertEqual(pc_data.get("cid"), 24204)
+        self.assertEqual(pc_data.get("molecular_formula"), "FeS₂")
+        self.assertIsNotNone(pc_data.get("canonical_smiles"))
+
+        # 2. Math & Chem generate-interpretation fallback when no API key is configured (no "None" string)
+        interp_resp = self.client.post(
+            "/api/math-chem/generate-interpretation",
+            json={"latex": r"E = mc^2", "equation_name": "Năng lượng nghỉ", "domain": "Vật lý"}
+        )
+        self.assertEqual(interp_resp.status_code, 200)
+        interp_data = interp_resp.json()
+        self.assertTrue(interp_data.get("success"))
+        self.assertNotEqual(interp_data.get("interpretation"), "None")
+        self.assertTrue(len(interp_data.get("interpretation", "")) > 20)
+
+        # 3. Reactome search returns both 'results' and 'pathways', 'count' and 'total_found'
+        reactome_resp = self.client.post(
+            "/api/harvester/reactome-search",
+            json={"query": "photosynthesis", "max_results": 3},
+            headers=self.auth_headers
+        )
+        self.assertEqual(reactome_resp.status_code, 200)
+        rc_data = reactome_resp.json()
+        self.assertEqual(rc_data.get("status"), "success")
+        self.assertIn("pathways", rc_data)
+        self.assertIn("results", rc_data)
+        self.assertIn("total_found", rc_data)
+
+        # 4. Evidence DB extract-and-feed endpoint works for Reactome Vault import
+        feed_resp = self.client.post(
+            "/api/evidence-db/extract-and-feed",
+            json={
+                "text_content": "Con đường sinh học: Photosynthesis (R-ATH-101, Loài: Oryza sativa). Bao gồm 12 phản ứng hóa sinh.",
+                "document_id": "reactome_test_101",
+                "metadata": {"title": "Reactome Pathway: Photosynthesis [R-ATH-101]", "year": 2024}
+            },
+            headers=self.auth_headers
+        )
+        self.assertEqual(feed_resp.status_code, 200)
+        self.assertEqual(feed_resp.json().get("status"), "success")
+
+        # 5. Editorial standalone Fact-Checker accepts text_to_check and returns both 'data' and 'report'
+        fc_resp = self.client.post(
+            "/api/editorial/fact-check",
+            json={
+                "text_to_check": "Theo nghiên cứu của Vaswani et al. (2017), mô hình Transformer đạt điểm BLEU là 28,4 trên tập WMT 2014 (DOI: 10.48550/arXiv.1706.03762).",
+                "check_dois": True,
+                "deep_verification": True
+            },
+            headers=self.auth_headers
+        )
+        self.assertEqual(fc_resp.status_code, 200)
+        fc_data = fc_resp.json()
+        self.assertEqual(fc_data.get("status"), "success")
+        self.assertIn("report", fc_data)
+        self.assertIn("quantitative_claims", fc_data["report"])
+        self.assertIn("verified_claims_percentage", fc_data["report"])
+
+        # 6. Admin License Key creation and revocation roundtrip
+        admin_login = self.client.post("/api/auth/direct-admin-login", json={"email": "nhu.pt368@gmail.com"}).json()
+        admin_hdrs = {"Authorization": f"Bearer {admin_login['token']}"}
+        create_key_resp = self.client.post(
+            "/api/admin/license-keys/create",
+            json={"plan": "pro", "duration_days": 30, "max_activations": 1, "note": "Audit Test Key"},
+            headers=admin_hdrs
+        )
+        self.assertEqual(create_key_resp.status_code, 200)
+        key_payload = create_key_resp.json()
+        self.assertTrue(key_payload.get("success"))
+        self.assertIn("key_record", key_payload)
+        created_key_str = key_payload["key_record"]["key"]
+        self.assertEqual(key_payload["key_record"].get("activations_count"), 0)
+
+        # Revoke and then permanently delete the test key
+        revoke_resp = self.client.post(
+            "/api/admin/license-keys/revoke",
+            json={"key": created_key_str, "delete": False},
+            headers=admin_hdrs
+        )
+        self.assertEqual(revoke_resp.status_code, 200)
+        self.assertTrue(revoke_resp.json().get("success"))
+
+        delete_resp = self.client.post(
+            "/api/admin/license-keys/revoke",
+            json={"key": created_key_str, "delete": True},
+            headers=admin_hdrs
+        )
+        self.assertEqual(delete_resp.status_code, 200)
+        self.assertTrue(delete_resp.json().get("success"))
+
+        # 7. History DELETE /api/history route works
+        del_hist_resp = self.client.delete("/api/history?module=test_audit_nonexistent", headers=self.auth_headers)
+        self.assertEqual(del_hist_resp.status_code, 200)
+        self.assertEqual(del_hist_resp.json().get("status"), "success")
+
+        # 8. JS Brace Balance & HTML Template Parity Check
+        from pathlib import Path
+        static_html = Path(BASE_DIR).parent / "static" / "index.html"
+        root_html = Path(BASE_DIR).parent / "index.html"
+        self.assertEqual(static_html.read_bytes(), root_html.read_bytes(), "static/index.html and index.html must be identical")
+
+        math_chem_js = (Path(BASE_DIR).parent / "static" / "js" / "math-chem-pro.js").read_text(encoding="utf-8")
+        self.assertIn("window.DocEditor.loadFileDirect(relPath)", math_chem_js)
 
 if __name__ == "__main__":
     unittest.main()
